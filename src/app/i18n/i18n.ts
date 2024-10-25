@@ -50,6 +50,8 @@ i18n
                     'user': 'user',
                     'Auto Send': 'Auto Send',
                     'Voice Mode': 'Voice Mode',
+                    'Rename': 'Rename',
+                    'Delete': 'Delete',
                 }
             },
             zh: {
@@ -91,6 +93,8 @@ i18n
                     'user': '用户',
                     'Auto Send': '自动发送',
                     'Voice Mode': '语音模式',
+                    'Rename': '重命名',
+                    'Delete': '删除',
                 }
             },
             // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
@@ -133,6 +137,8 @@ i18n
                     'user': 'ユーザー',
                     'Auto Send': '自動送信',
                     'Voice Mode': '音声モード',
+                    'Rename': '名前を変更',
+                    'Delete': '削除',
                 }
             }
         }

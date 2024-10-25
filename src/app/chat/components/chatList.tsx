@@ -10,6 +10,9 @@ import { SystemMessage } from "./message";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { SiTheconversation } from "react-icons/si";
 import { useTranslation } from "react-i18next";
+import { DropdownMenu } from "@/app/ui-utils/components/DropdownMenu";
+import { TbPencil } from "react-icons/tb";
+import { PiTrashBold } from "react-icons/pi";
 
 
 interface ChatSelectionListProps {
@@ -75,6 +78,7 @@ export function NewChat({ className = "" }: {
 
 export function ChatSelection({ id: chatID, title, className = "", selected = false }: { id: string, title: string, className?: string, selected?: boolean }) {
 
+    const { t } = useTranslation();
     const dispatch = useAppDispatch()
     const [compState, setCompState] = useState<{ type: 'normal', showMoreBtn: boolean } | { type: 'showMore' } | { type: 'titleUnderEdit', titleUnderEdit: string }>({ type: 'normal', showMoreBtn: false })
     const isNormal = (compState.type === 'normal')
@@ -146,20 +150,25 @@ export function ChatSelection({ id: chatID, title, className = "", selected = fa
                 </div>
             }
             {
-                showMore && <>
-                    <div className="absolute right-0 z-10 bg-white border rounded-md">
-                        {/* Dropdown menu items can be added here */}
-                        <div className="p-2 cursor-pointer hover:bg-gray-100" onClick={() => setCompState({ type: 'titleUnderEdit', titleUnderEdit: title })}>
-                            <MdModeEdit className="inline-block mr-1" /> Rename
+                showMore && (
+                    <>
+                        <DropdownMenu
+                            menuItems={[
+                                {
+                                    label: <><TbPencil className="inline-block mr-2" />{t('Rename')}</>,
+                                    onClick: () => setCompState({ type: 'titleUnderEdit', titleUnderEdit: title }),
+                                },
+                                {
+                                    label: <><PiTrashBold className="inline-block mr-2 text-red-500" /><span className="text-red-500">{t('Delete')}</span></>,
+                                    onClick: () => _deleteChat(chatID),
+                                },
+                            ]}
+                        />
+                        <div className="fixed inset-0 bg-white opacity-0"
+                            onClick={() => setCompState({ type: 'normal', showMoreBtn: false })}>
                         </div>
-                        <div className="p-2 cursor-pointer hover:bg-gray-100" onClick={() => _deleteChat(chatID)}>
-                            <MdDelete className="inline-block mr-1" /> Delete
-                        </div>
-                    </div>
-                    <div className="fixed inset-0 bg-white opacity-0"
-                        onClick={() => setCompState({ type: 'normal', showMoreBtn: false })}>
-                    </div>
-                </>
+                    </>
+                )
             }
         </div>
     )
