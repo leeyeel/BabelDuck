@@ -30,7 +30,7 @@ i18n
                     'tooltip': 'Tooltip',
                     'tooltipInfo': 'The tooltip is the text that will be shown when you hover over the icon, like what you see here.',
                     'icon': 'Icon',
-                    'singleCharacterIcon': 'Please use a single character as icon.',
+                    'singleCharacterIcon': 'Please use a single character as icon',
                     'editInstruction': 'Edit Instruction',
                     'customInstruction': 'Custom Instruction',
                     'type': 'Instruction Type',
@@ -63,7 +63,7 @@ i18n
                     'tooltip': '提示文本',
                     'tooltipInfo': '用于在你将鼠标悬停在图标上时显示的文案，就像现在这样的效果',
                     'icon': '图标',
-                    'singleCharacterIcon': '请使用一个字符作为图标。',
+                    'singleCharacterIcon': '请使用一个字符作为图标',
                     'editInstruction': '编辑指令',
                     'customInstruction': '自定义指令',
                     'type': '指令类型',
@@ -77,6 +77,7 @@ i18n
                     'modificationExplanation': '指示 AI 修改你当前的输入内容，当你的输入不为空时才能触发。\n你可以用它来纠正语法错误、润色表达方式，或将你的输入翻译成另一种语言。',
                 }
             },
+            // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
             ja: {
                 translation: {
                     'About': 'について',
