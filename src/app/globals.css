@@ -27,12 +27,20 @@ body {
 }
 
 .custom-scrollbar {
-  scrollbar-width: thin; /* 适用于 Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.5) transparent; /* 适用于 Firefox */
+  scrollbar-width: none; /* 隐藏 Firefox 的滚动条 */
+}
+
+.custom-scrollbar:hover {
+  scrollbar-width: thin; /* 在鼠标悬停时显示细滚动条 */
+  scrollbar-color: rgba(0, 0, 0, 0.5) transparent; /* 设置滚动条颜色 */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 3px; /* 设置滚动条宽度 */
+  width: 0; /* 隐藏 WebKit 浏览器的滚动条 */
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar {
+  width: 3px; /* 在鼠标悬停时显示滚动条 */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
