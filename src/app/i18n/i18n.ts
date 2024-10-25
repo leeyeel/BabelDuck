@@ -42,6 +42,14 @@ i18n
                     'customIconNote': 'Custom icon feature will be available in the future. For now, please use a single character as icon.',
                     'generationExplanation': 'A generation instruction tells the AI to generate a response for you. It can only work when your input is empty.\nTry to keep the instruction concise and specific, telling the AI what the response should be like.',
                     'modificationExplanation': 'A modification instruction tells the AI to modify your current input. It works when your input is not empty.\nYou can use it to correct grammar mistakes, polish your expression, or translate your input into another language.',
+                    'typeMessage': 'Type your message here...',
+                    'sendTips': 'Press Enter to send, Ctrl+Enter to add the message, Shift+Enter to add a new line',
+                    'recordingTips': 'Press Space to start recording, release to stop',
+                    'system': 'system',
+                    'assistant': 'assistant',
+                    'user': 'user',
+                    'Auto Send': 'Auto Send',
+                    'Voice Mode': 'Voice Mode',
                 }
             },
             zh: {
@@ -75,6 +83,14 @@ i18n
                     'customIconNote': '自定义图标功能后续会推出，目前仅支持使用一个字符作为图标',
                     'generationExplanation': '指示 AI 为你生成回复内容，当你的输入为空时才能触发。\n尽量把指令写得简洁和具体一些，指示 AI 生成你想要的回复内容。',
                     'modificationExplanation': '指示 AI 修改你当前的输入内容，当你的输入不为空时才能触发。\n你可以用它来纠正语法错误、润色表达方式，或将你的输入翻译成另一种语言。',
+                    'typeMessage': '在这里输入你的消息...',
+                    'sendTips': '按 Enter 发送，Ctrl+Enter 添加消息，Shift+Enter 换行',
+                    'recordingTips': '按空格开始录音，松开停止',
+                    'system': '系统',
+                    'assistant': '助手',
+                    'user': '用户',
+                    'Auto Send': '自动发送',
+                    'Voice Mode': '语音模式',
                 }
             },
             // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
@@ -109,6 +125,14 @@ i18n
                     'customIconNote': 'カスタムアイコン機能はまもなく利用可能になります。現在は1文字のみをアイコンとして使用してください。',
                     'generationExplanation': '生成指示は、AIにあなたのために応答を生成するよう指示します。それはあなたの入力が空のときにのみ機能します。\n指示は簡潔で具体的にし、AIにどのような応答が欲しいかを伝えてください。',
                     'modificationExplanation': '修正指示は、AIに現在の入力を修正するよう指示します。それはあなたの入力が空でないときに機能します。\n文法ミスの修正、表現の磨き上げ、または入力を別の言語に翻訳するために使用できます。',
+                    'typeMessage': 'ここにメッセージを入力してください...',
+                    'sendTips': 'Enterキーで送信、Ctrl+Enterでメッセージを追加、Shift+Enterで改行',
+                    'recordingTips': 'スペースキーを押して録音開始、離して停止',
+                    'system': 'システム',
+                    'assistant': 'アシスタント',
+                    'user': 'ユーザー',
+                    'Auto Send': '自動送信',
+                    'Voice Mode': '音声モード',
                 }
             }
         }

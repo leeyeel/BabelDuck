@@ -22,6 +22,7 @@ import {
     CustomInputHandlerCreator
 } from "./input-handlers";
 import { Overlay } from "@/app/ui-utils/components/overlay";
+import { useTranslation } from "react-i18next";
 
 export async function reviseMessage(
     messageToRevise: string,
@@ -388,6 +389,7 @@ function TextInput(
         rejectionSignal: number, // Signal to indicate rejection of a revision
     }
 ) {
+    const { t } = useTranslation();
     type typingOrVoiceMode = { type: 'typing' } | { type: 'voiceMode', autoSend: boolean };
     const [inputState, setInputState] = useState<
         | { type: 'noEdit', recoverState: typingOrVoiceMode }
@@ -569,7 +571,11 @@ function TextInput(
         <textarea
             className={`flex-1 p-4 resize-none focus:outline-none ${!isTyping && "cursor-default"}`}
             ref={textAreaRef}
-            placeholder={isTyping ? `Type your message here...\nPress Enter to send, Ctrl+Enter to add the message, Shift+Enter to add a new line` : `Press Space to start recording, release to stop`}
+            placeholder={
+                isTyping
+                    ? `${t('typeMessage')}\n${t('sendTips')}`
+                    : t('recordingTips')
+            }
             value={msg.content} onChange={(e) => setMsg(msg.updateContent(e.target.value))}
             readOnly={!isTyping}
             onKeyUp={(e) => {
@@ -608,9 +614,9 @@ function TextInput(
                         <div className="fixed inset-0 z-10 bg-black opacity-0" onClick={() => setShowRoleMenu(false)}></div>
                         <div className="absolute bottom-full left-0 mb-1 p-2 bg-white border border-gray-300 rounded-lg z-20">
                             {/* Add role options here */}
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.SYSTEM, prev.content)); setShowRoleMenu(false); }}>system</div>
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.ASSISTANT, prev.content)); setShowRoleMenu(false); }}>assistant</div>
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.USER, prev.content)); setShowRoleMenu(false); }}>user</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.SYSTEM, prev.content)); setShowRoleMenu(false); }}>{t('system')}</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.ASSISTANT, prev.content)); setShowRoleMenu(false); }}>{t('assistant')}</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.USER, prev.content)); setShowRoleMenu(false); }}>{t('user')}</div>
                         </div>
                     </>
                 )}
@@ -623,7 +629,7 @@ function TextInput(
                     || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode')
                 )
                     && <label className={`flex items-center mr-2`}>
-                        <span className="mr-1">Auto Send</span>
+                        <span className="mr-1">{t('Auto Send')}</span>
                         <Switch
                             disabled={!isVoiceMode}
                             checked={isVoiceMode && inputState.autoSend
@@ -638,7 +644,7 @@ function TextInput(
                     </label>
                 }
                 <label className="flex items-center mr-2">
-                    <span className="mr-1">Voice Mode</span>
+                    <span className="mr-1">{t('Voice Mode')}</span>
                     <Switch checked={
                         isVoiceMode
                         // while recording and transcribing, keep what was set before
@@ -740,6 +746,8 @@ export function DiffView(
         </div>
     );
 }
+
+
 
 
 
