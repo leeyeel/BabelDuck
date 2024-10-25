@@ -383,7 +383,7 @@ export class CommonRevisionHandler extends InputHandler {
                         <p className="text-gray-400 text-xs italic mt-1">{t('Please use a single character as icon.')}</p> 
                     </div>
 
-                    {/* 按钮 */}
+                    
                     <div className="flex items-center justify-end">
                         <FilledButton
                             className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
@@ -429,7 +429,7 @@ export function CustomInputHandlerCreator({
     inputHandlerAdded: (handler: InputHandler) => void;
 }) {
     const { t } = useTranslation();
-    const [type, setType] = useState<InputHandlerTypes>(InputHandlerTypes.Generation);
+    const [type, setType] = useState<InputHandlerTypes>(InputHandlerTypes.Revision);
     const [instruction, setInstruction] = useState('');
     const [tooltip, setTooltip] = useState('');
     const [icon, setIcon] = useState('');
@@ -437,32 +437,32 @@ export function CustomInputHandlerCreator({
     return (
         <>
             <Overlay onClick={cancelCallback} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 w-[600px] h-auto"> {/* 修改宽度为600px */}
                 <h2 className="text-2xl font-bold mb-4">{t('customInstruction')}</h2>
                 <div className="mb-4">
-                    <label htmlFor="type" className="block text-gray-700 font-bold mb-2">{t('type')}</label> {/* 修改了翻译键 */}
+                    <label htmlFor="type" className="block text-gray-700 font-bold mb-2">{t('type')}</label> 
                     <select
                         id="type"
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         value={type}
                         onChange={(e) => setType(e.target.value as InputHandlerTypes)}
                     >
-                        <option value="generation">{t('generation')}</option> {/* 修改了翻译键 */}
-                        <option value="revision">{t('modification')}</option> {/* 修改了翻译键 */}
+                        <option value="revision">{t('modification')}</option> 
+                        <option value="generation">{t('generation')}</option> 
                     </select>
                     <div className="flex flex-row items-start mt-1">
                         <IoMdInformationCircleOutline className="text-gray-400 mr-2 mt-1" />
                         {type === InputHandlerTypes.Generation && <p className="text-gray-400 text-base italic">
-                            {t('generationExplanation')} {/* 添加了翻译 */}
+                            {t('generationExplanation')} 
                         </p>}
                         {type === InputHandlerTypes.Revision && <p className="text-gray-400 text-base italic">
-                            {t('modificationExplanation')} {/* 添加了翻译 */}
+                            {t('modificationExplanation')} 
                         </p>}
                     </div>
                 </div>
-                {/* 指令输入 */}
+                
                 <div className="mb-4">
-                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('instruction')}</label> {/* 修改了翻译键 */}
+                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('instruction')}</label> 
                     <textarea
                         id="instruction"
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -470,13 +470,13 @@ export function CustomInputHandlerCreator({
                         onChange={(e) => setInstruction(e.target.value)}
                     ></textarea>
                 </div>
-                {/* 提示输入 */}
+
                 <div className="mb-4">
                     <div className="flex flex-row items-center mb-2">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">{t('tooltip')}</label> {/* 修改了翻译键 */}
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">{t('tooltip')}</label> 
                         <IoMdInformationCircleOutline className="text-gray-400" id="tooltip-info" />
                         <Tooltip anchorSelect="#tooltip-info" clickable delayShow={300} delayHide={0} style={{ borderRadius: '0.75rem' }}>
-                            <span>{t('tooltipInfo')}</span> {/* 添加了翻译 */}
+                            <span>{t('tooltipInfo')}</span> 
                         </Tooltip>
                     </div>
                     <input
@@ -487,9 +487,9 @@ export function CustomInputHandlerCreator({
                         onChange={(e) => setTooltip(e.target.value)}
                     ></input>
                 </div>
-                {/* 图标输入 */}
+                
                 <div className="mb-4">
-                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('icon')}</label> {/* 修改了翻译键 */}
+                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('icon')}</label> 
                     <input
                         type="text"
                         id="icon"
@@ -501,12 +501,12 @@ export function CustomInputHandlerCreator({
                             setIcon(value);
                         }}
                     ></input>
-                    <p className="text-gray-400 text-xs italic mt-1">{t('customIconNote')}</p> {/* 修改了翻译键 */}
+                    <p className="text-gray-400 text-xs italic mt-1">{t('customIconNote')}</p> 
                 </div>
-                {/* 按钮 */}
+                
                 <div className="flex items-center justify-end">
                     <TransparentButton className="mr-2" onClick={cancelCallback}>
-                        {t('cancel')} {/* 修改了翻译键 */}
+                        {t('cancel')} 
                     </TransparentButton>
                     <FilledButton onClick={() => {
                         if (type === InputHandlerTypes.Generation) {
@@ -515,7 +515,7 @@ export function CustomInputHandlerCreator({
                             inputHandlerAdded(new CommonRevisionHandler(instruction, tooltip, icon));
                         }
                     }}>
-                        {t('add')} {/* 修改了翻译键 */}
+                        {t('add')} 
                     </FilledButton>
                 </div>
             </div>
