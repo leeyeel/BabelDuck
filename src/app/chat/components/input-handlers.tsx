@@ -6,6 +6,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Tooltip } from "react-tooltip";
 import { Overlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton, TransparentButton } from "@/app/ui-utils/components/button";
+import { useTranslation } from 'react-i18next';
 
 // Define InputHandlerTypes enum
 export enum InputHandlerTypes {
@@ -89,13 +90,28 @@ export class TranslationHandler extends InputHandler {
 
     settingsPanel(): InputHandlerSettingsPanel {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
+            const { t } = useTranslation(); // 添加
+
             const [targetLanguage, setTargetLanguage] = useState(this.targetLanguage);
-            return <div className={`flex flex-col justify-between fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
-                <span className="mb-2"> Translate your input into </span>
-                <input className="border-2 border-gray-300 rounded-md p-2" type="text" id="targetLanguage" value={targetLanguage} onChange={(e) => { setTargetLanguage(e.target.value) }} />
-                <FilledButton className="mt-2 self-end" onClick={() => { updateHandler(new TranslationHandler(targetLanguage)) }}>Save</FilledButton>
-            </div>;
-        }
+            return (
+                <div className={`flex flex-col justify-between fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
+                    <span className="mb-2">{t('Translate your input into')}</span> 
+                    <input
+                        className="border-2 border-gray-300 rounded-md p-2"
+                        type="text"
+                        id="targetLanguage"
+                        value={targetLanguage}
+                        onChange={(e) => { setTargetLanguage(e.target.value) }}
+                    />
+                    <FilledButton
+                        className="mt-2 self-end"
+                        onClick={() => { updateHandler(new TranslationHandler(targetLanguage)) }}
+                    >
+                        {t('Save')}
+                    </FilledButton>
+                </div>
+            );
+        };
         return Root;
     }
 
@@ -192,16 +208,19 @@ export class GrammarCheckingHandler extends InputHandler {
 export class CommonGenerationHandler extends InputHandler {
     settingsPanel(): InputHandlerSettingsPanel {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
+            const { t } = useTranslation(); // 添加
             const [instruction, setInstruction] = useState(this._instruction);
             const [tooltip, setTooltip] = useState(this._tooltip);
             const [icon, setIcon] = useState(this._iconChar);
 
             return (
                 <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
+                    {/* 标题 */}
+                    <h2 className="text-2xl font-bold mb-4">{t('Edit Instruction')}</h2> 
 
                     {/* Instruction */}
                     <div className="mb-4">
-                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">Instruction</label>
+                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('Instruction')}</label>
                         <textarea
                             id="instruction"
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -212,7 +231,7 @@ export class CommonGenerationHandler extends InputHandler {
 
                     {/* Tooltip */}
                     <div className="mb-4">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">Tooltip</label>
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">{t('Tooltip')}</label>
                         <input
                             type="text"
                             id="tooltip"
@@ -224,7 +243,7 @@ export class CommonGenerationHandler extends InputHandler {
 
                     {/* Icon */}
                     <div className="mb-4">
-                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">Icon</label>
+                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('Icon')}</label>
                         <input
                             type="text"
                             id="icon"
@@ -236,14 +255,15 @@ export class CommonGenerationHandler extends InputHandler {
                                 setIcon(value);
                             }}
                         />
-                        <p className="text-gray-400 text-xs italic mt-1">Please use a single character as icon.</p>
+                        <p className="text-gray-400 text-xs italic mt-1">{t('Please use a single character as icon.')}</p>
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex items-center justify-end">
-                        <FilledButton className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
-                            onClick={() => updateHandler(new CommonGenerationHandler(instruction, tooltip, icon))}>
-                            Save
+                        <FilledButton
+                            className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
+                            onClick={() => updateHandler(new CommonGenerationHandler(instruction, tooltip, icon))}
+                        >
+                            {t('Save')}
                         </FilledButton>
                     </div>
                 </div>
@@ -316,6 +336,7 @@ export class CommonRevisionHandler extends InputHandler {
 
     settingsPanel(): InputHandlerSettingsPanel {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
+            const { t } = useTranslation(); // 添加
             const [instruction, setInstruction] = useState(this._instruction);
             const [tooltip, setTooltip] = useState(this._tooltip);
             const [icon, setIcon] = useState(this._iconChar);
@@ -324,7 +345,7 @@ export class CommonRevisionHandler extends InputHandler {
                 <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
                     {/* Instruction */}
                     <div className="mb-4">
-                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">Instruction</label>
+                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('Instruction')}</label> 
                         <textarea
                             id="instruction"
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -335,7 +356,7 @@ export class CommonRevisionHandler extends InputHandler {
 
                     {/* Tooltip */}
                     <div className="mb-4">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">Tooltip</label>
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">{t('Tooltip')}</label> 
                         <input
                             type="text"
                             id="tooltip"
@@ -347,7 +368,7 @@ export class CommonRevisionHandler extends InputHandler {
 
                     {/* Icon */}
                     <div className="mb-4">
-                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">Icon</label>
+                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('Icon')}</label> 
                         <input
                             type="text"
                             id="icon"
@@ -359,14 +380,16 @@ export class CommonRevisionHandler extends InputHandler {
                                 setIcon(value);
                             }}
                         />
-                        <p className="text-gray-400 text-xs italic mt-1">Please use a single character as icon.</p>
+                        <p className="text-gray-400 text-xs italic mt-1">{t('Please use a single character as icon.')}</p> 
                     </div>
 
-                    {/* Buttons */}
+                    {/* 按钮 */}
                     <div className="flex items-center justify-end">
-                        <FilledButton className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
-                            onClick={() => updateHandler(new CommonRevisionHandler(instruction, tooltip, icon))}>
-                            Save
+                        <FilledButton
+                            className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
+                            onClick={() => updateHandler(new CommonRevisionHandler(instruction, tooltip, icon))}
+                        >
+                            {t('Save')} 
                         </FilledButton>
                     </div>
                 </div>
@@ -405,6 +428,7 @@ export function CustomInputHandlerCreator({
     cancelCallback: () => void;
     inputHandlerAdded: (handler: InputHandler) => void;
 }) {
+    const { t } = useTranslation();
     const [type, setType] = useState<InputHandlerTypes>(InputHandlerTypes.Generation);
     const [instruction, setInstruction] = useState('');
     const [tooltip, setTooltip] = useState('');
@@ -414,60 +438,75 @@ export function CustomInputHandlerCreator({
         <>
             <Overlay onClick={cancelCallback} />
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50">
-                {/* type selector */}
-                <h2 className="text-2xl font-bold mb-4">Custom Instruction</h2>
+                <h2 className="text-2xl font-bold mb-4">{t('customInstruction')}</h2>
                 <div className="mb-4">
-                    <label htmlFor="type" className="block text-gray-700 font-bold mb-2">Type</label>
-                    <select id="type" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        value={type} onChange={(e) => setType(e.target.value as InputHandlerTypes)}>
-                        <option value="generation">Generation</option>
-                        <option value="revision">Modification</option>
+                    <label htmlFor="type" className="block text-gray-700 font-bold mb-2">{t('type')}</label> {/* 修改了翻译键 */}
+                    <select
+                        id="type"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={type}
+                        onChange={(e) => setType(e.target.value as InputHandlerTypes)}
+                    >
+                        <option value="generation">{t('generation')}</option> {/* 修改了翻译键 */}
+                        <option value="revision">{t('modification')}</option> {/* 修改了翻译键 */}
                     </select>
                     <div className="flex flex-row items-start mt-1">
                         <IoMdInformationCircleOutline className="text-gray-400 mr-2 mt-1" />
                         {type === InputHandlerTypes.Generation && <p className="text-gray-400 text-base italic">
-                            A generation instruction is to tell the AI to generate a response for you. It can only work while your input is empty. <br />
-                            Try to keep the instruction concise and specific, telling the AI what the response should be like.
+                            {t('generationExplanation')} {/* 添加了翻译 */}
                         </p>}
                         {type === InputHandlerTypes.Revision && <p className="text-gray-400 text-base italic">
-                            A modification instruction is to tell the AI to modify your current input. It can work while your input is not empty. <br />
-                            You can use it to do something like correcting a grammar mistake, polishing your expression, or translating your input into another language.
+                            {t('modificationExplanation')} {/* 添加了翻译 */}
                         </p>}
                     </div>
                 </div>
-                {/* instruction */}
+                {/* 指令输入 */}
                 <div className="mb-4">
-                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">Instruction</label>
-                    <textarea id="instruction" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        value={instruction} onChange={(e) => setInstruction(e.target.value)}></textarea>
+                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('instruction')}</label> {/* 修改了翻译键 */}
+                    <textarea
+                        id="instruction"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={instruction}
+                        onChange={(e) => setInstruction(e.target.value)}
+                    ></textarea>
                 </div>
-                {/* tooltip */}
+                {/* 提示输入 */}
                 <div className="mb-4">
                     <div className="flex flex-row items-center mb-2">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">Tooltip</label>
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">{t('tooltip')}</label> {/* 修改了翻译键 */}
                         <IoMdInformationCircleOutline className="text-gray-400" id="tooltip-info" />
                         <Tooltip anchorSelect="#tooltip-info" clickable delayShow={300} delayHide={0} style={{ borderRadius: '0.75rem' }}>
-                            <span>The tooltip is the text that will be shown when you hover over the icon, like what you see here.</span>
+                            <span>{t('tooltipInfo')}</span> {/* 添加了翻译 */}
                         </Tooltip>
                     </div>
-                    <input type="text" id="tooltip" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        value={tooltip} onChange={(e) => setTooltip(e.target.value)}></input>
+                    <input
+                        type="text"
+                        id="tooltip"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={tooltip}
+                        onChange={(e) => setTooltip(e.target.value)}
+                    ></input>
                 </div>
-                {/* icon */}
+                {/* 图标输入 */}
                 <div className="mb-4">
-                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">Icon</label>
-                    <input type="text" id="icon" maxLength={1} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        placeholder="please enter only one character"
+                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('icon')}</label> {/* 修改了翻译键 */}
+                    <input
+                        type="text"
+                        id="icon"
+                        maxLength={1}
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder={t('enterOneCharacter')}
                         onChange={(e) => {
                             const value = Array.from(e.target.value)[0] || "";
                             setIcon(value);
-                        }}></input>
-                    <p className="text-gray-400 text-xs italic mt-1">Custom icon feature will be available soon. For now, please use a single character as icon.</p>
+                        }}
+                    ></input>
+                    <p className="text-gray-400 text-xs italic mt-1">{t('customIconNote')}</p> {/* 修改了翻译键 */}
                 </div>
-                {/* add button */}
+                {/* 按钮 */}
                 <div className="flex items-center justify-end">
                     <TransparentButton className="mr-2" onClick={cancelCallback}>
-                        Cancel
+                        {t('cancel')} {/* 修改了翻译键 */}
                     </TransparentButton>
                     <FilledButton onClick={() => {
                         if (type === InputHandlerTypes.Generation) {
@@ -476,7 +515,7 @@ export function CustomInputHandlerCreator({
                             inputHandlerAdded(new CommonRevisionHandler(instruction, tooltip, icon));
                         }
                     }}>
-                        Add
+                        {t('add')} {/* 修改了翻译键 */}
                     </FilledButton>
                 </div>
             </div>
