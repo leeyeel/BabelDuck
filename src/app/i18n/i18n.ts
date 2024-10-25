@@ -38,6 +38,20 @@ i18n
                     'Confirm': '确认',
                     'Untitled Chat': '未命名对话',
                 }
+            },
+            ja: {
+                translation: {
+                    'About': 'について',
+                    'New Chat': '新しいチャット',
+                    'Settings': '設定',
+                    'General': '一般',
+                    'Chat': 'チャット',
+                    'Speech': '音声',
+                    'Models': 'モデル',
+                    'Select Your Language': '言語を選択してください',
+                    'Confirm': '確認',
+                    'Untitled Chat': '無題のチャット',
+                }
             }
         }
     });

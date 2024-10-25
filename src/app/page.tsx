@@ -50,6 +50,7 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
             >
               <option value="en">English</option>
               <option value="zh">中文</option>
+              <option value="ja">日本語</option>
             </select>
           </div>
           <FilledButton onClick={handleConfirm} className="w-full py-3 text-lg">
