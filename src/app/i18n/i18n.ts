@@ -23,6 +23,7 @@ i18n
                     'Select Your Language': 'Select Your Language',
                     'Confirm': 'Confirm',
                     'Untitled Chat': 'Untitled Chat',
+                    'Chat {{number}}': 'Chat {{number}}',
                 }
             },
             zh: {
@@ -37,6 +38,7 @@ i18n
                     'Select Your Language': '选择您的语言',
                     'Confirm': '确认',
                     'Untitled Chat': '未命名对话',
+                    'Chat {{number}}': '对话 {{number}}',
                 }
             },
             ja: {
@@ -51,6 +53,7 @@ i18n
                     'Select Your Language': '言語を選択してください',
                     'Confirm': '確認',
                     'Untitled Chat': '無題のチャット',
+                    'Chat {{number}}': 'チャット {{number}}',
                 }
             }
         }

@@ -1,6 +1,7 @@
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
+import i18n from '@/app/i18n/i18n';
 
 export function LoadChatSelectionListFromLocalStorage(): {
     chatSelectionList: ChatSelection[], currentSelectedChatID?: string
@@ -85,7 +86,7 @@ export function persistMessageUpdateInChat(chatID: string, messageID: number, up
     const messageListJSON = localStorage.getItem(`chat_${chatID}`);
     const messageList: string[] = messageListJSON ? JSON.parse(messageListJSON) : [];
 
-    // 检查消息ID是否存在
+    // 检查消ID是否存在
     if (messageID < 0 || messageID >= messageList.length) {
         console.error("Invalid message ID");
         return;
@@ -99,8 +100,16 @@ export function persistMessageUpdateInChat(chatID: string, messageID: number, up
 }
 
 
+// 新增计数器管理函数
+export function getNextChatCounter(): number {
+    let chatCounter = parseInt(localStorage.getItem('chatCounter') || '0', 10);
+    chatCounter += 1;
+    localStorage.setItem('chatCounter', chatCounter.toString());
+    return chatCounter;
+}
+
 export function AddNewChat(
-    chatTitle: string = "New Chat",
+    chatTitle: string,
     initialMessageList: Message[] = []
 ): {
     chatSelection: ChatSelection,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { AddNewChat, type ChatSelection, ChatSelectionListLoader, UpdateChatTitle, deleteChatData } from "../lib/chat";
+import { AddNewChat, type ChatSelection, ChatSelectionListLoader, UpdateChatTitle, deleteChatData, getNextChatCounter } from "../lib/chat";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { FiMoreHorizontal } from "react-icons/fi";
@@ -51,19 +51,26 @@ export function NewChat({ addNewChat: addNewChat2, className = "" }: {
     addNewChat: AddNewChat, className?: string
 }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch()
+    const dispatch = useAppDispatch();
+    
     const handleClick = () => {
-        const chatSelection = addNewChat2(t('Untitled Chat'), [
+        const counter = getNextChatCounter();
+        const chatTitle = t('Chat {{number}}', { number: counter });
+        const chatSelection = addNewChat2(chatTitle, [
             new SystemMessage("You're a helpful assistant.")
-        ])
-        dispatch(addNewChat(chatSelection.chatSelection))
-    }
+        ]);
+        dispatch(addNewChat(chatSelection.chatSelection));
+    };
 
-    return <div className={`flex flex-row py-2 pl-3 items-center cursor-pointer rounded-md hover:bg-gray-200 ${className}`}
-        onClick={handleClick}>
-        <FaPlus className="mr-3" />
-        <span>{t('New Chat')}</span>
-    </div>
+    return (
+        <div
+            className={`flex flex-row py-2 pl-3 items-center cursor-pointer rounded-md hover:bg-gray-200 ${className}`}
+            onClick={handleClick}
+        >
+            <FaPlus className="mr-3" />
+            <span>{t('New Chat')}</span>
+        </div>
+    );
 }
 
 export function ChatSelection({ id: chatID, title, className = "", selected = false }: { id: string, title: string, className?: string, selected?: boolean }) {
