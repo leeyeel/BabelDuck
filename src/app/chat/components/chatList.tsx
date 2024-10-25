@@ -47,16 +47,16 @@ export function ChatSelectionList({ chatSelectionListLoader, className = "" }: C
 
 }
 
-export function NewChat({ addNewChat: addNewChat2, className = "" }: {
-    addNewChat: AddNewChat, className?: string
+export function NewChat({ className = "" }: {
+    className?: string
 }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    
+
     const handleClick = () => {
         const counter = getNextChatCounter();
         const chatTitle = t('Chat {{number}}', { number: counter });
-        const chatSelection = addNewChat2(chatTitle, [
+        const chatSelection = AddNewChat(chatTitle, [
             new SystemMessage("You're a helpful assistant.")
         ]);
         dispatch(addNewChat(chatSelection.chatSelection));

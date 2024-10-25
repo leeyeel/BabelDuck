@@ -1,7 +1,6 @@
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
-import i18n from '@/app/i18n/i18n';
 
 export function LoadChatSelectionListFromLocalStorage(): {
     chatSelectionList: ChatSelection[], currentSelectedChatID?: string

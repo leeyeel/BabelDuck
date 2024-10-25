@@ -2,7 +2,7 @@
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
 import { ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { AddNewChat, LoadChatByIDFromLocalStorage, LoadChatSelectionListFromLocalStorage } from "./chat/lib/chat";
+import { LoadChatByIDFromLocalStorage, LoadChatSelectionListFromLocalStorage } from "./chat/lib/chat";
 import { useAppSelector } from "./hooks";
 import { SettingsEntry } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,7 @@ export default function Home() {
           chatSelectionListLoader={LoadChatSelectionListFromLocalStorage} />
         <div className="border-t border-gray-300 my-5 mx-3"></div>
         <div className="flex flex-col">
-          <NewChat className="mb-1" addNewChat={AddNewChat} />
+          <NewChat className="mb-1" />
           <SettingsEntry />
           <AboutLink />
         </div>
