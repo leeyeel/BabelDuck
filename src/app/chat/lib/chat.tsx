@@ -192,7 +192,23 @@ export interface ChatSelection {
 }
 
 export function deleteChatData(chatID: string) {
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    const updatedChats = chats.filter((chat: ChatSelection) => chat.id !== chatID);
-    localStorage.setItem('chats', JSON.stringify(updatedChats));
+    // Remove chat from chatSelectionList
+    const chatSelectionListJSON = localStorage.getItem('chatSelectionList');
+    if (chatSelectionListJSON) {
+        const chatSelectionList: ChatSelection[] = JSON.parse(chatSelectionListJSON);
+        const updatedChatSelectionList = chatSelectionList.filter(chat => chat.id !== chatID);
+        localStorage.setItem('chatSelectionList', JSON.stringify(updatedChatSelectionList));
+    }
+
+    // Remove chat messages
+    localStorage.removeItem(`chat_${chatID}`);
+
+    // Remove input handlers
+    localStorage.removeItem(`inputHandlers_${chatID}`);
+
+    // Update currentSelectedChatID if necessary
+    const currentSelectedChatID = localStorage.getItem('currentSelectedChatID');
+    if (currentSelectedChatID === chatID) {
+        localStorage.removeItem('currentSelectedChatID');
+    }
 }
