@@ -628,7 +628,7 @@ function TextInput(
                     || (inputState.type === 'transcribing' && inputState.previousState.type === 'voiceMode')
                     || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode')
                 )
-                    && <label className={`flex items-center mr-2`}>
+                    && <label className={`flex items-center mr-2 cursor-pointer`}>
                         <span className="mr-1">{t('Auto Send')}</span>
                         <Switch
                             disabled={!isVoiceMode}
@@ -643,7 +643,7 @@ function TextInput(
                         />
                     </label>
                 }
-                <label className="flex items-center mr-2">
+                <label className="flex items-center mr-2 cursor-pointer">
                     <span className="mr-1">{t('Voice Mode')}</span>
                     <Switch checked={
                         isVoiceMode
