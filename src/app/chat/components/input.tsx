@@ -15,7 +15,7 @@ import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
 import { Tooltip } from "react-tooltip";
 import { FiPlus } from "react-icons/fi";
-import { addInputHandlersInChat, updateInputHandlerInLocalStorage } from "../lib/chat";
+import { updateInputHandlerInLocalStorage } from "../lib/chat";
 import {
     InputHandler,
     InputHandlerTypes,
