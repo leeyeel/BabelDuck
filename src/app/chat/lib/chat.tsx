@@ -51,33 +51,92 @@ export function LoadChatByIDFromLocalStorage(chatID: string): Message[] {
     return messageList;
 }
 
-export function loadInputHandlers(chatID: string): InputHandler[] {
-    // 从 localStorage 根据 chatID 读取输入处理程序列表
-    const inputHandlersJSON = localStorage.getItem(`inputHandlers_${chatID}`);
+const GlobalDefaultChatSettingScopeID = 'global_default_chat_settings'
 
-    // 如果 localStorage 中没有数据，返回空数组
-    if (!inputHandlersJSON) {
-        const defaultHandlers = [new TranslationHandler("English"), new RespGenerationHandler(), new GrammarCheckingHandler()];
-        addInputHandlerToLocalStorage(chatID, defaultHandlers);
-        return defaultHandlers;
-    }
-
-    const inputHandlers: string[] = JSON.parse(inputHandlersJSON);
-    return inputHandlers.map((handler) => InputHandler.deserialize(handler));
+type ChatSettingsPayload = {
+    inputHandlers: InputHandler[];
 }
 
-export function addInputHandlerToLocalStorage(chatID: string, handlers: InputHandler[]): void {
-    const inputHandlersJSON = localStorage.getItem(`inputHandlers_${chatID}`);
-    const inputHandlers: string[] = inputHandlersJSON ? JSON.parse(inputHandlersJSON) : [];
-    inputHandlers.push(...handlers.map((handler) => handler.serialize()));
-    localStorage.setItem(`inputHandlers_${chatID}`, JSON.stringify(inputHandlers));
+type ChatSettings = {
+    usingGlobalSettings: boolean;
+    payload: ChatSettingsPayload
+}
+
+export function loadChatSettings(chatID: string): ChatSettings {
+    // check if the chat is using global settings
+    const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
+    if (!chatMetadataJSON) {
+        return { usingGlobalSettings: true, payload: loadGlobalChatSettings() };
+    }
+    // if so, return global settings
+    const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
+    if (chatMetadata.usingGlobalSettings) {
+        return { usingGlobalSettings: true, payload: loadGlobalChatSettings() };
+    }
+    // if not, return the chat local settings
+    const chatSettings = _loadChatSettingsData(`chatSettings_${chatID}`);
+    if (!chatSettings) {
+        // TODO save the missing chat local settings
+        return { usingGlobalSettings: false, payload: loadGlobalChatSettings() };
+    }
+    return { usingGlobalSettings: false, payload: chatSettings };
+}
+
+const globalDefaultChatSettings: ChatSettingsPayload = {
+    inputHandlers: [new TranslationHandler("English"), new RespGenerationHandler(), new GrammarCheckingHandler()]
+}
+
+export function loadGlobalChatSettings(): ChatSettingsPayload {
+    const payloadJSON = _loadChatSettingsData(GlobalDefaultChatSettingScopeID);
+    if (!payloadJSON) {
+        // TODO save the missing global default chat settings
+        return globalDefaultChatSettings;
+    }
+    return payloadJSON;
+}
+
+function _loadChatSettingsData(settingsID: string): ChatSettingsPayload | undefined {
+    const payloadJSON = localStorage.getItem(settingsID);
+    if (!payloadJSON) {
+        return undefined;
+    }
+    // deserialize the input handlers
+    const payload: { rawInputHandlers: string[] } = JSON.parse(payloadJSON);
+    const inputHandlers = payload.rawInputHandlers.map((handler) => InputHandler.deserialize(handler));
+    return { inputHandlers };
+}
+
+function _setChatSettingsData(settingsID: string, payload: ChatSettingsPayload): void {
+    localStorage.setItem(settingsID, JSON.stringify({ rawInputHandlers: payload.inputHandlers.map((handler) => handler.serialize()) }));
+}
+
+export function addInputHandlersInChat(chatID: string, handlers: InputHandler[]): void {
+    // first check if the chat is using global settings
+    const chatSettings = loadChatSettings(chatID);
+    if (chatSettings.usingGlobalSettings) {
+        // add the handlers to the global settings
+        const globalSettings = loadGlobalChatSettings();
+        globalSettings.inputHandlers.push(...handlers);
+        _setChatSettingsData(GlobalDefaultChatSettingScopeID, globalSettings);
+    } else {
+        // add the handlers to the chat local settings
+        chatSettings.payload.inputHandlers.push(...handlers);
+        _setChatSettingsData(`chatSettings_${chatID}`, chatSettings.payload);
+    }
 }
 
 export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: number, handler: InputHandler): void {
-    const inputHandlersJSON = localStorage.getItem(`inputHandlers_${chatID}`);
-    const inputHandlers: string[] = inputHandlersJSON ? JSON.parse(inputHandlersJSON) : [];
-    inputHandlers[handlerIndex] = handler.serialize();
-    localStorage.setItem(`inputHandlers_${chatID}`, JSON.stringify(inputHandlers));
+    const chatSettings = loadChatSettings(chatID);
+    if (chatSettings.usingGlobalSettings) {
+        // update the global settings
+        const globalSettings = loadGlobalChatSettings();
+        globalSettings.inputHandlers[handlerIndex] = handler;
+        _setChatSettingsData(GlobalDefaultChatSettingScopeID, globalSettings);
+    } else {
+        // update the chat local settings
+        chatSettings.payload.inputHandlers[handlerIndex] = handler;
+        _setChatSettingsData(`chatSettings_${chatID}`, chatSettings.payload);
+    }
 }
 
 export function persistMessageUpdateInChat(chatID: string, messageID: number, updateMessage: Message): void {

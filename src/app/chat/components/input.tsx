@@ -15,7 +15,7 @@ import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
 import { Tooltip } from "react-tooltip";
 import { FiPlus } from "react-icons/fi";
-import { addInputHandlerToLocalStorage, updateInputHandlerInLocalStorage } from "../lib/chat";
+import { addInputHandlersInChat, updateInputHandlerInLocalStorage } from "../lib/chat";
 import {
     InputHandler,
     InputHandlerTypes,
@@ -173,12 +173,13 @@ export type MessageInputState =
     | { type: 'waitingApproval'; message: Message; revisedMsg: Message; revisionInstruction: string; };
 
 export function MessageInput({
-    chatID, messageList, inputHandlers, addMesssage, chatKey, allowFollowUpDiscussion, startFollowUpDiscussion, className = ""
+    chatID, messageList, inputHandlers, addMesssage, addInputHandler: pAddInputHandler, chatKey, allowFollowUpDiscussion, startFollowUpDiscussion, className = ""
 }: {
     chatID: string
     messageList: Message[];
     inputHandlers: InputHandler[]
     addMesssage: (message: Message, callbackOpts?: messageAddedCallbackOptions) => void;
+    addInputHandler: (handler: InputHandler) => void;
     chatKey: number,
     allowFollowUpDiscussion: boolean;
     startFollowUpDiscussion: (userInstruction: string, messageToRevise: string, revisedText: string) => void;
@@ -270,7 +271,7 @@ export function MessageInput({
         if (compState.type !== 'addingCustomInputHandler') {
             return;
         }
-        addInputHandlerToLocalStorage(chatID, [handler]);
+        pAddInputHandler(handler);
         setCompState(compState.previousState);
         inputHandlers.push(handler); // TODO need to find out why this would work...
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AddMesssageInChat, ChatLoader, loadInputHandlers, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat"; // Changed to type-only import
+import { AddMesssageInChat, ChatLoader, loadChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat"; // Changed to type-only import
 import { chatCompletionInStream } from "../lib/chat-server";
 import { useImmer } from "use-immer";
 import { type Message } from "../lib/message";
@@ -15,7 +15,7 @@ import { SiTheconversation } from "react-icons/si";
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
     chatTitle: string,
-    loadChatByID: ChatLoader
+    loadChatByID: ChatLoader,
     className?: string;
 }) {
     // compState: normal, stacking
@@ -28,9 +28,9 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
     useEffect(() => {
         const messageList = loadChatByID(chatID)
-        const inputHandlers: InputHandler[] = loadInputHandlers(chatID)
+        const chatSettings = loadChatSettings(chatID)
         updateMessageListStack([messageList])
-        setInputHandlers(inputHandlers)
+        setInputHandlers(chatSettings.payload.inputHandlers)
         setInputCompKey(prev => prev + 1)
     }, [chatID, loadChatByID, updateMessageListStack])
 
@@ -144,7 +144,9 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             </div>}
 
         <MessageList className="flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
-        <MessageInput className="w-4/5"
+        <MessageInput addInputHandler={(handler) => {
+            updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
+        }} className="w-4/5"
             chatID={chatID}
             key={inputCompKey} chatKey={chatKey}
             inputHandlers={inputHandlers}
