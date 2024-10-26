@@ -152,6 +152,7 @@ export function ChatSelection({ id: chatID, title, className = "", selected = fa
                 showMore && (
                     <>
                         <DropdownMenu
+                            className="absolute right-0 top-full"
                             menuItems={[
                                 {
                                     label: <><TbPencil className="inline-block mr-2" />{t('Rename')}</>,

@@ -7,6 +7,8 @@ import { Tooltip } from "react-tooltip";
 import { Overlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton, TransparentButton } from "@/app/ui-utils/components/button";
 import { useTranslation } from 'react-i18next';
+import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
+import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 
 // Define InputHandlerTypes enum
 export enum InputHandlerTypes {
@@ -95,7 +97,7 @@ export class TranslationHandler extends InputHandler {
             const [targetLanguage, setTargetLanguage] = useState(this.targetLanguage);
             return (
                 <div className={`flex flex-col justify-between fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
-                    <span className="mb-2">{t('Translate your input into')}</span> 
+                    <span className="mb-2">{t('Translate your input into')}</span>
                     <input
                         className="border-2 border-gray-300 rounded-md p-2"
                         type="text"
@@ -216,7 +218,7 @@ export class CommonGenerationHandler extends InputHandler {
             return (
                 <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
                     {/* 标题 */}
-                    <h2 className="text-2xl font-bold mb-4">{t('Edit Instruction')}</h2> 
+                    <h2 className="text-2xl font-bold mb-4">{t('Edit Instruction')}</h2>
 
                     {/* Instruction */}
                     <div className="mb-4">
@@ -345,7 +347,7 @@ export class CommonRevisionHandler extends InputHandler {
                 <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
                     {/* Instruction */}
                     <div className="mb-4">
-                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('Instruction')}</label> 
+                        <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('Instruction')}</label>
                         <textarea
                             id="instruction"
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -356,7 +358,7 @@ export class CommonRevisionHandler extends InputHandler {
 
                     {/* Tooltip */}
                     <div className="mb-4">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">{t('Tooltip')}</label> 
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mb-2">{t('Tooltip')}</label>
                         <input
                             type="text"
                             id="tooltip"
@@ -368,7 +370,7 @@ export class CommonRevisionHandler extends InputHandler {
 
                     {/* Icon */}
                     <div className="mb-4">
-                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('Icon')}</label> 
+                        <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('Icon')}</label>
                         <input
                             type="text"
                             id="icon"
@@ -380,16 +382,16 @@ export class CommonRevisionHandler extends InputHandler {
                                 setIcon(value);
                             }}
                         />
-                        <p className="text-gray-400 text-xs italic mt-1">{t('Please use a single character as icon.')}</p> 
+                        <p className="text-gray-400 text-xs italic mt-1">{t('Please use a single character as icon.')}</p>
                     </div>
 
-                    
+
                     <div className="flex items-center justify-end">
                         <FilledButton
                             className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg"
                             onClick={() => updateHandler(new CommonRevisionHandler(instruction, tooltip, icon))}
                         >
-                            {t('Save')} 
+                            {t('Save')}
                         </FilledButton>
                     </div>
                 </div>
@@ -433,36 +435,55 @@ export function CustomInputHandlerCreator({
     const [instruction, setInstruction] = useState('');
     const [tooltip, setTooltip] = useState('');
     const [icon, setIcon] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    const handleTypeChange = (newType: InputHandlerTypes) => {
+        setType(newType);
+        setShowDropdown(false);
+    };
 
     return (
         <>
             <Overlay onClick={cancelCallback} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 w-[600px] h-auto"> {/* 修改宽度为600px */}
-                <h2 className="text-2xl font-bold mb-4">{t('customInstruction')}</h2>
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 w-[600px] h-auto">
+                <h2 className="text-2xl font-bold mb-8">{t('customInstruction')}</h2>
                 <div className="mb-4">
-                    <label htmlFor="type" className="block text-gray-700 font-bold mb-2">{t('type')}</label> 
-                    <select
-                        id="type"
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        value={type}
-                        onChange={(e) => setType(e.target.value as InputHandlerTypes)}
-                    >
-                        <option value="revision">{t('modification')}</option> 
-                        <option value="generation">{t('generation')}</option> 
-                    </select>
+                    {/* instruction type selector */}
+                    <div className="flex flex-row items-center justify-between mb-2">
+                        <label htmlFor="type" className="block text-gray-700 font-bold mr-2">{t('type')}</label>
+                        <div className="relative">
+                            <DropdownMenuEntry
+                                label={type === InputHandlerTypes.Revision ? t('modification') : t('generation')}
+                                onClick={() => setShowDropdown(true)}
+                            />
+                            {showDropdown && (
+                                <>
+                                    <DropdownMenu
+                                        className="absolute left-0 right-0 top-full"
+                                        menuItems={[
+                                            { label: t('modification'), onClick: () => handleTypeChange(InputHandlerTypes.Revision) },
+                                            { label: t('generation'), onClick: () => handleTypeChange(InputHandlerTypes.Generation) },
+                                        ]}
+                                    />
+                                    <TransparentOverlay onClick={() => setShowDropdown(false)} />
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    {/* explanation of the instruction type */}
                     <div className="flex flex-row items-start mt-1">
-                        <IoMdInformationCircleOutline className="text-gray-400 mr-2 mt-1" />
-                        {type === InputHandlerTypes.Generation && <p className="text-gray-400 text-base italic">
-                            {t('generationExplanation')} 
+                        <IoMdInformationCircleOutline size={20} className="text-gray-400 mr-2" />
+                        {type === InputHandlerTypes.Generation && <p className="text-gray-400 text-xs">
+                            {t('generationExplanation')}
                         </p>}
-                        {type === InputHandlerTypes.Revision && <p className="text-gray-400 text-base italic">
-                            {t('modificationExplanation')} 
+                        {type === InputHandlerTypes.Revision && <p className="text-gray-400 text-xs">
+                            {t('modificationExplanation')}
                         </p>}
                     </div>
                 </div>
-                
+
                 <div className="mb-4">
-                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('instruction')}</label> 
+                    <label htmlFor="instruction" className="block text-gray-700 font-bold mb-2">{t('instruction')}</label>
                     <textarea
                         id="instruction"
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -473,10 +494,10 @@ export function CustomInputHandlerCreator({
 
                 <div className="mb-4">
                     <div className="flex flex-row items-center mb-2">
-                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">{t('tooltip')}</label> 
+                        <label htmlFor="tooltip" className="block text-gray-700 font-bold mr-2">{t('tooltip')}</label>
                         <IoMdInformationCircleOutline className="text-gray-400" id="tooltip-info" />
                         <Tooltip anchorSelect="#tooltip-info" clickable delayShow={300} delayHide={0} style={{ borderRadius: '0.75rem' }}>
-                            <span>{t('tooltipInfo')}</span> 
+                            <span>{t('tooltipInfo')}</span>
                         </Tooltip>
                     </div>
                     <input
@@ -487,9 +508,9 @@ export function CustomInputHandlerCreator({
                         onChange={(e) => setTooltip(e.target.value)}
                     ></input>
                 </div>
-                
+
                 <div className="mb-4">
-                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('icon')}</label> 
+                    <label htmlFor="icon" className="block text-gray-700 font-bold mb-2">{t('icon')}</label>
                     <input
                         type="text"
                         id="icon"
@@ -501,12 +522,12 @@ export function CustomInputHandlerCreator({
                             setIcon(value);
                         }}
                     ></input>
-                    <p className="text-gray-400 text-xs italic mt-1">{t('customIconNote')}</p> 
+                    <p className="text-gray-400 text-xs italic mt-1">{t('customIconNote')}</p>
                 </div>
-                
+
                 <div className="flex items-center justify-end">
                     <TransparentButton className="mr-2" onClick={cancelCallback}>
-                        {t('cancel')} 
+                        {t('cancel')}
                     </TransparentButton>
                     <FilledButton onClick={() => {
                         if (type === InputHandlerTypes.Generation) {
@@ -515,7 +536,7 @@ export function CustomInputHandlerCreator({
                             inputHandlerAdded(new CommonRevisionHandler(instruction, tooltip, icon));
                         }
                     }}>
-                        {t('add')} 
+                        {t('add')}
                     </FilledButton>
                 </div>
             </div>
