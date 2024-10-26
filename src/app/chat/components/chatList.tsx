@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa";
 import { SystemMessage } from "./message";
-import { MdDelete, MdModeEdit } from "react-icons/md";
 import { SiTheconversation } from "react-icons/si";
 import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "@/app/ui-utils/components/DropdownMenu";
