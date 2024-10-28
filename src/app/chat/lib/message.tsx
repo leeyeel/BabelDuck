@@ -29,9 +29,6 @@ export abstract class Message {
     }
 
     abstract isEmpty(): boolean
-
-    // return the json object of this message as part of chat completion api request
-    abstract toJSON(): { role: string, content: string }
 }
 
 type MessageComponent = ({ }: {
@@ -41,7 +38,20 @@ type MessageComponent = ({ }: {
     className?: string
 }) => JSX.Element
 
-// some extandable interaces
-export interface IndependentContentMsg {
-    messageContent: () => JSX.Element
+// =========== some extandable message interaces, optional to implement ===========
+// implementing them can achieve more compatibility with more intelligence providers, 
+// cause the providers would also be suggested to support these message types.
+// If not implementing them, whether the message type is supported by the intelligence provider depends on
+// whether the intelligence provider specifically handles this type of message
+
+export interface OpenAILikeMessage {
+    toOpenAIMessage(): { role: string, content: string } // TODO keep consistent with message format in OpenAI official documentation
+}
+
+export function isOpenAILikeMessage(message: unknown): message is OpenAILikeMessage {
+    return message instanceof Message && 'toOpenAIMessage' in message
+}
+
+export interface TextContentMessage {
+    toString(): string
 }

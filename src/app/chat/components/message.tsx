@@ -19,7 +19,7 @@ export const MessageTypes = {
     SUGGESTED_ANSWER: 'suggested_answer'
 };
 
-export const SpecialRoleTypes = {
+export const SpecialRoles = {
     SYSTEM: 'system',
     USER: 'user',
     ASSISTANT: 'assistant'
@@ -113,8 +113,8 @@ export class SystemMessage extends Message {
         return Root
     }
 
-    toJSON(): { role: string, content: string } {
-        return { role: 'system', content: this._systemPrompt }
+    toOpenAIMessage(): { role: string, content: string } {
+        return { role: SpecialRoles.SYSTEM, content: this._systemPrompt }
     }
 
     serialize(): string {
@@ -467,7 +467,7 @@ export class TextMessage extends Message {
         return TextMessageComponent
     }
 
-    toJSON(): { role: string, content: string } {
+    toOpenAIMessage(): { role: string, content: string } {
         return { role: this.role, content: this.content }
     }
 
@@ -522,7 +522,7 @@ export class StreamingTextMessage extends Message {
         })
     }
 
-    toJSON(): { role: string; content: string; } {
+    toOpenAIMessage(): { role: string; content: string; } {
         return {
             role: this.role,
             content: this.consumedChunks.join('')
@@ -817,10 +817,6 @@ export class RecommendedRespMessage extends Message {
             </div>
         }
         return Root
-    }
-
-    toJSON(): { role: string, content: string } {
-        return { role: this.role, content: this.recommendedContent }
     }
 
     serialize(): string {

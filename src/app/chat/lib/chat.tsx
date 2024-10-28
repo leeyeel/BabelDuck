@@ -1,3 +1,4 @@
+import { ChatIntelligence, ChatIntelligenceBase, FreeTrialIntelligence } from "@/app/intelligence/components/intelligence";
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
@@ -55,6 +56,7 @@ const GlobalDefaultChatSettingScopeID = 'global_default_chat_settings'
 
 type ChatSettingsPayload = {
     inputHandlers: InputHandler[];
+    chatIntelligence: ChatIntelligence;
 }
 
 type ChatSettings = {
@@ -83,6 +85,7 @@ export function loadChatSettings(chatID: string): ChatSettings {
 }
 
 const globalDefaultChatSettings: ChatSettingsPayload = {
+    chatIntelligence: new FreeTrialIntelligence(),
     inputHandlers: [new TranslationHandler("English"), new RespGenerationHandler(), new GrammarCheckingHandler()]
 }
 
@@ -101,9 +104,10 @@ function _loadChatSettingsData(settingsID: string): ChatSettingsPayload | undefi
         return undefined;
     }
     // deserialize the input handlers
-    const payload: { rawInputHandlers: string[] } = JSON.parse(payloadJSON);
+    const payload: { rawInputHandlers: string[], chatIntelligence: string } = JSON.parse(payloadJSON);
     const inputHandlers = payload.rawInputHandlers.map((handler) => InputHandler.deserialize(handler));
-    return { inputHandlers };
+    const chatIntelligence = ChatIntelligenceBase.deserialize(payload.chatIntelligence);
+    return { inputHandlers, chatIntelligence };
 }
 
 function _setChatSettingsData(settingsID: string, payload: ChatSettingsPayload): void {
@@ -196,8 +200,8 @@ export function AddNewChat(
     };
 }
 
-export function AddMesssageInChat(chatID: string, message: Message): void {
-    if (message.serialize() === "") {
+export function AddMesssageInChat(chatID: string, messages: Message[]): void {
+    if (messages.length === 0) {
         return
     }
     // 从 localStorage 读取现有的消息列表
@@ -205,7 +209,7 @@ export function AddMesssageInChat(chatID: string, message: Message): void {
     const messageList: string[] = messageListJSON ? JSON.parse(messageListJSON) : [];
 
     // 将新的消息添加到消息列表中
-    messageList.push(message.serialize());
+    messageList.push(...messages.map((msg) => msg.serialize()));
 
     // 更新 localStorage 中的消息列表
     localStorage.setItem(`chat_${chatID}`, JSON.stringify(messageList));
