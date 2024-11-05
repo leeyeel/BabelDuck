@@ -9,7 +9,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { MessageInput } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { ChatIntelligence } from "@/app/intelligence/components/intelligence";
+import { ChatIntelligence, intelligenceRegistry } from "@/app/intelligence-llm/lib/intelligence";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -24,14 +24,19 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
     const [inputCompKey, setInputCompKey] = useState(0) // for force reset
     const [chatKey, setChatKey] = useState(0) // for informing children that current chat has switched
-    const chatIntelligence = useRef<ChatIntelligence>()
+    const chatIntelligenceRef = useRef<ChatIntelligence>()
 
     useEffect(() => {
         const messageList = loadChatByID(chatID)
         const chatSettings = loadChatSettings(chatID)
         updateMessageListStack([messageList])
-        setInputHandlers(chatSettings.payload.inputHandlers)
-        chatIntelligence.current = chatSettings.payload.chatIntelligence
+        setInputHandlers(chatSettings.inputHandlers)
+        // TODO fix this
+        // const chatIntelligence = intelligenceRegistry.getChatIntelligenceByType(chatSettings.chatIntelligence.type)
+        // if (!chatIntelligence) {
+        //     throw new Error(`Chat intelligence with type ${chatSettings.chatIntelligence.type} not found`)
+        // }
+        // chatIntelligenceRef.current = chatIntelligence
         setInputCompKey(prev => prev + 1)
     }, [chatID, loadChatByID, updateMessageListStack])
 

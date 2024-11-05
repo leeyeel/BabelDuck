@@ -1,11 +1,18 @@
+'use client'
+
 import { LuSettings } from "react-icons/lu";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
-import i18n from '../../i18n/i18n';
+import i18n, { I18nText } from '../../i18n/i18n';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
+import { getDefaultLLMServices, LLMServiceRecord, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
+import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
+import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
+import { getAvailableChatIntelligenceSettings } from "@/app/intelligence-llm/lib/intelligence";
 
+// settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
     const [showSettings, setShowSettings] = useState(false);
     const { t } = useTranslation();
@@ -21,30 +28,6 @@ export function SettingsEntry({ className = "" }: { className?: string }) {
             </div>
             {showSettings && <Settings onClose={() => setShowSettings(false)} />}
         </>
-    );
-}
-
-function FirstLevelMenuEntry({
-    menuKey,
-    menuName,
-    selected,
-    onSelect,
-    className = "",
-}: {
-    menuKey: string;
-    menuName: string;
-    selected: boolean;
-    onSelect: (item: string) => void;
-    className?: string;
-}) {
-    return (
-        <div
-            className={`py-2 px-4 cursor-pointer rounded-lg hover:bg-gray-100 ${selected ? 'bg-gray-200 font-semibold' : ''
-                } ${className}`}
-            onClick={() => onSelect(menuKey)}
-        >
-            {menuName}
-        </div>
     );
 }
 
@@ -93,7 +76,8 @@ export function Settings({ onClose }: { onClose: () => void }) {
                         </div>
                         <div className="w-3/4 p-4">
                             {selectedItem === 'General' && <GeneralSettings />}
-                            {/* Other settings components */}
+                            {selectedItem === 'Chat' && <GlobalChatSettings />}
+                            {selectedItem === 'Models' && <LLMSettings />}
                         </div>
                     </div>
                 </div>
@@ -101,6 +85,35 @@ export function Settings({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
+
+// first level menu entry in the settings pannel
+function FirstLevelMenuEntry({
+    menuKey,
+    menuName,
+    selected,
+    onSelect,
+    className = "",
+}: {
+    menuKey: string;
+    menuName: string;
+    selected: boolean;
+    onSelect: (item: string) => void;
+    className?: string;
+}) {
+    return (
+        <div
+            className={`py-2 px-4 cursor-pointer rounded-lg hover:bg-gray-100 ${selected ? 'bg-gray-200 font-semibold' : ''
+                } ${className}`}
+            onClick={() => onSelect(menuKey)}
+        >
+            {menuName}
+        </div>
+    );
+}
+
+
+// ============================= Sub Category Settings Components =============================
+
 
 function GeneralSettings() {
     const { t } = useTranslation();
@@ -123,6 +136,7 @@ function GeneralSettings() {
 
     return (
         <div className="flex flex-col pl-8">
+            {/* language settings */}
             <div className="flex flex-row items-center justify-between">
                 <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
                 <div className="flex flex-col relative">
@@ -143,4 +157,85 @@ function GeneralSettings() {
             </div>
         </div>
     );
+}
+
+function GlobalChatSettings() {
+    const chatSettings = loadGlobalChatSettings()
+    return _ChatSettings({ chatSettingsPayload: chatSettings, updateChatSettings: setGlobalChatSettings })
+}
+
+function _ChatSettings({ chatSettingsPayload, updateChatSettings, className = "" }:
+    { chatSettingsPayload: ChatSettings, updateChatSettings: (payload: ChatSettings) => void, className?: string }) {
+
+    const { t } = useTranslation();
+    const [showIntelligenceDropdown, setShowIntelligenceDropdown] = useState(false);
+    const toggleIntelligenceDropdown = () => setShowIntelligenceDropdown(!showIntelligenceDropdown);
+
+    const availableIntelligences = getAvailableChatIntelligenceSettings()
+    const intelligenceDropdownItems = availableIntelligences.map((intelligence) => ({
+        label: <I18nText i18nText={intelligence.name} />,
+        onClick: () => {
+            updateChatSettings({ ...chatSettingsPayload, chatIntelligence: intelligence })
+            toggleIntelligenceDropdown()
+        }
+    }))
+
+    return <div className={`flex flex-col ${className}`}>
+        {/* intelligence settings */}
+        <div className="flex flex-row items-center justify-between relative mb-4">
+            <span className="text-gray-700 font-bold">{t('Chat Model')}</span>
+            <DropdownMenuEntry
+                label={<I18nText i18nText={chatSettingsPayload.chatIntelligence.name} />}
+                onClick={toggleIntelligenceDropdown}
+            />
+            {showIntelligenceDropdown && <>
+                <DropdownMenu className="absolute right-0 top-full" menuItems={intelligenceDropdownItems} />
+                <TransparentOverlay onClick={toggleIntelligenceDropdown} />
+            </>}
+        </div>
+        {/* input handlers settings */}
+
+    </div>
+}
+
+function LLMSettings() {
+    const { t } = useTranslation();
+    const [compState, setCompState] = useState<{
+        llmServices: LLMServiceRecord[],
+        selectedSvcId: string | null,
+    }>({ llmServices: [], selectedSvcId: null })
+
+    const selectedSvc = compState.llmServices.find((svc) => svc.id === compState.selectedSvcId)
+    const SettingsComponent = selectedSvc?.type ? getLLMSettingsComponent(selectedSvc.type) : null;
+
+    const [showDropdown, setShowDropdown] = useState(false)
+    const toggleDropdown = () => setShowDropdown(!showDropdown)
+
+    useEffect(() => {
+        const defaultSvcs = getDefaultLLMServices()
+        setCompState({ llmServices: defaultSvcs, selectedSvcId: defaultSvcs.length > 0 ? defaultSvcs[0].id : null })
+    }, [])
+
+    const updateSettings = (serviceId: string, settings: object) => {
+        updateLLMServiceSettings(serviceId, settings)
+    }
+
+    return <div className="flex flex-col pl-8">
+        <div className="flex flex-row items-center justify-between relative mb-4">
+            <span className="text-gray-700 font-bold">{t('Models Service')}</span>
+            <DropdownMenuEntry label={selectedSvc ? <I18nText i18nText={selectedSvc.name} /> : 'No LLM Service'}
+                onClick={toggleDropdown} />
+            {showDropdown && <>
+                <DropdownMenu menuItems={
+                    compState.llmServices.map((service) => ({
+                        label: <I18nText i18nText={service.name} />,
+                        onClick: () => { setCompState({ ...compState, selectedSvcId: service.id }); toggleDropdown() }
+                    }))
+                } className="absolute right-0 top-full" />
+                <TransparentOverlay onClick={toggleDropdown} />
+            </>}
+        </div>
+        {selectedSvc?.type && SettingsComponent && <SettingsComponent settings={selectedSvc.settings}
+            updateSettings={(settings) => { updateSettings(selectedSvc.id, settings) }} />}
+    </div>
 }
