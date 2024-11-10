@@ -1,5 +1,3 @@
-
-
 import { i18nText } from "@/app/i18n/i18n"
 import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
 import { freeTrialChatCompletionInStream } from "./intelligence-server"
@@ -174,11 +172,15 @@ export class OpenAIChatIntelligence extends ChatIntelligenceBase {
     completeChat(messageList: Message[]): Message[] {
         const openAIService = this.getOpenAIService()
         async function* genFunc() {
-            await openAIService.chatCompletionInStream(
+            const {textStream} = await openAIService.chatCompletionInStream(
                 messageList.filter((msg) => msg.includedInChatCompletion)
                     .filter((msg) => isOpenAILikeMessage(msg))
                     .map((msg) => (msg.toOpenAIMessage()))
             )
+            for await (const value of textStream) {
+                yield value
+            }
+            return
         }
         const gen = genFunc()
         return [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]

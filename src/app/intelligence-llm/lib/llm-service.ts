@@ -1,8 +1,6 @@
-'use client'
 import { i18nText } from "@/app/i18n/i18n"
 import { createOpenAI } from "@ai-sdk/openai"
 import { convertToCoreMessages, streamText } from 'ai';
-import { createStreamableValue } from 'ai/rsc';
 
 // ================================ business logic ================================
 
@@ -99,24 +97,11 @@ export class OpenAICompatibleAPIService {
             apiKey: this.apiKey,
         })
 
-        const result = streamText({
+        const stream = streamText({
             model: openai.chat(this.chatCompletionModel),
             messages: convertToCoreMessages(messageList as { role: 'system' | 'user' | 'assistant', content: string }[]),
         })
-
-        console.log(this.baseUrl, this.apiKey, this.chatCompletionModel)
-        console.log(createStreamableValue) // TODO remove
-        const streamableStatus = createStreamableValue<string>();
-        (async () => {
-            for await (const chunk of (await result).textStream) {
-                streamableStatus.update(chunk);
-            }
-            streamableStatus.done();
-        })();
-
-        return {
-            status: streamableStatus.value,
-        };
+        return stream
     }
 
 }

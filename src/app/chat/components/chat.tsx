@@ -9,7 +9,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { MessageInput } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { ChatIntelligence, getChatIntelligenceSettingsByID, intelligenceRegistry, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, intelligenceRegistry, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -33,12 +33,14 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
         const chatSettings: LocalChatSettings = loadChatSettings(chatID)
         setInputHandlers(chatSettings.inputHandlers)
-        const tmp = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
-        if (tmp.type === OpenAIChatIntelligence.type) {
-            const settings = tmp.settings as OpenAIChatISettings
+        const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
+        if (type === OpenAIChatIntelligence.type) {
+            const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings
             chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
+        } else if (type === FreeTrialChatIntelligence.type) {
+            chatIntelligenceRef.current = new FreeTrialChatIntelligence()
         } else {
-            throw new Error(`Chat intelligence with type ${tmp.type} not found`)
+            throw new Error(`Chat intelligence with type ${type} not found`)
         }
 
         setInputCompKey(prev => prev + 1)
