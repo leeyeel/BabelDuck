@@ -6,7 +6,8 @@ import { freeTrialChatCompletionInStream } from "./intelligence-server"
 import { SpecialRoles, TextMessage } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { readStreamableValue } from "ai/rsc"
-import { _getDefaultChatIntelligencesFromLocalStorage, _saveDefaultChatIntelligencesToLocalStorage } from "./intelligence-persistence"
+import { _getBuiltinChatIntelligencesFromLocalStorage, _saveBuiltInChatIntelligencesToLocalStorage } from "./intelligence-persistence"
+import { getLLMServiceSettingsRecord, OpenAIService, OpenAISettings } from "./llm-service"
 
 // ============================= business logic =============================
 
@@ -20,42 +21,34 @@ export type chatIntelligenceSettings = {
     settings: object
 }
 
-// abstract class dynamicChatIntelligenceSettings {
-//     type: string
-//     payload: object
-//     constructor(type: string, payload: object) {
-//         this.type = type
-//         this.payload = payload
-//     }
-//     abstract settings(): object
-// }
-
 export function getChatIntelligenceSettingsByID(id: string): chatIntelligenceSettingsRecord {
     const availableIntelligences = getAvailableChatIntelligenceSettings()
-    const intelligence = availableIntelligences.find(i => i.id === id)
-    if (!intelligence) {
+    const intelligenceSettings = availableIntelligences.find(i => i.id === id)
+    if (!intelligenceSettings) {
         throw new Error(`Intelligence with id ${id} not found`)
     }
-    return intelligence
+    return intelligenceSettings
 }
 
+// the settings of these reocrds are more like default settings, they are not actually stored
 export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
-    return getDefaultChatIntelligences()
+    return getBuiltInChatIntelligenceSettings()
 }
 
-export function getDefaultChatIntelligences(): chatIntelligenceSettingsRecord[] {
-    const defaultIntelligencesFromStorage = _getDefaultChatIntelligencesFromLocalStorage()
-    const inStorageIntelligencesNumber = defaultIntelligencesFromStorage.length
-    // append the intelligences in defaultIntelligences that are not in defaultIntelligencesFromStorage
-    for (const intelligenceId of Object.keys(defaultIntelligenceSettings)) {
-        if (!defaultIntelligencesFromStorage.some((s) => s.id === intelligenceId)) {
-            defaultIntelligencesFromStorage.push({ id: intelligenceId, ...defaultIntelligenceSettings[intelligenceId] })
-        }
-    }
-    if (defaultIntelligencesFromStorage.length !== inStorageIntelligencesNumber) {
-        _saveDefaultChatIntelligencesToLocalStorage(defaultIntelligencesFromStorage)
-    }
-    return defaultIntelligencesFromStorage
+export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
+    return Object.keys(builtinIntelligenceSettings).map((id) => ({ id, ...builtinIntelligenceSettings[id] }))
+    // const builtinIntelligencesFromStorage = _getBuiltinChatIntelligencesFromLocalStorage()
+    // const inStorageIntelligencesNumber = builtinIntelligencesFromStorage.length
+    // // append the intelligences in builtinIntelligenceSettings that are not in builtinIntelligencesFromStorage
+    // for (const intelligenceId of Object.keys(builtinIntelligenceSettings)) {
+    //     if (!builtinIntelligencesFromStorage.some((s) => s.id === intelligenceId)) {
+    //         builtinIntelligencesFromStorage.push({ id: intelligenceId, ...builtinIntelligenceSettings[intelligenceId] })
+    //     }
+    // }
+    // if (builtinIntelligencesFromStorage.length !== inStorageIntelligencesNumber) {
+    //     _saveBuiltInChatIntelligencesToLocalStorage(builtinIntelligencesFromStorage)
+    // }
+    // return builtinIntelligencesFromStorage
 }
 
 export class ChatIntelligenceRegistry {
@@ -139,6 +132,68 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
     }
 }
 
+export type OpenAIChatISettings = {
+    settingsType: 'link' | 'local'
+    localSettings?: OpenAISettings // only makes sense when settingsType is 'local'
+}
+
+export class OpenAIChatIntelligence extends ChatIntelligenceBase {
+    static readonly id = 'openai'
+    static readonly type = 'openai'
+    static readonly _name: i18nText = { text: 'OpenAI' }
+
+    static defaultSettings: OpenAIChatISettings = {
+        settingsType: 'link'
+    }
+
+    settingsType: 'link' | 'local'
+    localSettings?: OpenAISettings // only makes sense when settingsType is 'local'
+
+    constructor(settingsType: 'link' | 'local', settings?: OpenAISettings) {
+        super(OpenAIChatIntelligence.type, OpenAIChatIntelligence._name)
+        if (settingsType === 'local' && !settings) {
+            throw new Error('settings is required when settingsType is local')
+        }
+        this.settingsType = settingsType
+        this.localSettings = settings
+    }
+
+    private getOpenAIService(): OpenAIService {
+        if (this.settingsType === 'link') {
+            const openAIServiceSettingsRecord = getLLMServiceSettingsRecord('openai')
+            if (!openAIServiceSettingsRecord) {
+                throw new Error('default OpenAI service settings not found')
+            }
+            const openAIService = OpenAIService.deserialize(openAIServiceSettingsRecord.settings)
+            return openAIService
+        } else {
+            return OpenAIService.deserialize(this.localSettings!)
+        }
+    }
+
+    completeChat(messageList: Message[]): Message[] {
+        const openAIService = this.getOpenAIService()
+        async function* genFunc() {
+            await openAIService.chatCompletionInStream(
+                messageList.filter((msg) => msg.includedInChatCompletion)
+                    .filter((msg) => isOpenAILikeMessage(msg))
+                    .map((msg) => (msg.toOpenAIMessage()))
+            )
+        }
+        const gen = genFunc()
+        return [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
+    }
+
+    serialize(): string {
+        return JSON.stringify({ type: this.type, settingsType: this.settingsType, settings: this.localSettings })
+    }
+
+    static deserialize(serialized: string): OpenAIChatIntelligence {
+        const { settingsType, settings } = JSON.parse(serialized)
+        return new OpenAIChatIntelligence(settingsType, settings)
+    }
+
+}
 
 // BabelDuck intelligence (just for fun :D)
 class BabelDuckChatIntelligence extends ChatIntelligenceBase {
@@ -164,11 +219,12 @@ class BabelDuckChatIntelligence extends ChatIntelligenceBase {
     }
 }
 
-intelligenceRegistry.registerChatIntelligenceSerializer('babel_duck', BabelDuckChatIntelligence.deserialize);
-intelligenceRegistry.registerChatIntelligenceSerializer('free_trial', FreeTrialChatIntelligence.deserialize);
+intelligenceRegistry.registerChatIntelligenceSerializer(FreeTrialChatIntelligence.type, FreeTrialChatIntelligence.deserialize);
+intelligenceRegistry.registerChatIntelligenceSerializer(OpenAIChatIntelligence.type, OpenAIChatIntelligence.deserialize);
+intelligenceRegistry.registerChatIntelligenceSerializer(BabelDuckChatIntelligence.type, BabelDuckChatIntelligence.deserialize);
 
-
-export const defaultIntelligenceSettings: Record<string, chatIntelligenceSettings> = {
+export const builtinIntelligenceSettings: Record<string, chatIntelligenceSettings> = {
     [FreeTrialChatIntelligence.id]: { name: { key: 'Free Trial' }, type: FreeTrialChatIntelligence.type, settings: {} },
+    [OpenAIChatIntelligence.id]: { name: OpenAIChatIntelligence._name, type: OpenAIChatIntelligence.type, settings: OpenAIChatIntelligence.defaultSettings },
     [BabelDuckChatIntelligence.id]: { name: { key: 'Babel Duck' }, type: BabelDuckChatIntelligence.type, settings: {} }
 }

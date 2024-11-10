@@ -6,12 +6,12 @@ import { initReactI18next, useTranslation } from "react-i18next";
 
 export type i18nText =
     // text means literal value, key is i18n key
-    | { text: string; key?: string }
-    | { text?: undefined; key: string }
+    | { text: string }
+    | { key: string }
 
 export function I18nText({ i18nText, className }: { i18nText: i18nText, className?: string }) {
     const { t } = useTranslation();
-    return <span className={className}>{i18nText.text === undefined ? t(i18nText.key) : i18nText.text}</span>
+    return <span className={className}>{('key' in i18nText ? t(i18nText.key) : i18nText.text)}</span>
 }
 
 i18n

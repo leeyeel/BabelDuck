@@ -4,27 +4,27 @@ import { createOpenAI } from "@ai-sdk/openai"
 import { convertToCoreMessages, streamText } from 'ai';
 import { createStreamableValue } from 'ai/rsc';
 
-// ================================ api ================================
+// ================================ business logic ================================
 
-export type LLMServiceRecord = {
+export type LLMServiceSettingsRecord = {
     id: string
-} & LLMService
+} & LLMServiceSettings
 
-export type LLMService = {
+export type LLMServiceSettings = {
     type: string
     name: i18nText
     deletable: boolean
     settings: object
 }
 
-export function getLLMServices(): LLMServiceRecord[] {
-    // default services + user defined services
-    return getDefaultLLMServices()
+export function getLLMServiceSettings(): LLMServiceSettingsRecord[] {
+    // built-in services + user defined services
+    return getBuiltInLLMServicesSettings()
 }
 
-// side effect: if some default services missing in local storage, they will be saved to local storage
-export function getDefaultLLMServices(): LLMServiceRecord[] {
-    const defaultLLMServices: Record<string, LLMService> = {
+// side effect: if some built-in services missing in local storage, they will be saved to local storage
+export function getBuiltInLLMServicesSettings(): LLMServiceSettingsRecord[] {
+    const builtInLLMServices: Record<string, LLMServiceSettings> = {
         openai: {
             type: 'openai',
             name: { text: 'OpenAI' },
@@ -38,41 +38,45 @@ export function getDefaultLLMServices(): LLMServiceRecord[] {
             settings: SiliconFlowService.defaultSettings,
         }
     }
-    const defaultLLMServicesFromStorage = _getDefaultLLMServicesFromLocalStorage()
-    const inStorageServicesNumber = defaultLLMServicesFromStorage.length
-    // append the services in defaultLLMServices that are not in defaultLLMServicesFromStorage
-    for (const serviceId of Object.keys(defaultLLMServices)) {
-        if (!defaultLLMServicesFromStorage.some((s) => s.id === serviceId)) {
-            defaultLLMServicesFromStorage.push({ id: serviceId, ...defaultLLMServices[serviceId] })
+    const builtInLLMServicesFromStorage = _getBuiltInLLMServicesFromLocalStorage()
+    const inStorageServicesNumber = builtInLLMServicesFromStorage.length
+    // append the services in builtInLLMServices that are not in builtInLLMServicesFromStorage
+    for (const serviceId of Object.keys(builtInLLMServices)) {
+        if (!builtInLLMServicesFromStorage.some((s) => s.id === serviceId)) {
+            builtInLLMServicesFromStorage.push({ id: serviceId, ...builtInLLMServices[serviceId] })
         }
     }
-    if (defaultLLMServicesFromStorage.length !== inStorageServicesNumber) {
-        _saveDefaultLLMServicesToLocalStorage(defaultLLMServicesFromStorage)
+    if (builtInLLMServicesFromStorage.length !== inStorageServicesNumber) {
+        _saveBuiltInLLMServicesToLocalStorage(builtInLLMServicesFromStorage)
     }
-    return defaultLLMServicesFromStorage
+    return builtInLLMServicesFromStorage
 }
 
 export function updateLLMServiceSettings(serviceId: string, settings: object) {
-    const defaultLLMServices = getLLMServices()
-    const service = defaultLLMServices.find((s) => s.id === serviceId)
+    const builtInLLMServices = getLLMServiceSettings()
+    const service = builtInLLMServices.find((s) => s.id === serviceId)
     if (service) {
         service.settings = settings
-        _saveDefaultLLMServicesToLocalStorage(defaultLLMServices)
+        _saveBuiltInLLMServicesToLocalStorage(builtInLLMServices)
     }
+}
+
+export function getLLMServiceSettingsRecord(serviceId: string): LLMServiceSettingsRecord | undefined {
+    return getLLMServiceSettings().find((s) => s.id === serviceId)
 }
 
 // ================================ local storage ================================
 
-function _getDefaultLLMServicesFromLocalStorage(): LLMServiceRecord[] {
-    const defaultLLMServices = localStorage.getItem('defaultLLMServices')
-    if (defaultLLMServices) {
-        return JSON.parse(defaultLLMServices)
+function _getBuiltInLLMServicesFromLocalStorage(): LLMServiceSettingsRecord[] {
+    const builtInLLMServices = localStorage.getItem('builtInLLMServices')
+    if (builtInLLMServices) {
+        return JSON.parse(builtInLLMServices)
     }
     return []
 }
 
-function _saveDefaultLLMServicesToLocalStorage(defaultLLMServices: LLMServiceRecord[]) {
-    localStorage.setItem('defaultLLMServices', JSON.stringify(defaultLLMServices))
+function _saveBuiltInLLMServicesToLocalStorage(builtInLLMServices: LLMServiceSettingsRecord[]) {
+    localStorage.setItem('builtInLLMServices', JSON.stringify(builtInLLMServices))
 }
 
 // ================================ LLM Service implementations ================================
@@ -100,6 +104,8 @@ export class OpenAICompatibleAPIService {
             messages: convertToCoreMessages(messageList as { role: 'system' | 'user' | 'assistant', content: string }[]),
         })
 
+        console.log(this.baseUrl, this.apiKey, this.chatCompletionModel)
+        console.log(createStreamableValue) // TODO remove
         const streamableStatus = createStreamableValue<string>();
         (async () => {
             for await (const chunk of (await result).textStream) {
@@ -158,6 +164,21 @@ export class OpenAIService extends OpenAICompatibleAPIService {
     constructor(host: string, apiKey: string, chatCompletionModel: string) {
         super(host, apiKey, chatCompletionModel)
         this.host = host
+    }
+
+    static deserialize(settings: object): OpenAIService {
+        // Type guard to check if settings matches OpenAISettings structure
+        const isOpenAISettings = (obj: object): obj is OpenAISettings => {
+            return 'baseURL' in obj && typeof obj.baseURL === 'string' &&
+                'apiKey' in obj && typeof obj.apiKey === 'string' &&
+                'chatCompletionModel' in obj && typeof obj.chatCompletionModel === 'string';
+        }
+
+        if (!isOpenAISettings(settings)) {
+            throw new Error('Invalid OpenAI settings');
+        }
+
+        return new OpenAIService(settings.baseURL, settings.apiKey, settings.chatCompletionModel);
     }
 }
 

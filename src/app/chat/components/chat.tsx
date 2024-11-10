@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AddMesssageInChat, ChatLoader, loadChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
+import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, type Message } from "../lib/message";
 import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } from "./message";
@@ -9,7 +9,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { MessageInput } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { ChatIntelligence, intelligenceRegistry } from "@/app/intelligence-llm/lib/intelligence";
+import { ChatIntelligence, getChatIntelligenceSettingsByID, intelligenceRegistry, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -27,16 +27,20 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     const chatIntelligenceRef = useRef<ChatIntelligence>()
 
     useEffect(() => {
+
         const messageList = loadChatByID(chatID)
-        const chatSettings = loadChatSettings(chatID)
         updateMessageListStack([messageList])
+
+        const chatSettings: LocalChatSettings = loadChatSettings(chatID)
         setInputHandlers(chatSettings.inputHandlers)
-        // TODO fix this
-        // const chatIntelligence = intelligenceRegistry.getChatIntelligenceByType(chatSettings.chatIntelligence.type)
-        // if (!chatIntelligence) {
-        //     throw new Error(`Chat intelligence with type ${chatSettings.chatIntelligence.type} not found`)
-        // }
-        // chatIntelligenceRef.current = chatIntelligence
+        const tmp = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
+        if (tmp.type === OpenAIChatIntelligence.type) {
+            const settings = tmp.settings as OpenAIChatISettings
+            chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
+        } else {
+            throw new Error(`Chat intelligence with type ${tmp.type} not found`)
+        }
+
         setInputCompKey(prev => prev + 1)
     }, [chatID, loadChatByID, updateMessageListStack])
 
@@ -47,7 +51,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             // only generate assistant message if the last message is from the user
             if (messageList.length === 0 || messageList[messageList.length - 1].role !== SpecialRoles.USER) return
 
-            const newMessages = chatIntelligence.current!.completeChat(messageList.filter((msg) => msg.includedInChatCompletion))
+            const newMessages = chatIntelligenceRef.current!.completeChat(messageList.filter((msg) => msg.includedInChatCompletion))
             if (isTopLevel) {
                 // only top level chat need to be persisted
                 AddMesssageInChat(chatID, newMessages)

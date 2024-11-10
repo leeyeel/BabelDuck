@@ -1,14 +1,14 @@
 
 import { chatIntelligenceSettingsRecord } from "./intelligence"
 
-export function _getDefaultChatIntelligencesFromLocalStorage(): chatIntelligenceSettingsRecord[] {
-    const defaultIntelligences = localStorage.getItem('defaultChatIntelligences')
-    if (defaultIntelligences) {
-        return JSON.parse(defaultIntelligences)
+export function _getBuiltinChatIntelligencesFromLocalStorage(): chatIntelligenceSettingsRecord[] {
+    const builtInIntelligences = localStorage.getItem('builtInChatIntelligences')
+    if (!builtInIntelligences) {
+        return []
     }
-    return []
+    return JSON.parse(builtInIntelligences)
 }
 
-export function _saveDefaultChatIntelligencesToLocalStorage(intelligences: chatIntelligenceSettingsRecord[]) {
-    localStorage.setItem('defaultChatIntelligences', JSON.stringify(intelligences))
+export function _saveBuiltInChatIntelligencesToLocalStorage(intelligences: chatIntelligenceSettingsRecord[]) {
+    localStorage.setItem('builtInChatIntelligences', JSON.stringify(intelligences))
 }

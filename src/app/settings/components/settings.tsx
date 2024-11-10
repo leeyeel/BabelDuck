@@ -4,13 +4,15 @@ import { LuSettings } from "react-icons/lu";
 import { useEffect, useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
-import i18n, { I18nText } from '../../i18n/i18n';
+import i18n, { i18nText, I18nText } from '../../i18n/i18n';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
-import { getDefaultLLMServices, LLMServiceRecord, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
-import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
-import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
-import { getAvailableChatIntelligenceSettings } from "@/app/intelligence-llm/lib/intelligence";
+import { getBuiltInLLMServicesSettings, getLLMServiceSettingsRecord, LLMServiceSettingsRecord, OpenAIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
+import { getLLMSettingsComponent, OpenAIServiceSettings } from "@/app/intelligence-llm/components/llm-service";
+import { ChatSettings, GlobalDefaultChatSettingID, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
+import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { InputHandler } from "@/app/chat/components/input-handlers";
+import { OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -161,21 +163,105 @@ function GeneralSettings() {
 
 function GlobalChatSettings() {
     const chatSettings = loadGlobalChatSettings()
-    return _ChatSettings({ chatSettingsPayload: chatSettings, updateChatSettings: setGlobalChatSettings })
+    return <CommonChatSettings chatSettings={chatSettings} updateChatSettings={setGlobalChatSettings} />
 }
 
-function _ChatSettings({ chatSettingsPayload, updateChatSettings, className = "" }:
-    { chatSettingsPayload: ChatSettings, updateChatSettings: (payload: ChatSettings) => void, className?: string }) {
+// TODO documentation for naming abbreviations
+// RO = Rendering Object
+// chatI = chatIntelligence
+
+type ChatSettingsRO = {
+    chatISettings: {
+        id: string
+        name: i18nText,
+        chatIType: string
+        settings: object
+    }
+    availableChatIs: { id: string, name: i18nText }[]
+    inputHandlers: InputHandler[]
+}
+
+function assembleChatSettingsRO(chatSettings: ChatSettings): ChatSettingsRO {
+    const availableChatIs = getAvailableChatIntelligenceSettings()
+    const chatIID = chatSettings.ChatISettings.id
+    const rawChatISettings = chatSettings.ChatISettings.settings
+    const currentChatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
+
+    // let chatISettingsRO: object = {}
+    // if (currentChatISettingsRecord.type === OpenAIService.type) {
+    //     const _openAISettings = rawChatISettings as OpenAIChatIntelligenceSettings
+    //     if (_openAISettings.settingsType === 'local') {
+    //         chatISettingsRO = _openAISettings.localSettings!
+    //     } else {
+    //         const llmServiceSettings = getLLMServiceSettingsRecord('openai')
+    //         if (!llmServiceSettings) {
+    //             throw new Error(`LLM service settings not found: ${_openAISettings.settingsType}`)
+    //         }
+    //         chatISettingsRO = llmServiceSettings.settings
+    //     }
+    // }
+
+    return {
+        chatISettings: {
+            id: currentChatISettingsRecord.id,
+            name: currentChatISettingsRecord.name,
+            chatIType: currentChatISettingsRecord.type,
+            settings: rawChatISettings,
+        },
+        availableChatIs: availableChatIs,
+        inputHandlers: chatSettings.inputHandlers
+    }
+}
+
+function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }:
+    { chatSettings: ChatSettings, updateChatSettings: (payload: ChatSettings) => void, className?: string }) {
 
     const { t } = useTranslation();
+
+    const [selectedChatISettings, setSelectedChatISettings] = useState(chatSettings)
+    const chatSettingsRO = assembleChatSettingsRO(selectedChatISettings)
+
     const [showIntelligenceDropdown, setShowIntelligenceDropdown] = useState(false);
     const toggleIntelligenceDropdown = () => setShowIntelligenceDropdown(!showIntelligenceDropdown);
 
-    const availableIntelligences = getAvailableChatIntelligenceSettings()
-    const intelligenceDropdownItems = availableIntelligences.map((intelligence) => ({
+    function switchChatI(chatIID: string) {
+        const chatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
+        updateChatSettings({
+            ChatISettings: {
+                id: chatIID,
+                settings: chatISettingsRecord.settings,
+            },
+            inputHandlers: chatSettingsRO.inputHandlers,
+        })
+        setSelectedChatISettings({
+            ChatISettings: {
+                id: chatIID,
+                settings: chatISettingsRecord.settings,
+            },
+            inputHandlers: chatSettings.inputHandlers,
+        })
+    }
+    function updateSelectedChatISettings(newChatIsettings: object) {
+        updateChatSettings({
+            ChatISettings: {
+                id: selectedChatISettings.ChatISettings.id,
+                settings: newChatIsettings,
+            },
+            inputHandlers: selectedChatISettings.inputHandlers,
+        })
+        setSelectedChatISettings({
+            ChatISettings: {
+                id: selectedChatISettings.ChatISettings.id,
+                settings: newChatIsettings,
+            },
+            inputHandlers: selectedChatISettings.inputHandlers,
+        })
+    }
+
+    const intelligenceDropdownItems = chatSettingsRO.availableChatIs.map((intelligence) => ({
         label: <I18nText i18nText={intelligence.name} />,
         onClick: () => {
-            updateChatSettings({ ...chatSettingsPayload, chatIntelligence: intelligence })
+            switchChatI(intelligence.id)
             toggleIntelligenceDropdown()
         }
     }))
@@ -185,7 +271,7 @@ function _ChatSettings({ chatSettingsPayload, updateChatSettings, className = ""
         <div className="flex flex-row items-center justify-between relative mb-4">
             <span className="text-gray-700 font-bold">{t('Chat Model')}</span>
             <DropdownMenuEntry
-                label={<I18nText i18nText={chatSettingsPayload.chatIntelligence.name} />}
+                label={<I18nText i18nText={chatSettingsRO.chatISettings.name} />}
                 onClick={toggleIntelligenceDropdown}
             />
             {showIntelligenceDropdown && <>
@@ -193,6 +279,9 @@ function _ChatSettings({ chatSettingsPayload, updateChatSettings, className = ""
                 <TransparentOverlay onClick={toggleIntelligenceDropdown} />
             </>}
         </div>
+        {chatSettingsRO.chatISettings.chatIType === OpenAIChatIntelligence.type &&
+            <OpenAIChatISettings settings={chatSettingsRO.chatISettings.settings}
+                updateChatISettings={updateSelectedChatISettings} />}
         {/* input handlers settings */}
 
     </div>
@@ -201,7 +290,7 @@ function _ChatSettings({ chatSettingsPayload, updateChatSettings, className = ""
 function LLMSettings() {
     const { t } = useTranslation();
     const [compState, setCompState] = useState<{
-        llmServices: LLMServiceRecord[],
+        llmServices: LLMServiceSettingsRecord[],
         selectedSvcId: string | null,
     }>({ llmServices: [], selectedSvcId: null })
 
@@ -212,7 +301,7 @@ function LLMSettings() {
     const toggleDropdown = () => setShowDropdown(!showDropdown)
 
     useEffect(() => {
-        const defaultSvcs = getDefaultLLMServices()
+        const defaultSvcs = getBuiltInLLMServicesSettings()
         setCompState({ llmServices: defaultSvcs, selectedSvcId: defaultSvcs.length > 0 ? defaultSvcs[0].id : null })
     }, [])
 
