@@ -1,5 +1,5 @@
 'use client'
-import { chatIntelligenceSettings, chatIntelligenceSettingsRecord, FreeTrialChatIntelligence, getChatIntelligenceSettingsRecord, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { FreeTrialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";

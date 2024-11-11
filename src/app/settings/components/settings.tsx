@@ -288,6 +288,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
 }
 
 function LLMSettings() {
+
     const { t } = useTranslation();
     const [compState, setCompState] = useState<{
         llmServices: LLMServiceSettingsRecord[],
@@ -307,6 +308,10 @@ function LLMSettings() {
 
     const updateSettings = (serviceId: string, settings: object) => {
         updateLLMServiceSettings(serviceId, settings)
+        setCompState({
+            llmServices: compState.llmServices.map((svc) => svc.id === serviceId ? { ...svc, settings } : svc),
+            selectedSvcId: compState.selectedSvcId,
+        })
     }
 
     return <div className="flex flex-col pl-8">
