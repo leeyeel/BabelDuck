@@ -5,13 +5,12 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next, useTranslation } from "react-i18next";
 
 export type i18nText =
-    // text means literal value, key is i18n key
     | { text: string }
-    | { key: string }
+    | { key: string, values?: Record<string, string> }
 
 export function I18nText({ i18nText, className }: { i18nText: i18nText, className?: string }) {
     const { t } = useTranslation();
-    return <span className={className}>{('key' in i18nText ? t(i18nText.key) : i18nText.text)}</span>
+    return <span className={className}>{('key' in i18nText ? t(i18nText.key, i18nText.values) : i18nText.text)}</span>
 }
 
 i18n
@@ -67,6 +66,9 @@ i18n
                     'Models Service': 'Models Service',
                     'baseURL': 'Base URL',
                     'Chat Model': 'Chat Model',
+                    'translateTooltip': 'Ask AI to translate your input into {{targetLanguage}}',
+                    'generateResponseTooltip': 'Ask AI to help generate a response',
+                    'grammarCheckTooltip': 'Ask AI to help correct potential grammar issues',
                 }
             },
             zh: {
@@ -115,6 +117,9 @@ i18n
                     'Models Service': '模型服务',
                     'baseURL': '基础 URL',
                     'Chat Model': '对话模型',
+                    'translateTooltip': '让 AI 将消息内容翻译为 {{targetLanguage}}',
+                    'generateResponseTooltip': '让 AI 帮忙回复当前消息',
+                    'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
                 }
             },
             // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
@@ -164,6 +169,9 @@ i18n
                     'Models Service': 'モデルサービス',
                     'baseURL': 'ベースURL',
                     'Chat Model': 'チャットモデル',
+                    'translateTooltip': '入力を{{targetLanguage}}に翻訳',
+                    'generateResponseTooltip': '応答の生成を支援',
+                    'grammarCheckTooltip': '文法の問題を修正',
                 }
             }
         }

@@ -9,6 +9,7 @@ import { FilledButton, TransparentButton } from "@/app/ui-utils/components/butto
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
+import { i18nText } from "@/app/i18n/i18n";
 
 // Define InputHandlerTypes enum
 export enum InputHandlerTypes {
@@ -44,7 +45,7 @@ export abstract class InputHandler {
         this.type = type;
     }
 
-    abstract tooltip(lang: string): string;
+    abstract tooltip(): i18nText;
     abstract instruction(): string;
     // return undefined if this handler does not have a settings panel, means it's unconfigurable
     abstract settingsPanel(): InputHandlerSettingsPanel | undefined;
@@ -78,12 +79,8 @@ export class TranslationHandler extends InputHandler {
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'k' && (e.metaKey || e.ctrlKey);
     }
 
-    tooltip(lang: string): string {
-        if (lang.startsWith("zh")) {
-            return `将消息内容翻译为 ${this.targetLanguage}`;
-        } else {
-            return `Translate your input into ${this.targetLanguage}.`;
-        }
+    tooltip(): i18nText {
+        return { key: 'translateTooltip', values: { targetLanguage: this.targetLanguage } };
     }
 
     instruction(): string {
@@ -140,12 +137,8 @@ export class RespGenerationHandler extends InputHandler {
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === '/' && (e.metaKey || e.ctrlKey);
     }
 
-    tooltip(lang: string): string {
-        if (lang.startsWith("zh")) {
-            return "协助生成对应的回复";
-        } else {
-            return "Help generate a response.";
-        }
+    tooltip(): i18nText {
+        return { key: 'generateResponseTooltip' };
     }
 
     instruction(): string {
@@ -177,12 +170,8 @@ export class GrammarCheckingHandler extends InputHandler {
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'g' && (e.metaKey || e.ctrlKey);
     }
 
-    tooltip(lang: string): string {
-        if (lang.startsWith("zh")) {
-            return "检查并修正可能存在的语法问题";
-        } else {
-            return "Correct potential grammar issues";
-        }
+    tooltip(): i18nText {
+        return { key: 'grammarCheckTooltip' };
     }
 
     instruction(): string {
@@ -287,8 +276,8 @@ export class CommonGenerationHandler extends InputHandler {
         this.iconNode = <span>{iconChar}</span>;
     }
 
-    tooltip(): string {
-        return this._tooltip;
+    tooltip(): i18nText {
+        return { text: this._tooltip };
     }
 
     instruction(): string {
@@ -328,8 +317,8 @@ export class CommonRevisionHandler extends InputHandler {
         this.iconNode = <span>{iconChar}</span>;
     }
 
-    tooltip(): string {
-        return this._tooltip;
+    tooltip(): i18nText {
+        return { text: this._tooltip };
     }
 
     instruction(): string {

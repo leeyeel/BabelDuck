@@ -23,6 +23,7 @@ import {
 } from "./input-handlers";
 import { Overlay } from "@/app/ui-utils/components/overlay";
 import { useTranslation } from "react-i18next";
+import { I18nText } from "@/app/i18n/i18n";
 
 export async function reviseMessage(
     messageToRevise: string,
@@ -314,7 +315,7 @@ export function MessageInput({
             {/* top bar - revision entry icons */}
             <div className="flex flex-row">
                 {inputHandlers.map((h, index) => {
-                    // loading effect while revising
+                    // loading effect while handling input
                     if (compState.type === 'revising' && compState.revisingIndex === index) {
                         return <div key={index} id={`input-handler-${index}`}>
                             <IconCircleWrapper width={35} height={35}>
@@ -339,7 +340,7 @@ export function MessageInput({
                             </IconCircleWrapper>
                         </div>
                         <Tooltip anchorSelect={`#input-handler-${index}`} clickable delayShow={300} delayHide={0} style={{ borderRadius: '0.75rem' }}>
-                            <span>{h.tooltip(navigator.language)}</span>
+                            <I18nText i18nText={h.tooltip()} />
                             {configurable && <div className="flex flex-row justify-end items-center mt-3">
                                 <LuSettings className="text-white cursor-pointer" onClick={() => startUpdatingInputHandler(index)} />
                             </div>}
