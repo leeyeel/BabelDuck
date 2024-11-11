@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import { OpenAIService, OpenAISettings, SiliconFlowService } from "../lib/llm-service";
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton } from "@/app/ui-utils/components/button";
 

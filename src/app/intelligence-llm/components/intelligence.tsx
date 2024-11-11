@@ -2,7 +2,7 @@
 
 import { TransparentButton } from "@/app/ui-utils/components/button"
 import type { OpenAIChatISettings } from "../lib/intelligence"
-import { getLLMServiceSettingsRecord, OpenAISettings } from "../lib/llm-service"
+import { getLLMServiceSettingsRecord } from "../lib/llm-service"
 import { OpenAIServiceSettings } from "./llm-service"
 import { useState } from "react"
 
@@ -44,12 +44,4 @@ export function OpenAIChatISettings(
             <TransparentButton className="absolute right-0 top-0" onClick={() => { resetToLinkTypeSettings() }}> Reset to Default </TransparentButton>
         }
     </div>
-}
-
-type OpenAIChatISettingsRO = {
-
-}
-
-function getOpenAIChatISettingsRO() {
-
 }

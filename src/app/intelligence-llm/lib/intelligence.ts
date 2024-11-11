@@ -4,7 +4,6 @@ import { freeTrialChatCompletionInStream } from "./intelligence-server"
 import { SpecialRoles, TextMessage } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { readStreamableValue } from "ai/rsc"
-import { _getBuiltinChatIntelligencesFromLocalStorage, _saveBuiltInChatIntelligencesToLocalStorage } from "./intelligence-persistence"
 import { getLLMServiceSettingsRecord, OpenAIService, OpenAISettings } from "./llm-service"
 
 // ============================= business logic =============================

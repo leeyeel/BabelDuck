@@ -3,7 +3,6 @@ import { FreeTrialChatIntelligence } from "@/app/intelligence-llm/lib/intelligen
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
-import { getLLMServiceSettingsRecord, OpenAIService } from "@/app/intelligence-llm/lib/llm-service";
 import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
 import { generateUUID } from "@/app/lib/uuid";
 
