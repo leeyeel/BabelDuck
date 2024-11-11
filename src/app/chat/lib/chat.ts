@@ -5,6 +5,7 @@ import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/
 import { Message } from "./message";
 import { getLLMServiceSettingsRecord, OpenAIService } from "@/app/intelligence-llm/lib/llm-service";
 import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
+import { generateUUID } from "@/app/lib/uuid";
 
 // ============================= business logic =============================
 
@@ -206,7 +207,7 @@ export function AddNewChat(
     const chatSelectionList: ChatSelection[] = chatSelectionListJSON ? JSON.parse(chatSelectionListJSON) : [];
 
     // 新的 chat ID
-    const newChatID = (chatSelectionList.length + 1).toString();
+    const newChatID = generateUUID();
 
     // 新的聊天选择项
     const newChatSelection: ChatSelection = { id: newChatID, title: chatTitle };
