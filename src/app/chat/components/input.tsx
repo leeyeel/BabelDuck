@@ -579,9 +579,13 @@ function TextInput(
             className={`flex-1 p-4 resize-none focus:outline-none ${!isTyping && "cursor-default"}`}
             ref={textAreaRef}
             placeholder={
-                isTyping
-                    ? `${t('typeMessage')}\n${t('sendTips')}`
-                    : t('recordingTips')
+                (isVoiceMode
+                    || (inputState.type === 'recording' && inputState.previousState.type === 'voiceMode')
+                    || (inputState.type === 'transcribing' && inputState.previousState.type === 'voiceMode')
+                    || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode')
+                )
+                    ? t('recordingTips')
+                    : `${t('typeMessage')}\n${t('sendTips')}`
             }
             value={msg.content} onChange={(e) => setMsg(msg.updateContent(e.target.value))}
             readOnly={!isTyping}
