@@ -119,7 +119,10 @@ export function addInputHandlersInChat(chatID: string, handlers: InputHandler[])
     } else {
         // add the handlers to the chat local settings
         chatSettings.inputHandlers.push(...handlers);
-        setChatSettingsData(`chatSettings_${chatID}`, chatSettings);
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: chatSettings.ChatISettings
+        });
     }
 }
 
@@ -129,11 +132,17 @@ export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: n
         // update the global settings
         const globalSettings = loadGlobalChatSettings();
         globalSettings.inputHandlers[handlerIndex] = handler;
-        setChatSettingsData(GlobalDefaultChatSettingID, globalSettings);
+        setChatSettingsData(GlobalDefaultChatSettingID, {
+            rawInputHandlers: globalSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: globalSettings.ChatISettings
+        });
     } else {
         // update the chat local settings
         chatSettings.inputHandlers[handlerIndex] = handler;
-        setChatSettingsData(`chatSettings_${chatID}`, chatSettings);
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: chatSettings.ChatISettings
+        });
     }
 }
 
