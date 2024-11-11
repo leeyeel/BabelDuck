@@ -5,7 +5,9 @@ import { createOpenAI } from '@ai-sdk/openai';
 
 // TODO reorganize the functions
 
-export const chatCompletionInStream = async (messageList: { role: string, content: string }[]) => {
+export const chatCompletionInStream = async (
+    messageList: { role: string, content: string }[],
+) => {
     const openai = createOpenAI({
         baseURL: process.env.OPENAI_BASE_URL,
         apiKey: process.env.OPENAI_API_KEY,
@@ -13,7 +15,7 @@ export const chatCompletionInStream = async (messageList: { role: string, conten
 
     const result = streamText({
         model: openai.chat('deepseek-ai/DeepSeek-V2.5'),
-        messages: convertToCoreMessages(messageList as {role: 'system' | 'user' | 'assistant', content: string}[]),
+        messages: convertToCoreMessages(messageList as { role: 'system' | 'user' | 'assistant', content: string }[]),
     })
 
     const streamableStatus = createStreamableValue<string>();

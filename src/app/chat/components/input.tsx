@@ -5,11 +5,11 @@ import { FaBackspace, FaMicrophone } from "react-icons/fa";
 import { LuSettings, LuUserCog2 } from "react-icons/lu";
 import { Audio, Oval } from "react-loader-spinner";
 import { messageAddedCallbackOptions } from "./chat";
-import { IconCircleWrapper, SpecialRoleTypes, TextMessage } from "./message";
+import { IconCircleWrapper, SpecialRoles, TextMessage } from "./message";
 import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
 import { PiKeyReturnBold } from "react-icons/pi";
-import { Message } from "../lib/message";
+import { isOpenAILikeMessage, Message } from "../lib/message";
 import { chatCompletion } from "../lib/chat-server";
 import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
@@ -34,7 +34,8 @@ export async function reviseMessage(
     const historyContext = includeHistory ?
         historyMessages.slice(-(historyMessageCount ?? historyMessages.length)).
             filter((msg) => msg.includedInChatCompletion).
-            map(msg => `[START]${msg.role}: ${msg.toJSON().content}[END]`).join('\n') : "";
+            filter((msg) => isOpenAILikeMessage(msg)).
+            map(msg => `[START]${msg.role}: ${msg.toOpenAIMessage().content}[END]`).join('\n') : "";
 
     const systemPrompt = `You're a helpful assistant. Your duty is to assist users in a conversation, and sometimes users will provide you with the message they are about to send, asking you to help modify, correct, translate or rewrite the provided message.First, the user will send you the ongoing conversation history in the following format:
 """
@@ -107,7 +108,8 @@ export async function generateMessage(
     const historyContext = includeHistory ?
         historyMessages.slice(-(historyMessageCount ?? historyMessages.length)).
             filter((msg) => msg.includedInChatCompletion).
-            map(msg => `[START]${msg.role}: ${msg.toJSON().content}[END]`).join('\n') : "";
+            filter((msg) => isOpenAILikeMessage(msg)).
+            map(msg => `[START]${msg.role}: ${msg.toOpenAIMessage().content}[END]`).join('\n') : "";
 
     const systemPrompt = `You're a helpful assistant. Your duty is to assist users in a conversation, and sometimes users don't know how to respond, you need to help the user provide a response for reference. First, the user will send you the ongoing conversation history in the following format:
 """
@@ -161,7 +163,10 @@ ${userInstruction}
 
 // Temporarily use this to convert message to text for revision
 function messageToText(message: Message): string {
-    return message.toJSON().content
+    if (isOpenAILikeMessage(message)) {
+        return message.toOpenAIMessage().content
+    }
+    return message.toString()
 }
 
 export type MessageInputState =
@@ -615,9 +620,9 @@ function TextInput(
                         <div className="fixed inset-0 z-10 bg-black opacity-0" onClick={() => setShowRoleMenu(false)}></div>
                         <div className="absolute bottom-full left-0 mb-1 p-2 bg-white border border-gray-300 rounded-lg z-20">
                             {/* Add role options here */}
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.SYSTEM, prev.content)); setShowRoleMenu(false); }}>{t('system')}</div>
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.ASSISTANT, prev.content)); setShowRoleMenu(false); }}>{t('assistant')}</div>
-                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoleTypes.USER, prev.content)); setShowRoleMenu(false); }}>{t('user')}</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoles.SYSTEM, prev.content)); setShowRoleMenu(false); }}>{t('system')}</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoles.ASSISTANT, prev.content)); setShowRoleMenu(false); }}>{t('assistant')}</div>
+                            <div className="cursor-pointer hover:bg-gray-200 p-2" onClick={() => { setMsg(prev => new TextMessage(SpecialRoles.USER, prev.content)); setShowRoleMenu(false); }}>{t('user')}</div>
                         </div>
                     </>
                 )}

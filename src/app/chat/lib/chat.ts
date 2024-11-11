@@ -1,29 +1,17 @@
+'use client'
+import { FreeTrialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
 import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
+import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
+import { generateUUID } from "@/app/lib/uuid";
 
-export function LoadChatSelectionListFromLocalStorage(): {
-    chatSelectionList: ChatSelection[], currentSelectedChatID?: string
-} {
-    // 从 localStorage 读取 chat selection list 和当前选择的 chat ID
-    const chatSelectionListJSON = localStorage.getItem('chatSelectionList');
-    const currentSelectedChatID = localStorage.getItem('currentSelectedChatID');
+// ============================= business logic =============================
 
-    // 如果 localStorage 中没有数据，返回默认值
-    if (!chatSelectionListJSON) {
-        return {
-            chatSelectionList: [],
-            currentSelectedChatID: undefined
-        };
-    }
 
-    return {
-        chatSelectionList: JSON.parse(chatSelectionListJSON),
-        currentSelectedChatID: currentSelectedChatID || undefined
-    };
-}
+// ===== Chat Messages =====
 
-export function LoadChatByIDFromLocalStorage(chatID: string): Message[] {
+export function loadChatMessages(chatID: string): Message[] {
     // 从 localStorage 根据 chatID 读取消息列表
     const messageListJSON = localStorage.getItem(`chat_${chatID}`);
 
@@ -51,63 +39,73 @@ export function LoadChatByIDFromLocalStorage(chatID: string): Message[] {
     return messageList;
 }
 
-const GlobalDefaultChatSettingScopeID = 'global_default_chat_settings'
+// ===== Chat Settings =====
 
-type ChatSettingsPayload = {
+export type ChatSettings = {
+    ChatISettings: {
+        id: string
+        settings: object
+    }
     inputHandlers: InputHandler[];
 }
 
-type ChatSettings = {
+export type LocalChatSettings = {
     usingGlobalSettings: boolean;
-    payload: ChatSettingsPayload
+} & ChatSettings
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function loadChatSettings(chatID: string): LocalChatSettings {
+
+    const globalSettings = loadGlobalChatSettings()
+    return { usingGlobalSettings: true, ...globalSettings }
+    // // check if the chat is using global settings
+    // const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
+    // if (!chatMetadataJSON) {
+    //     return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
+    // }
+    // // if so, return global settings
+    // const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
+    // if (chatMetadata.usingGlobalSettings) {
+    //     return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
+    // }
+    // // if not, return the chat local settings
+    // const chatSettings = _loadChatSettingsData(`chatSettings_${chatID}`);
+    // if (!chatSettings) {
+    //     // TODO save the missing chat local settings
+    //     return { usingGlobalSettings: false, ...loadGlobalChatSettings() };
+    // }
+    // return { usingGlobalSettings: false, ...chatSettings };
 }
 
-export function loadChatSettings(chatID: string): ChatSettings {
-    // check if the chat is using global settings
-    const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
-    if (!chatMetadataJSON) {
-        return { usingGlobalSettings: true, payload: loadGlobalChatSettings() };
-    }
-    // if so, return global settings
-    const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
-    if (chatMetadata.usingGlobalSettings) {
-        return { usingGlobalSettings: true, payload: loadGlobalChatSettings() };
-    }
-    // if not, return the chat local settings
-    const chatSettings = _loadChatSettingsData(`chatSettings_${chatID}`);
-    if (!chatSettings) {
-        // TODO save the missing chat local settings
-        return { usingGlobalSettings: false, payload: loadGlobalChatSettings() };
-    }
-    return { usingGlobalSettings: false, payload: chatSettings };
-}
-
-const globalDefaultChatSettings: ChatSettingsPayload = {
+const defaultGlobalChatSettings: ChatSettings = {
+    ChatISettings: {
+        id: FreeTrialChatIntelligence.id,
+        settings: {}
+    },
     inputHandlers: [new TranslationHandler("English"), new RespGenerationHandler(), new GrammarCheckingHandler()]
 }
 
-export function loadGlobalChatSettings(): ChatSettingsPayload {
-    const payloadJSON = _loadChatSettingsData(GlobalDefaultChatSettingScopeID);
-    if (!payloadJSON) {
-        // TODO save the missing global default chat settings
-        return globalDefaultChatSettings;
+export const GlobalDefaultChatSettingID = 'global_default_chat_settings'
+// side effect: if the global settings are not found, set them to the default value
+export function loadGlobalChatSettings(): ChatSettings {
+    const chatSettingsData = loadChatSettingsData(GlobalDefaultChatSettingID);
+    if (!chatSettingsData) {
+        setGlobalChatSettings(defaultGlobalChatSettings);
+        return defaultGlobalChatSettings;
     }
-    return payloadJSON;
+    const inputHandlers = chatSettingsData.rawInputHandlers.map((rawHandler) => InputHandler.deserialize(rawHandler))
+    return {
+        ChatISettings: chatSettingsData.ChatISettings,
+        inputHandlers: inputHandlers
+    };
 }
 
-function _loadChatSettingsData(settingsID: string): ChatSettingsPayload | undefined {
-    const payloadJSON = localStorage.getItem(settingsID);
-    if (!payloadJSON) {
-        return undefined;
-    }
-    // deserialize the input handlers
-    const payload: { rawInputHandlers: string[] } = JSON.parse(payloadJSON);
-    const inputHandlers = payload.rawInputHandlers.map((handler) => InputHandler.deserialize(handler));
-    return { inputHandlers };
-}
-
-function _setChatSettingsData(settingsID: string, payload: ChatSettingsPayload): void {
-    localStorage.setItem(settingsID, JSON.stringify({ rawInputHandlers: payload.inputHandlers.map((handler) => handler.serialize()) }));
+export function setGlobalChatSettings(settings: ChatSettings): void {
+    setChatSettingsData(GlobalDefaultChatSettingID, {
+        rawInputHandlers: settings.inputHandlers.map((handler) => handler.serialize()),
+        ChatISettings: settings.ChatISettings
+    });
 }
 
 export function addInputHandlersInChat(chatID: string, handlers: InputHandler[]): void {
@@ -117,11 +115,14 @@ export function addInputHandlersInChat(chatID: string, handlers: InputHandler[])
         // add the handlers to the global settings
         const globalSettings = loadGlobalChatSettings();
         globalSettings.inputHandlers.push(...handlers);
-        _setChatSettingsData(GlobalDefaultChatSettingScopeID, globalSettings);
+        setGlobalChatSettings(globalSettings);
     } else {
         // add the handlers to the chat local settings
-        chatSettings.payload.inputHandlers.push(...handlers);
-        _setChatSettingsData(`chatSettings_${chatID}`, chatSettings.payload);
+        chatSettings.inputHandlers.push(...handlers);
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: chatSettings.ChatISettings
+        });
     }
 }
 
@@ -131,13 +132,43 @@ export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: n
         // update the global settings
         const globalSettings = loadGlobalChatSettings();
         globalSettings.inputHandlers[handlerIndex] = handler;
-        _setChatSettingsData(GlobalDefaultChatSettingScopeID, globalSettings);
+        setChatSettingsData(GlobalDefaultChatSettingID, {
+            rawInputHandlers: globalSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: globalSettings.ChatISettings
+        });
     } else {
         // update the chat local settings
-        chatSettings.payload.inputHandlers[handlerIndex] = handler;
-        _setChatSettingsData(`chatSettings_${chatID}`, chatSettings.payload);
+        chatSettings.inputHandlers[handlerIndex] = handler;
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            ChatISettings: chatSettings.ChatISettings
+        });
     }
 }
+
+
+export function loadChatSelectionList(): {
+    chatSelectionList: ChatSelection[], currentSelectedChatID?: string
+} {
+    // 从 localStorage 读取 chat selection list 和当前选择的 chat ID
+    const chatSelectionListJSON = localStorage.getItem('chatSelectionList');
+    const currentSelectedChatID = localStorage.getItem('currentSelectedChatID');
+
+    // 如果 localStorage 中没有数据，返回默认值
+    if (!chatSelectionListJSON) {
+        return {
+            chatSelectionList: [],
+            currentSelectedChatID: undefined
+        };
+    }
+
+    return {
+        chatSelectionList: JSON.parse(chatSelectionListJSON),
+        currentSelectedChatID: currentSelectedChatID || undefined
+    };
+}
+
+// ============================= persistence =============================
 
 export function persistMessageUpdateInChat(chatID: string, messageID: number, updateMessage: Message): void {
     // 从 localStorage 读取现有的消息列表
@@ -157,8 +188,6 @@ export function persistMessageUpdateInChat(chatID: string, messageID: number, up
     localStorage.setItem(`chat_${chatID}`, JSON.stringify(messageList));
 }
 
-
-// 新增计数器管理函数
 export function getNextChatCounter(): number {
     let chatCounter = parseInt(localStorage.getItem('chatCounter') || '0', 10);
     chatCounter += 1;
@@ -177,7 +206,7 @@ export function AddNewChat(
     const chatSelectionList: ChatSelection[] = chatSelectionListJSON ? JSON.parse(chatSelectionListJSON) : [];
 
     // 新的 chat ID
-    const newChatID = (chatSelectionList.length + 1).toString();
+    const newChatID = generateUUID();
 
     // 新的聊天选择项
     const newChatSelection: ChatSelection = { id: newChatID, title: chatTitle };
@@ -196,8 +225,8 @@ export function AddNewChat(
     };
 }
 
-export function AddMesssageInChat(chatID: string, message: Message): void {
-    if (message.serialize() === "") {
+export function AddMesssageInChat(chatID: string, messages: Message[]): void {
+    if (messages.length === 0) {
         return
     }
     // 从 localStorage 读取现有的消息列表
@@ -205,7 +234,7 @@ export function AddMesssageInChat(chatID: string, message: Message): void {
     const messageList: string[] = messageListJSON ? JSON.parse(messageListJSON) : [];
 
     // 将新的消息添加到消息列表中
-    messageList.push(message.serialize());
+    messageList.push(...messages.map((msg) => msg.serialize()));
 
     // 更新 localStorage 中的消息列表
     localStorage.setItem(`chat_${chatID}`, JSON.stringify(messageList));
@@ -225,7 +254,6 @@ export function UpdateChatTitle(chatID: string, newTitle: string): void {
     // 更新 localStorage 中的 chat selection list
     localStorage.setItem('chatSelectionList', JSON.stringify(chatSelectionList));
 }
-
 
 export interface ChatSelectionListLoader {
     (): { chatSelectionList: ChatSelection[], currentSelectedChatID?: string };

@@ -2,7 +2,17 @@
 
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { initReactI18next } from "react-i18next";
+import { initReactI18next, useTranslation } from "react-i18next";
+
+export type i18nText =
+    // text means literal value, key is i18n key
+    | { text: string }
+    | { key: string }
+
+export function I18nText({ i18nText, className }: { i18nText: i18nText, className?: string }) {
+    const { t } = useTranslation();
+    return <span className={className}>{('key' in i18nText ? t(i18nText.key) : i18nText.text)}</span>
+}
 
 i18n
     .use(LanguageDetector)
@@ -20,6 +30,7 @@ i18n
                     'Chat': 'Chat',
                     'Speech': 'Speech',
                     'Models': 'Models',
+                    'Model-Single-Form': 'Model',
                     'Select Your Language': 'Language',
                     'Confirm': 'Confirm',
                     'Untitled Chat': 'Untitled Chat',
@@ -52,6 +63,10 @@ i18n
                     'Voice Mode': 'Voice Mode',
                     'Rename': 'Rename',
                     'Delete': 'Delete',
+                    'Free Trial': 'Free Trial',
+                    'Models Service': 'Models Service',
+                    'baseURL': 'Base URL',
+                    'Chat Model': 'Chat Model',
                 }
             },
             zh: {
@@ -63,6 +78,7 @@ i18n
                     'Chat': '对话',
                     'Speech': '语音',
                     'Models': '模型',
+                    'Model-Single-Form': '模型',
                     'Select Your Language': '语言',
                     'Confirm': '确认',
                     'Untitled Chat': '未命名对话',
@@ -95,6 +111,10 @@ i18n
                     'Voice Mode': '语音模式',
                     'Rename': '重命名',
                     'Delete': '删除',
+                    'Free Trial': '免费试用',
+                    'Models Service': '模型服务',
+                    'baseURL': '基础 URL',
+                    'Chat Model': '对话模型',
                 }
             },
             // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
@@ -107,6 +127,7 @@ i18n
                     'Chat': 'チャット',
                     'Speech': '音声',
                     'Models': 'モデル',
+                    'Model-Single-Form': 'モデル',
                     'Select Your Language': '言語',
                     'Confirm': '確認',
                     'Untitled Chat': '無題のチャット',
@@ -139,6 +160,10 @@ i18n
                     'Voice Mode': '音声モード',
                     'Rename': '名前を変更',
                     'Delete': '削除',
+                    'Free Trial': '無料試用',
+                    'Models Service': 'モデルサービス',
+                    'baseURL': 'ベースURL',
+                    'Chat Model': 'チャットモデル',
                 }
             }
         }

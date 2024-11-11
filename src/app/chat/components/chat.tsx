@@ -1,16 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AddMesssageInChat, ChatLoader, loadChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat"; // Changed to type-only import
-import { chatCompletionInStream } from "../lib/chat-server";
+import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
-import { type Message } from "../lib/message";
-import { RecommendedRespMessage, SpecialRoleTypes as SpecialRoles, StreamingTextMessage, TextMessage } from "./message";
+import { isOpenAILikeMessage, type Message } from "../lib/message";
+import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } from "./message";
 import { IoIosArrowDown } from "react-icons/io";
-import { readStreamableValue } from "ai/rsc";
 import { MessageInput } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
+import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -25,12 +24,25 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
     const [inputCompKey, setInputCompKey] = useState(0) // for force reset
     const [chatKey, setChatKey] = useState(0) // for informing children that current chat has switched
+    const chatIntelligenceRef = useRef<ChatIntelligence>()
 
     useEffect(() => {
+
         const messageList = loadChatByID(chatID)
-        const chatSettings = loadChatSettings(chatID)
         updateMessageListStack([messageList])
-        setInputHandlers(chatSettings.payload.inputHandlers)
+
+        const chatSettings: LocalChatSettings = loadChatSettings(chatID)
+        setInputHandlers(chatSettings.inputHandlers)
+        const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
+        if (type === OpenAIChatIntelligence.type) {
+            const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings
+            chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
+        } else if (type === FreeTrialChatIntelligence.type) {
+            chatIntelligenceRef.current = new FreeTrialChatIntelligence()
+        } else {
+            throw new Error(`Chat intelligence with type ${type} not found`)
+        }
+
         setInputCompKey(prev => prev + 1)
     }, [chatID, loadChatByID, updateMessageListStack])
 
@@ -39,27 +51,15 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         async ({ messageList, opts = { generateAssistantMsg: true } }: { messageList: Message[], opts?: messageAddedCallbackOptions }) => {
             if (!opts.generateAssistantMsg) return
             // only generate assistant message if the last message is from the user
-            // TODO reference 'user' role constant instead
-            if (messageList.length === 0 || messageList[messageList.length - 1].role !== 'user') return
+            if (messageList.length === 0 || messageList[messageList.length - 1].role !== SpecialRoles.USER) return
 
-            async function* genFunc() {
-                const { status } = await chatCompletionInStream(
-                    messageList.filter((msg) => msg.includedInChatCompletion).map((msg) => (msg.toJSON()))
-                )
-
-                for await (const value of readStreamableValue(status)) {
-                    yield value ?? '' // no idea what it represents when the value is undefined, so just replace it with ''
-                }
-                return
-            }
-            const gen = genFunc()
-
-            const streamingMsg = new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)
+            const newMessages = chatIntelligenceRef.current!.completeChat(messageList.filter((msg) => msg.includedInChatCompletion))
             if (isTopLevel) {
-                AddMesssageInChat(chatID, streamingMsg)
+                // only top level chat need to be persisted
+                AddMesssageInChat(chatID, newMessages)
             }
             updateMessageListStack(draft => {
-                draft[draft.length - 1].push(streamingMsg)
+                draft[draft.length - 1].push(...newMessages)
             })
         }
         // TODO rename chat based on messages while the number of messages is greater than 1
@@ -68,7 +68,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
     async function addMesssage(newMessage: Message, callbackOpts?: messageAddedCallbackOptions) {
         if (isTopLevel) {
-            AddMesssageInChat(chatID, newMessage)
+            AddMesssageInChat(chatID, [newMessage])
         }
         updateMessageListStack(draft => {
             draft[draft.length - 1].push(newMessage)
@@ -94,7 +94,8 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         const historyContext = true ?
             currentMessageList.slice(-currentMessageList.length).
                 filter((msg) => msg.includedInChatCompletion).
-                map(msg => `[START]${msg.role}: ${msg.toJSON().content}[END]`).join('\n') : ""
+                filter((msg) => isOpenAILikeMessage(msg)).
+                map(msg => `[START]${msg.role}: ${msg.toOpenAIMessage().content}[END]`).join('\n') : ""
         const revisePrompt = `${true ? `This is an ongoing conversation:
         """
         ${historyContext}

@@ -11,7 +11,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
     "@reduxjs/toolkit": "^2.2.7",
-    "ai": "^3.4.9",
+    "ai": "^3.4.33",
     "diff": "^7.0.0",
     "extendable-media-recorder": "^9.2.13",
     "extendable-media-recorder-wav-encoder": "^7.0.117",
@@ -19,6 +19,7 @@
     "i18next-browser-languagedetector": "^8.0.0",
     "immer": "^10.1.1",
     "next": "14.2.12",
+    "primereact": "^10.8.4",
     "react": "^18",
     "react-dom": "^18",
     "react-i18next": "^15.1.0",
@@ -27,13 +28,15 @@
     "react-redux": "^9.1.2",
     "react-switch": "^7.0.0",
     "react-tooltip": "^5.28.0",
-    "use-immer": "^0.10.0"
+    "use-immer": "^0.10.0",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@types/diff": "^5.2.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.12",
     "postcss": "^8",

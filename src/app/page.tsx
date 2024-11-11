@@ -2,7 +2,7 @@
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
 import { ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { LoadChatByIDFromLocalStorage, LoadChatSelectionListFromLocalStorage } from "./chat/lib/chat";
+import { loadChatMessages, loadChatSelectionList } from "./chat/lib/chat";
 import { useAppSelector } from "./hooks";
 import { SettingsEntry } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
@@ -89,7 +89,7 @@ export default function Home() {
       {/* sidebar */}
       <div className="flex px-2 pb-12 flex-col w-[250px] bg-[#F9F9F9]">
         <ChatSelectionList className="mt-12 flex-1 overflow-y-auto w-[250px]"
-          chatSelectionListLoader={LoadChatSelectionListFromLocalStorage} />
+          chatSelectionListLoader={loadChatSelectionList} />
         <div className="border-t border-gray-300 my-5 mx-3"></div>
         <div className="flex flex-col">
           <NewChat className="mb-1" />
@@ -103,7 +103,7 @@ export default function Home() {
           chatID={chatSelectionList.currentChatID as string}
           chatTitle={chatSelectionList.selectionList.find(chat => chat.id === chatSelectionList.currentChatID)?.title as string}
           key={chatSelectionList.currentChatID as string}
-          loadChatByID={LoadChatByIDFromLocalStorage} />}
+          loadChatByID={loadChatMessages} />}
       </div>
     </div>
   );

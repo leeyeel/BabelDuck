@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "./providers";
 import dynamic from 'next/dynamic';
+import { PrimeReactProvider } from 'primereact/api';
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,7 +21,7 @@ const geistMono = localFont({
 const I18nProvider = dynamic(() => import('./i18n/I18nProvider'), { ssr: false });
 
 export const metadata: Metadata = {
-  title: "BabelDuck",
+  title: "Babel Duck",
   description: "A beginner-friendly AI conversation practice application",
 };
 
@@ -34,7 +36,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
         <I18nProvider>
-          <Providers>{children}</Providers>
+          <PrimeReactProvider>
+            <Providers>{children}</Providers>
+          </PrimeReactProvider>
         </I18nProvider>
       </body>
     </html>
