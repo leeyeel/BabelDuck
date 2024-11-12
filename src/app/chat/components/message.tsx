@@ -799,11 +799,11 @@ export class RecommendedRespMessage extends Message {
                     <I18nText i18nText={{ key: 'The recommended response is as follows' }} />
                     <div className="flex flex-col p-3 m-4 ml-0 bg-white shadow-sm border-2 rounded-md">
                         <div dangerouslySetInnerHTML={{ __html: this.recommendedContent.replace(/\n/g, '<br />') }} />
-                        <div className="flex flex-row self-end">
+                        {/* <div className="flex flex-row self-end">
                             <button className="mr-2 py-0 px-2 bg-gray-800 rounded-md text-[15px] text-white" >
                                 <CgChevronDoubleDown className="inline-block mr-1" color="white" /> Apply
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                     <I18nText i18nText={{ key: 'If you have any more questions or requests, feel free to reach out to me' }} />
                 </div>

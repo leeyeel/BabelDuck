@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
-import { isOpenAILikeMessage, type Message } from "../lib/message";
+import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
 import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } from "./message";
 import { IoIosArrowDown } from "react-icons/io";
-import { MessageInput } from "./input";
+import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
 import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
@@ -21,13 +21,14 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     const [messageListStack, updateMessageListStack] = useImmer<Message[][]>([])
     const isTopLevel = messageListStack.length <= 1
     const currentMessageList = messageListStack.length > 0 ? messageListStack[messageListStack.length - 1] : []
+    const betweenMsgListCache = useRef<{ message: Message, handledMsg: Message, handlerInstruction: string }>()
+
+    const [msgListSwitchSignal, setMsgListSwitchSignal] = useState<MsgListSwitchSignal>({ type: 'init', key: 0 })
+
     const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
-    const [inputCompKey, setInputCompKey] = useState(0) // for force reset
-    const [chatKey, setChatKey] = useState(0) // for informing children that current chat has switched
     const chatIntelligenceRef = useRef<ChatIntelligence>()
 
     useEffect(() => {
-
         const messageList = loadChatByID(chatID)
         updateMessageListStack([messageList])
 
@@ -42,8 +43,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         } else {
             throw new Error(`Chat intelligence with type ${type} not found`)
         }
-
-        setInputCompKey(prev => prev + 1)
+        setMsgListSwitchSignal(prev => ({ type: 'switchChat', key: prev.key + 1 }))
     }, [chatID, loadChatByID, updateMessageListStack])
 
     const messageAddedCallbacks: (({ }: { messageList: Message[], opts?: messageAddedCallbackOptions }) => void)[] = [
@@ -90,20 +90,23 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     }
     const updateMessage = useCallback(_updateMessage, [chatID, isTopLevel, updateMessageListStack])
 
-    function startFollowUpDiscussion(userInstruction: string, originalMsg: string, suggestedMsg: string) {
+    function startFollowUpDiscussion(userInstruction: string, originalMsg: Message, suggestedMsg: Message) {
+        // TODO integrate message abstraction mechanism, so far just assuming all messages are OpenAILikeMessage (they are)
+        const originalTextMsg: string = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
+        const suggestedTextMsg: string = (suggestedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
         const historyContext = true ?
             currentMessageList.slice(-currentMessageList.length).
                 filter((msg) => msg.includedInChatCompletion).
                 filter((msg) => isOpenAILikeMessage(msg)).
                 map(msg => `[START]${msg.role}: ${msg.toOpenAIMessage().content}[END]`).join('\n') : ""
-        const instructionType = originalMsg.trim() === "" ? "generation" : "modification"
+        const instructionType = originalTextMsg.trim() === "" ? "generation" : "modification"
         const handlerPrompt = `${true ? `I am having a conversation with someone:
         """
         ${historyContext}
         """` : ""}
         ${instructionType === 'modification' && `This is the message I'm about to send, but I'm not sure if it's good enough and I need you to do some modifications on it:`}
         ${instructionType === 'modification' && `"""
-        ${originalMsg}
+        ${originalTextMsg}
         """`}
         ${instructionType === 'generation' && `I don't have any message to send, please generate one for me:`}
         Here is my request:
@@ -117,19 +120,20 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             // 2. ai's json response, included in chat completion but not displaying
             new TextMessage('assistant', `The recommended response is as follows:
             """
-            ${suggestedMsg}
+            ${suggestedTextMsg}
             """
             if you have any more questions or requests, feel free to reach out to me.`, false, true),
             // 3. the revised text, displaying but not included in chat completion
-            new RecommendedRespMessage('assistant', suggestedMsg, true, false)
+            new RecommendedRespMessage('assistant', suggestedTextMsg, true, false)
         ]
         updateMessageListStack(draft => { draft.push(nextLevelMessages) })
-        setChatKey(prev => prev + 1)
+        setMsgListSwitchSignal({ type: 'followUpDiscussion', key: msgListSwitchSignal.key + 1})
+        betweenMsgListCache.current = { message: originalMsg, handledMsg: suggestedMsg, handlerInstruction: userInstruction }
     }
 
     function goBackToPreviousLevel() {
         updateMessageListStack(draft => { draft.pop() });
-        setChatKey(prev => prev + 1)
+        setMsgListSwitchSignal({ type: 'backFromFollowUpDiscussion', key: msgListSwitchSignal.key + 1, ...betweenMsgListCache.current! })
     }
 
     return <div className={`flex flex-col flex-grow items-center rounded-lg pb-4 ${className}`}>
@@ -149,12 +153,12 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
                 <IoIosArrowDown size={30} color="#5f5f5f" />
             </div>}
 
-        <MessageList key={inputCompKey + chatKey + 1} className="message-list flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
+        <MessageList key={msgListSwitchSignal.key} className="message-list flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
         <MessageInput addInputHandler={(handler) => {
             updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
         }} className="w-4/5"
             chatID={chatID}
-            key={inputCompKey} chatKey={chatKey}
+            msgListSwitchSignal={msgListSwitchSignal}
             inputHandlers={inputHandlers}
             addMesssage={addMesssage} messageList={currentMessageList}
             // Temporarily forbid nested multi-level discussions, the component has already supported, 
