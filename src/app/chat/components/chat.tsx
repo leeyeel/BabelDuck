@@ -126,6 +126,10 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         updateMessageListStack(draft => { draft.push(nextLevelMessages) })
         setChatKey(prev => prev + 1)
     }
+    function goBackToPreviousLevel() {
+        updateMessageListStack(draft => { draft.pop() });
+        setChatKey(prev => prev + 1)
+    }
 
     return <div className={`flex flex-col flex-grow items-center rounded-lg pb-4 ${className}`}>
         {/* top bar */}
@@ -140,11 +144,11 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         {/* button for jumping back to top level while in follow-up discussions */}
         {!isTopLevel &&
             <div className="hover:bg-gray-200 cursor-pointer py-2 w-4/5 flex justify-center"
-                onClick={() => { updateMessageListStack(draft => { draft.pop() }); setChatKey(prev => prev + 1) }}>
+                onClick={goBackToPreviousLevel}>
                 <IoIosArrowDown size={30} color="#5f5f5f" />
             </div>}
 
-        <MessageList className="flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
+        <MessageList key={inputCompKey + chatKey + 1} className="message-list flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
         <MessageInput addInputHandler={(handler) => {
             updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
         }} className="w-4/5"
