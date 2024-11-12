@@ -89,12 +89,12 @@ export class TranslationHandler extends InputHandler {
 
     settingsPanel(): InputHandlerSettingsPanel {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
-            const { t } = useTranslation(); // 添加
+            const { t } = useTranslation();
 
             const [targetLanguage, setTargetLanguage] = useState(this.targetLanguage);
             return (
                 <div className={`flex flex-col justify-between fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}>
-                    <span className="mb-2">{t('Translate your input into')}</span>
+                    <span className="mb-2">{t('translateInputInto')}</span>
                     <input
                         className="border-2 border-gray-300 rounded-md p-2"
                         type="text"
@@ -106,7 +106,7 @@ export class TranslationHandler extends InputHandler {
                         className="mt-2 self-end"
                         onClick={() => { updateHandler(new TranslationHandler(targetLanguage)) }}
                     >
-                        {t('Save')}
+                        {t('save')}
                     </FilledButton>
                 </div>
             );

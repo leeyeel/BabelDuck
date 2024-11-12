@@ -85,7 +85,7 @@ i18n
                     'Confirm': '确认',
                     'Untitled Chat': '未命名对话',
                     'Chat {{number}}': '对话 {{number}}',
-                    'translateInputInto': '将你的当前输入翻译为',
+                    'translateInputInto': '将当前输入翻译为',
                     'save': '保存',
                     'instruction': '指令',
                     'tooltip': '提示文本',
