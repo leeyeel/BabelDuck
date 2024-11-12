@@ -10,6 +10,7 @@ import { HiMiniSpeakerWave } from "react-icons/hi2";
 import { FaStopCircle } from "react-icons/fa";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
+import { I18nText } from "@/app/i18n/i18n";
 
 export const MessageTypes = {
     SYSTEM: 'systemMessage',
@@ -795,7 +796,7 @@ export class RecommendedRespMessage extends Message {
             return <div className={`flex flex-col ${className}`}>
                 <Role className="mb-2" name={this.role} />
                 <div className={`bg-[#F6F5F5] rounded-lg w-fit max-w-[80%] p-2 ${className}`}>
-                    <div className="">{`The recommended response is as follow:`}</div>
+                    <I18nText i18nText={{ key: 'The recommended response is as follows' }} />
                     <div className="flex flex-col p-3 m-4 ml-0 bg-white shadow-sm border-2 rounded-md">
                         <div dangerouslySetInnerHTML={{ __html: this.recommendedContent.replace(/\n/g, '<br />') }} />
                         <div className="flex flex-row self-end">
@@ -804,15 +805,7 @@ export class RecommendedRespMessage extends Message {
                             </button>
                         </div>
                     </div>
-
-                    <div className="">{`If you have any more questions, feel free to continue the discussion with me.`}</div>
-                </div>
-                <div>
-                    {/* 
-                    <div className="flex bg-gray-400 flex-wrap mb-4 h-fit min-h-8">
-                        {this.recommendedContent}
-                    </div> */}
-
+                    <I18nText i18nText={{ key: 'If you have any more questions or requests, feel free to reach out to me' }} />
                 </div>
             </div>
         }

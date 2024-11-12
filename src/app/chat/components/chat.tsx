@@ -90,42 +90,43 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     }
     const updateMessage = useCallback(_updateMessage, [chatID, isTopLevel, updateMessageListStack])
 
-    function startFollowUpDiscussion(userInstruction: string, messageToRevise: string, revisedText: string) {
+    function startFollowUpDiscussion(userInstruction: string, originalMsg: string, suggestedMsg: string) {
         const historyContext = true ?
             currentMessageList.slice(-currentMessageList.length).
                 filter((msg) => msg.includedInChatCompletion).
                 filter((msg) => isOpenAILikeMessage(msg)).
                 map(msg => `[START]${msg.role}: ${msg.toOpenAIMessage().content}[END]`).join('\n') : ""
-        const revisePrompt = `${true ? `This is an ongoing conversation:
+        const instructionType = originalMsg.trim() === "" ? "generation" : "modification"
+        const handlerPrompt = `${true ? `I am having a conversation with someone:
         """
         ${historyContext}
         """` : ""}
-        This is a message the user is about to send in conversation:
-        """
-        ${messageToRevise}
-        """
-        If the message is empty, it potentially means the user needs a answer suggestion.
-    
-        This is the user's instruction or question:
+        ${instructionType === 'modification' && `This is the message I'm about to send, but I'm not sure if it's good enough and I need you to do some modifications on it:`}
+        ${instructionType === 'modification' && `"""
+        ${originalMsg}
+        """`}
+        ${instructionType === 'generation' && `I don't have any message to send, please generate one for me:`}
+        Here is my request:
         """
         ${userInstruction}
         """
-
-        Please provide a recommended response based on the user's instruction or question, considering the context of the conversation, and preserving the user's line breaks and formatting if any.
-
-        IMPORTANT: The suggested_answer you generate is intended for the user to respond to a previous conversation, not to reply to the user's current instruction or question.
-        `
+        Please provide a recommended response based on my request, considering the context of the ongoing conversation, and preserving the line breaks and formatting if any.`
         const nextLevelMessages: Message[] = [
             // 1. revise prompt with chat history, included in chat completion, but not displaying to users
-            new TextMessage('user', revisePrompt, false, true),
-            // 2. ai's json response, included in request but not displaying either
-            new TextMessage('assistant', revisedText, false, true),
-            // 3. the revised text, displaying but not included
-            new RecommendedRespMessage('assistant', revisedText, true, false)
+            new TextMessage('user', handlerPrompt, false, true),
+            // 2. ai's json response, included in chat completion but not displaying
+            new TextMessage('assistant', `The recommended response is as follows:
+            """
+            ${suggestedMsg}
+            """
+            if you have any more questions or requests, feel free to reach out to me.`, false, true),
+            // 3. the revised text, displaying but not included in chat completion
+            new RecommendedRespMessage('assistant', suggestedMsg, true, false)
         ]
         updateMessageListStack(draft => { draft.push(nextLevelMessages) })
         setChatKey(prev => prev + 1)
     }
+
     function goBackToPreviousLevel() {
         updateMessageListStack(draft => { draft.pop() });
         setChatKey(prev => prev + 1)
