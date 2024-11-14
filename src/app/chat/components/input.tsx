@@ -312,6 +312,8 @@ export function MessageInput({
         return 170; // by default
     }
 
+    const { t } = useTranslation();
+
     return <div className={`flex flex-col relative border rounded-2xl py-2 px-2 ${className}`}
         onKeyDown={(e) => {
             inputHandlers.forEach((handler, i) => {
@@ -372,7 +374,7 @@ export function MessageInput({
                     </IconCircleWrapper>
                 </div>
                 <Tooltip anchorSelect="#input-handler-creator-entry" clickable delayShow={300} delayHide={0} style={{ borderRadius: '0.75rem' }}>
-                    <span>Add your custom instruction</span>
+                    <span>{t('addCustomInstruction')}</span>
                 </Tooltip>
                 {compState.type === 'addingCustomInputHandler' && <CustomInputHandlerCreator cancelCallback={cancelAddingCustomInputHandler} inputHandlerAdded={inputHandlerAdded} />}
             </div >
