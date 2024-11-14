@@ -477,9 +477,6 @@ function TextInput(
                 }
             }, 100);
         }
-        if (msgListSwitchSignal.type === 'backFromFollowUpDiscussion') {
-            // TODO restore the message before handling
-        }
     }, [msgListSwitchSignal])
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
