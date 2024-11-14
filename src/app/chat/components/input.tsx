@@ -9,7 +9,7 @@ import { IconCircleWrapper, SpecialRoles, TextMessage } from "./message";
 import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
 import { PiKeyReturnBold } from "react-icons/pi";
-import { isOpenAILikeMessage, Message } from "../lib/message";
+import { isOpenAILikeMessage, Message, OpenAILikeMessage } from "../lib/message";
 import { chatCompletion } from "../lib/chat-server";
 import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
@@ -178,17 +178,25 @@ export type MessageInputState =
     | { type: 'revising'; message: Message; revisingIndex: number; }
     | { type: 'waitingApproval'; message: Message; revisedMsg: Message; revisionInstruction: string; };
 
+export type MsgListSwitchSignal =
+    | { type: 'init', key: number }
+    | { type: 'switchChat', key: number }
+    | { type: 'followUpDiscussion', key: number }
+    | { type: 'backFromFollowUpDiscussion', message: Message, handledMsg: Message, handlerInstruction: string, key: number }
+
 export function MessageInput({
-    chatID, messageList, inputHandlers, addMesssage, addInputHandler: pAddInputHandler, chatKey, allowFollowUpDiscussion, startFollowUpDiscussion, className = ""
+    chatID, messageList, inputHandlers, addMesssage, addInputHandler: pAddInputHandler, msgListSwitchSignal, allowFollowUpDiscussion, startFollowUpDiscussion, className = ""
 }: {
     chatID: string
     messageList: Message[];
     inputHandlers: InputHandler[]
+    allowFollowUpDiscussion: boolean;
+    // callback functions
     addMesssage: (message: Message, callbackOpts?: messageAddedCallbackOptions) => void;
     addInputHandler: (handler: InputHandler) => void;
-    chatKey: number,
-    allowFollowUpDiscussion: boolean;
-    startFollowUpDiscussion: (userInstruction: string, messageToRevise: string, revisedText: string) => void;
+    startFollowUpDiscussion: (userInstruction: string, messageToRevise: Message, revisedText: Message) => void;
+    // signals
+    msgListSwitchSignal: MsgListSwitchSignal,
     className?: string;
 }) {
 
@@ -205,7 +213,7 @@ export function MessageInput({
         }
         setCompState({ type: 'normal', message, fromRevision: false });
     }, [compState.type])
-    async function startRevising(triggeredIndex: number) {
+    async function startHandler(triggeredIndex: number) {
         if (!isNormal) {
             return;
         }
@@ -236,13 +244,13 @@ export function MessageInput({
             message: compState.message
         });
     }
-    function approveRevision(revisedText: string) {
+    function approveHandlerResult(revisedText: string) {
         if (!waitingForApproval) {
             return;
         }
         setCompState({ type: 'normal', message: new TextMessage(compState.message.role, revisedText), fromRevision: true });
     }
-    function rejectRevision() {
+    function rejectHandlerResult() {
         if (!waitingForApproval) {
             return;
         }
@@ -289,6 +297,11 @@ export function MessageInput({
         inputHandlers[compState.handlerIndex] = handler;
         setCompState(compState.previousState);
     }
+    useEffect(() => {
+        if (msgListSwitchSignal.type === 'backFromFollowUpDiscussion') {
+            setCompState({ type: 'waitingApproval', message: msgListSwitchSignal.message, revisedMsg: msgListSwitchSignal.handledMsg, revisionInstruction: msgListSwitchSignal.handlerInstruction });
+        }
+    }, [msgListSwitchSignal])
 
     function calculateTextAreaHeight(): number {
         // TODO
@@ -305,7 +318,7 @@ export function MessageInput({
                 if (handler.shortcutKeyCallback && handler.shortcutKeyCallback(e)) {
                     const ii = i;
                     e.preventDefault();
-                    startRevising(ii);
+                    startHandler(ii);
                     return;
                 }
             });
@@ -333,7 +346,7 @@ export function MessageInput({
                                 height={35}
                                 onClick={() => {
                                     const ii = index;
-                                    startRevising(ii);
+                                    startHandler(ii);
                                 }}
                             >
                                 {h.iconNode}
@@ -368,17 +381,17 @@ export function MessageInput({
         {
             // TODO 1. more appropriate max-width 2. line wrapping for content
             waitingForApproval && <DiffView className={`absolute w-fit min-w-[700px] max-w-[1000px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
-                originalText={messageToText(compState.message)} revisedText={messageToText(compState.revisedMsg)} allowFollowUpDiscussion={allowFollowUpDiscussion}
-                approveRevisionCallback={approveRevision} rejectRevisionCallback={rejectRevision}
-                startFollowUpDiscussion={(messageToRevise: string, revisedText: string) => {
+                originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
+                approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
+                startFollowUpDiscussion={(messageToRevise: Message, revisedText: Message) => {
                     if (!waitingForApproval) return
                     setCompState({ type: 'normal', message: new TextMessage(compState.message.role, ''), fromRevision: false });
                     // TODO
                     // textAreaRef.current?.focus();
                     startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
                 }} />}
-        {/* message input area (perhaps calling it 'message constructor' would be more appropriate) */}
-        <TextInput chatKey={chatKey} allowEdit={isNormal}
+        {/* message input area */}
+        <TextInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
             addMessage={addMesssage} updateMessage={updateMessage}
             revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />
     </div>;
@@ -387,9 +400,9 @@ export function MessageInput({
 let enableVoiceModeShortcutTimer: NodeJS.Timeout
 
 function TextInput(
-    { allowEdit, chatKey, addMessage, updateMessage, revisionMessage }: {
+    { allowEdit, msgListSwitchSignal, addMessage, updateMessage, revisionMessage }: {
         allowEdit: boolean
-        chatKey: number
+        msgListSwitchSignal: MsgListSwitchSignal
         updateMessage: (message: Message) => void
         addMessage: (message: Message, opts: messageAddedCallbackOptions) => void
         revisionMessage: [Message, boolean] | undefined // Updated when a revision is provided, initialized as undefined
@@ -454,15 +467,17 @@ function TextInput(
     }, [msg.content, revisionMessage])
 
     useEffect(() => {
-        setMsg(new TextMessage(defaultRole, ''))
-        setTimeout(() => {
-            if (inputState.type === 'voiceMode') {
-                inputDivRef.current?.focus()
-            } else {
-                textAreaRef.current?.focus()
-            }
-        }, 100);
-    }, [chatKey]) // TODO fix the warning
+        if (msgListSwitchSignal.type === 'switchChat' || msgListSwitchSignal.type === 'followUpDiscussion') {
+            setMsg(new TextMessage(defaultRole, ''))
+            setTimeout(() => {
+                if (inputState.type === 'voiceMode') {
+                    inputDivRef.current?.focus()
+                } else {
+                    textAreaRef.current?.focus()
+                }
+            }, 100);
+        }
+    }, [msgListSwitchSignal])
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const inputDivRef = useRef<HTMLDivElement>(null);
@@ -685,24 +700,28 @@ function TextInput(
 }
 
 export function DiffView(
-    { originalText, revisedText, approveRevisionCallback, rejectRevisionCallback, allowFollowUpDiscussion, startFollowUpDiscussion, style, className = "" }: {
-        originalText: string;
-        revisedText: string;
+    { originalMsg, revisedMsg, approveRevisionCallback, rejectRevisionCallback, allowFollowUpDiscussion, startFollowUpDiscussion, style, className = "" }: {
+        originalMsg: Message;
+        revisedMsg: Message;
         allowFollowUpDiscussion: boolean;
         approveRevisionCallback: (revisedText: string) => void;
         rejectRevisionCallback: () => void;
-        startFollowUpDiscussion: (messageToRevise: string, revisedText: string) => void;
+        startFollowUpDiscussion: (messageToRevise: Message, revisedText: Message) => void;
         className?: string;
         style: object;
     }
 ) {
-    const containerRef = useRef<HTMLDivElement>(null);
+    // TODO integrate the message mechanism, so far just assuming all messages are OpenAILikeMessage (which they are)
+    const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
+    const revisedText = (revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
 
+    const containerRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (containerRef.current) {
             containerRef.current.focus();
         }
     }, []);
+
     const changes = diffChars(originalText, revisedText);
     return (
         <div className={`p-4 pb-2 rounded-lg border-2 shadow-md focus:outline-none ${className}`} style={style}
@@ -721,7 +740,7 @@ export function DiffView(
                 } else if (e.key === 'Backspace') {
                     rejectRevisionCallback();
                 } else if (e.key === 'Tab') {
-                    startFollowUpDiscussion(originalText, revisedText);
+                    startFollowUpDiscussion(originalMsg, revisedMsg);
                 }
             }}>
             {changes.length > 0 && (
@@ -747,7 +766,7 @@ export function DiffView(
                             <FaBackspace className="inline-block mr-1" color="6b7280" /> Reject
                         </button>
                         {allowFollowUpDiscussion && <button className="mr-2 py-0 px-1 rounded-lg text-[15px] text-gray-500"
-                            onClick={() => startFollowUpDiscussion(originalText, revisedText)}>
+                            onClick={() => startFollowUpDiscussion(originalMsg, revisedMsg)}>
                             <LiaComments className="inline-block mr-1" color="6b7280" /> Follow-up discussions
                         </button>}
                     </div>
@@ -757,17 +776,3 @@ export function DiffView(
         </div>
     );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

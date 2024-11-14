@@ -69,6 +69,9 @@ i18n
                     'translateTooltip': 'Ask AI to translate your input into {{targetLanguage}}',
                     'generateResponseTooltip': 'Ask AI to help generate a response',
                     'grammarCheckTooltip': 'Ask AI to help correct potential grammar issues',
+                    'The recommended response is as follows': 'The recommended response is as follows',
+                    'If you have any more questions or requests, feel free to reach out to me': 'If you have any more questions or requests, feel free to reach out to me',
+                    'chat.backToPreviousLevel': 'Back to previous conversation',
                 }
             },
             zh: {
@@ -120,6 +123,9 @@ i18n
                     'translateTooltip': '让 AI 将消息内容翻译为 {{targetLanguage}}',
                     'generateResponseTooltip': '让 AI 帮忙回复当前消息',
                     'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
+                    'The recommended response is as follows': '根据你的要求调整后的消息如下',
+                    'If you have any more questions or requests, feel free to reach out to me': '如果你还有什么疑问或要求，欢迎进一步找我讨论',
+                    'chat.backToPreviousLevel': '返回上一层对话',
                 }
             },
             // translated using LLM, pull requests welcome / LLMを使用して翻訳されました。プルリクエスト歓迎します
@@ -172,6 +178,9 @@ i18n
                     'translateTooltip': '入力を{{targetLanguage}}に翻訳',
                     'generateResponseTooltip': '応答の生成を支援',
                     'grammarCheckTooltip': '文法の問題を修正',
+                    'The recommended response is as follows': '根拠に基づく推奨応答は次のとおりです',
+                    'If you have any more questions or requests, feel free to reach out to me': 'もし、さらなる質問や要望があれば、お気軽にお問い合わせください。',
+                    'chat.backToPreviousLevel': '前の会話に戻る',
                 }
             }
         }
