@@ -5,11 +5,13 @@ import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, upd
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
 import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } from "./message";
-import { IoIosArrowDown } from "react-icons/io";
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
 import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { MdKeyboardArrowRight } from "react-icons/md";
+import { Tooltip } from "react-tooltip";
+import { useTranslation } from "react-i18next";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -17,9 +19,12 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     loadChatByID: ChatLoader,
     className?: string;
 }) {
+    const { t } = useTranslation();
+
     // compState: normal, stacking
     const [messageListStack, updateMessageListStack] = useImmer<Message[][]>([])
     const isTopLevel = messageListStack.length <= 1
+    const previousMessageList = messageListStack.length > 1 ? messageListStack[messageListStack.length - 2] : undefined
     const currentMessageList = messageListStack.length > 0 ? messageListStack[messageListStack.length - 1] : []
     const betweenMsgListCache = useRef<{ message: Message, handledMsg: Message, handlerInstruction: string }>()
 
@@ -127,7 +132,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             new RecommendedRespMessage('assistant', suggestedTextMsg, true, false)
         ]
         updateMessageListStack(draft => { draft.push(nextLevelMessages) })
-        setMsgListSwitchSignal({ type: 'followUpDiscussion', key: msgListSwitchSignal.key + 1})
+        setMsgListSwitchSignal({ type: 'followUpDiscussion', key: msgListSwitchSignal.key + 1 })
         betweenMsgListCache.current = { message: originalMsg, handledMsg: suggestedMsg, handlerInstruction: userInstruction }
     }
 
@@ -136,7 +141,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         setMsgListSwitchSignal({ type: 'backFromFollowUpDiscussion', key: msgListSwitchSignal.key + 1, ...betweenMsgListCache.current! })
     }
 
-    return <div className={`flex flex-col flex-grow items-center rounded-lg pb-4 ${className}`}>
+    return <div className={`flex flex-col items-center rounded-lg pb-4 ${className}`}>
         {/* top bar */}
         <div className="flex flex-row self-start justify-start mb-12 mt-6">
             {/* Chat title */}
@@ -146,14 +151,33 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             </div>
         </div>
 
-        {/* button for jumping back to top level while in follow-up discussions */}
-        {!isTopLevel &&
-            <div className="hover:bg-gray-200 cursor-pointer py-2 w-4/5 flex justify-center"
-                onClick={goBackToPreviousLevel}>
-                <IoIosArrowDown size={30} color="#5f5f5f" />
-            </div>}
 
-        <MessageList key={msgListSwitchSignal.key} className="message-list flex-initial overflow-auto w-4/5 h-full" messageList={currentMessageList} updateMessage={updateMessage} />
+        <div className="w-4/5 h-full relative overflow-auto custom-scrollbar">
+            {/* current message list */}
+            <MessageList key={msgListSwitchSignal.key + 1}
+                className={`absolute bg-white h-full overflow-auto custom-scrollbar ${!isTopLevel && 'left-24 pl-10'} ${!isTopLevel ? 'w-[calc(100%-96px)]' : 'w-full'}`}
+                messageList={currentMessageList} updateMessage={updateMessage} />
+            {
+                !isTopLevel && <>
+                    {/* previous message list in the background */}
+                    <MessageList key={msgListSwitchSignal.key} className="absolute top-0 left-0 h-full z-[-1] overflow-hidden" messageList={previousMessageList!} updateMessage={() => { }} />
+                    {/* button for jumping back to previous level */}
+                    <div className="absolute top-0 left-0 border-r bg-white bg-opacity-80 w-24 h-full 
+                    flex items-center justify-end shadow-[inset_-4px_0_6px_-4px_rgba(0,0,0,0.1)]"
+                        onClick={goBackToPreviousLevel}
+                    >
+                        <div id="back-to-previous-level" className="relative left-5">
+                            <MdKeyboardArrowRight className="cursor-pointer" size={20} color="#898989" onClick={goBackToPreviousLevel} />
+                        </div>
+                        <Tooltip anchorSelect="#back-to-previous-level"
+                            delayShow={100} delayHide={0} place="top" offset={5} style={{ borderRadius: '0.75rem' }}>
+                            {t('chat.backToPreviousLevel')}
+                        </Tooltip>
+                    </div>
+                </>
+
+            }
+        </div>
         <MessageInput addInputHandler={(handler) => {
             updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
         }} className="w-4/5"
@@ -187,7 +211,7 @@ export function MessageList({ messageList, updateMessage, className }: {
         }, 10);
         // Clear the timer to prevent memory leaks
         return () => clearTimeout(timer);
-    }, []); // Empty dependency array
+    }, []);
 
     return <div className={`flex flex-col ${className} custom-scrollbar`}>
         {messageList.

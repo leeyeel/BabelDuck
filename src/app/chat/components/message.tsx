@@ -854,4 +854,3 @@ export function MessageContent({ content, className = "" }: {
         </div>
     );
 }
-
