@@ -14,6 +14,9 @@ import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, 
 import { InputHandler } from "@/app/chat/components/input-handlers";
 import { OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
 import Switch from "react-switch";
+import { IconCircleWrapper } from "@/app/chat/components/message";
+import { PiTrashBold } from "react-icons/pi";
+import { Tooltip } from "react-tooltip";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -183,7 +186,7 @@ type ChatSettingsRO = {
         settings: object
     }
     availableChatIs: { id: string, name: i18nText }[]
-    inputHandlers: InputHandler[]
+    inputHandlers: { handler: InputHandler, display: boolean }[]
 }
 
 function assembleChatSettingsRO(chatSettings: ChatSettings): ChatSettingsRO {
@@ -235,7 +238,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
                 id: chatIID,
                 settings: chatISettingsRecord.settings,
             },
-            inputHandlers: chatSettingsRO.inputHandlers,
+            inputHandlers: chatSettings.inputHandlers,
             autoPlayAudio: chatSettings.autoPlayAudio,
         })
     }
@@ -258,9 +261,11 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         }
     }))
 
+    console.log(chatSettingsRO.inputHandlers)
+
     return <div className={`flex flex-col pl-8 ${className}`}>
         {/* chat intelligence settings */}
-        <div className="flex flex-row items-center justify-between relative mb-4">
+        <div className="flex flex-row items-center justify-between relative mb-8">
             <span className="text-gray-700 font-bold">{t('Chat Model')}</span>
             <DropdownMenuEntry
                 label={<I18nText i18nText={chatSettingsRO.chatISettings.name} />}
@@ -278,12 +283,59 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             </div>
         }
         {/* input handlers settings */}
-
+        <div className="flex flex-col mb-8">
+            <span className="text-gray-700 font-bold mb-4">{t('Shortcut Instructions')}</span>
+            {/* handlers */}
+            {chatSettingsRO.inputHandlers.map((handler, index) => (
+                <div key={index} className="flex flex-row justify-between">
+                    {/* handler icon and tooltip */}
+                    <div className="flex flex-row justify-start items-center mb-2">
+                        <IconCircleWrapper
+                            width={24} height={24} className="mr-2"
+                            onClick={() => { }}
+                        >
+                            {handler.handler.iconNode}
+                        </IconCircleWrapper>
+                        <I18nText className="text-gray-500 text-sm" i18nText={handler.handler.tooltip()} />
+                    </div>
+                    {/* toggle display and delete button */}
+                    <div className="flex flex-row items-center">
+                        <div id={`toggle-instruction-${index}`}>
+                            <Switch className={`mr-3`} width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                                checked={handler.display} onChange={(checked) => { updateChatSettings({ ...chatSettings, inputHandlers: chatSettings.inputHandlers.map((h) => h.handler.implType === handler.handler.implType ? { ...h, display: checked } : h) }) }} />
+                        </div>
+                        <Tooltip
+                            anchorSelect={`#toggle-instruction-${index}`}
+                            delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
+                        > {t('toggleInstructionDisplay')}</Tooltip>
+                        <div id={`delete-instruction-${index}`}>
+                            <PiTrashBold
+                                className={`${handler.handler.deletable ? 'cursor-pointer text-red-500' : 'cursor-not-allowed text-gray-400'}`}
+                                onClick={() => {
+                                    if (handler.handler.deletable) {
+                                        updateChatSettings({
+                                            ...chatSettings,
+                                            inputHandlers: chatSettings.inputHandlers.filter((h) =>
+                                                h.handler.implType !== handler.handler.implType
+                                            )
+                                        })
+                                    }
+                                }}
+                            />
+                        </div>
+                        <Tooltip anchorSelect={`#delete-instruction-${index}`}
+                            delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}>
+                            {t(handler.handler.deletable ? 'deleteInstruction' : 'cannotDeleteBuiltInInstruction')}
+                        </Tooltip>
+                    </div>
+                </div>
+            ))}
+        </div>
         {/* auto play audio settings */}
-        <div className="flex flex-row items-center justify-between mb-4">
+        <div className="flex flex-row items-center justify-between mb-8">
             <span className="text-gray-700 font-bold">{t('Auto Play Audio')}</span>
             <Switch checked={chatSettings.autoPlayAudio}
-                className={`mr-2`} width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                width={34} height={17} uncheckedIcon={false} checkedIcon={false}
                 onChange={(checked) => { updateChatSettings({ ...chatSettings, autoPlayAudio: checked }) }} />
         </div>
     </div>

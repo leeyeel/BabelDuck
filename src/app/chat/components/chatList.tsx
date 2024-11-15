@@ -14,12 +14,10 @@ import { TbPencil } from "react-icons/tb";
 import { PiTrashBold } from "react-icons/pi";
 
 
-interface ChatSelectionListProps {
+export function ChatSelectionList({ chatSelectionListLoader, className = "" }: {
     chatSelectionListLoader: ChatSelectionListLoader
     className?: string;
-}
-
-export function ChatSelectionList({ chatSelectionListLoader, className = "" }: ChatSelectionListProps) {
+}) {
 
     const chatSelectionList = useAppSelector((state) => state.chatSelectionList)
     const dispatch = useAppDispatch()

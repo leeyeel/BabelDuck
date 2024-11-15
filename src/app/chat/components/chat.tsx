@@ -42,7 +42,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         updateMessageListStack([messageList])
 
         const chatSettings: LocalChatSettings = loadChatSettings(chatID)
-        setInputHandlers(chatSettings.inputHandlers)
+        setInputHandlers(chatSettings.inputHandlers.filter((handler) => handler.display).map((handler) => handler.handler))
         const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
         if (type === OpenAIChatIntelligence.type) {
             const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings

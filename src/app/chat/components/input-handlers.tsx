@@ -37,12 +37,14 @@ export const inputHandlerHub = new InputHandlerHub();
 export abstract class InputHandler {
     readonly implType: string;
     readonly type: InputHandlerTypes;
+    readonly deletable: boolean;
     iconNode: React.ReactNode;
     shortcutKeyCallback?: (e: React.KeyboardEvent) => boolean;
 
-    constructor(implType: string, type: InputHandlerTypes) {
+    constructor(implType: string, type: InputHandlerTypes, deletable: boolean) {
         this.implType = implType;
         this.type = type;
+        this.deletable = deletable;
     }
 
     abstract tooltip(): i18nText;
@@ -73,7 +75,7 @@ export class TranslationHandler extends InputHandler {
     targetLanguage: string;
 
     constructor(targetLanguage: string) {
-        super('translation', InputHandlerTypes.Revision);
+        super('translation', InputHandlerTypes.Revision, false);
         this.targetLanguage = targetLanguage;
         this.iconNode = <MdGTranslate size={20} />;
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'k' && (e.metaKey || e.ctrlKey);
@@ -132,7 +134,7 @@ export class TranslationHandler extends InputHandler {
 export class RespGenerationHandler extends InputHandler {
 
     constructor() {
-        super('respGeneration', InputHandlerTypes.Generation);
+        super('respGeneration', InputHandlerTypes.Generation, false);
         this.iconNode = <TbPencilQuestion size={20} />;
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === '/' && (e.metaKey || e.ctrlKey);
     }
@@ -165,7 +167,7 @@ export class RespGenerationHandler extends InputHandler {
 export class GrammarCheckingHandler extends InputHandler {
 
     constructor() {
-        super('grammarChecking', InputHandlerTypes.Revision);
+        super('grammarChecking', InputHandlerTypes.Revision, false);
         this.iconNode = <FaSpellCheck size={20} className="ml-[-2px]" />;
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'g' && (e.metaKey || e.ctrlKey);
     }
@@ -268,7 +270,7 @@ export class CommonGenerationHandler extends InputHandler {
     _iconChar: string;
 
     constructor(instruction: string, tooltip: string, iconChar: string, toolTipKey?: string) {
-        super('commonGeneration', InputHandlerTypes.Generation);
+        super('commonGeneration', InputHandlerTypes.Generation, true);
         this._instruction = instruction;
         this._tooltip = tooltip;
         this._toolTipKey = toolTipKey;
@@ -309,7 +311,7 @@ export class CommonRevisionHandler extends InputHandler {
     _toolTipKey?: string;
 
     constructor(instruction: string, tooltip: string, iconChar: string, toolTipKey?: string) {
-        super('commonRevision', InputHandlerTypes.Revision);
+        super('commonRevision', InputHandlerTypes.Revision, true);
         this._instruction = instruction;
         this._tooltip = tooltip;
         this._iconChar = iconChar;
@@ -439,7 +441,7 @@ export function CustomInputHandlerCreator({
                 <div className="mb-4">
                     {/* instruction type selector */}
                     <div className="flex flex-row items-center justify-between mb-2">
-                        <label htmlFor="type" className="block text-gray-700 font-bold mr-2">{t('type')}</label>
+                        <label htmlFor="type" className="block text-gray-700 font-bold mr-2">{t('instructionType')}</label>
                         <div className="relative">
                             <DropdownMenuEntry
                                 label={type === InputHandlerTypes.Revision ? t('modification') : t('generation')}
