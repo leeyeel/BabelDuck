@@ -43,7 +43,7 @@ i18n
                     'singleCharacterIcon': 'Please use a single character as icon',
                     'editInstruction': 'Edit Instruction',
                     'customInstruction': 'Custom Instruction',
-                    'type': 'Instruction Type',
+                    'instructionType': 'Instruction Type',
                     'generation': 'Generation',
                     'modification': 'Modification',
                     'cancel': 'Cancel',
@@ -74,6 +74,10 @@ i18n
                     'chat.backToPreviousLevel': 'Back to previous conversation',
                     'addCustomInstruction': 'Add your custom instruction',
                     'Auto Play Audio': 'Auto Play Speech',
+                    'Shortcut Instructions': 'Shortcut Instructions',
+                    'cannotDeleteBuiltInInstruction': 'Cannot delete built-in instruction',
+                    'deleteInstruction': 'Delete instruction',
+                    'toggleInstructionDisplay': 'Toggle instruction display',
                 }
             },
             zh: {
@@ -99,7 +103,7 @@ i18n
                     'singleCharacterIcon': '请使用一个字符作为图标',
                     'editInstruction': '编辑指令',
                     'customInstruction': '自定义指令',
-                    'type': '指令类型',
+                    'instructionType': '指令类型',
                     'generation': '生成',
                     'modification': '修改',
                     'cancel': '取消',
@@ -130,6 +134,10 @@ i18n
                     'chat.backToPreviousLevel': '返回上一层对话',
                     'addCustomInstruction': '添加自定义指令',
                     'Auto Play Audio': '自动播放语音',
+                    'Shortcut Instructions': '快捷指令',
+                    'cannotDeleteBuiltInInstruction': '内置指令不可删除',
+                    'deleteInstruction': '删除指令',
+                    'toggleInstructionDisplay': '切换指令显示',
                 }
             },
             ja: {
@@ -155,7 +163,7 @@ i18n
                     'singleCharacterIcon': 'アイコンには1文字のみを使用してください。',
                     'editInstruction': '指示を編集',
                     'customInstruction': 'カスタム指示',
-                    'type': 'タイプ',
+                    'instructionType': '指示タイプ',
                     'generation': '生成',
                     'modification': '修正',
                     'cancel': 'キャンセル',
@@ -186,6 +194,10 @@ i18n
                     'chat.backToPreviousLevel': '前の会話に戻る',
                     'addCustomInstruction': 'カスタム指示を追加',
                     'Auto Play Audio': '音声自動再生',
+                    'Shortcut Instructions': 'ショートカット指示',
+                    'cannotDeleteBuiltInInstruction': '組み込み指示は削除できません',
+                    'deleteInstruction': '指示を削除',
+                    'toggleInstructionDisplay': '指示の表示を切り替える',
                 }
             }
         }

@@ -311,7 +311,7 @@ export class CommonRevisionHandler extends InputHandler {
     _toolTipKey?: string;
 
     constructor(instruction: string, tooltip: string, iconChar: string, toolTipKey?: string) {
-        super('commonRevision', InputHandlerTypes.Revision);
+        super('commonRevision', InputHandlerTypes.Revision, true);
         this._instruction = instruction;
         this._tooltip = tooltip;
         this._iconChar = iconChar;
@@ -441,7 +441,7 @@ export function CustomInputHandlerCreator({
                 <div className="mb-4">
                     {/* instruction type selector */}
                     <div className="flex flex-row items-center justify-between mb-2">
-                        <label htmlFor="type" className="block text-gray-700 font-bold mr-2">{t('type')}</label>
+                        <label htmlFor="type" className="block text-gray-700 font-bold mr-2">{t('instructionType')}</label>
                         <div className="relative">
                             <DropdownMenuEntry
                                 label={type === InputHandlerTypes.Revision ? t('modification') : t('generation')}
