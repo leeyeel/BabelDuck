@@ -1,5 +1,6 @@
 export type ChatSettingsStoreRecord = {
     rawInputHandlers: string[],
+    autoPlayAudio: boolean,
     ChatISettings: {
         id: string
         settings: object

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
@@ -12,6 +12,8 @@ import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSetting
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
+
+export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -32,6 +34,8 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
     const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
     const chatIntelligenceRef = useRef<ChatIntelligence>()
+
+    const chatSettings: LocalChatSettings = loadChatSettings(chatID) // TODO remove duplicate load
 
     useEffect(() => {
         const messageList = loadChatByID(chatID)
@@ -151,45 +155,46 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             </div>
         </div>
 
-
-        <div className="w-4/5 h-full relative overflow-auto custom-scrollbar">
-            {/* current message list */}
-            <MessageList key={msgListSwitchSignal.key + 1}
-                className={`absolute bg-white h-full overflow-auto custom-scrollbar ${!isTopLevel && 'left-24 pl-10'} ${!isTopLevel ? 'w-[calc(100%-96px)]' : 'w-full'}`}
-                messageList={currentMessageList} updateMessage={updateMessage} />
-            {
-                !isTopLevel && <>
-                    {/* previous message list in the background */}
-                    <MessageList key={msgListSwitchSignal.key} className="absolute top-0 left-0 h-full z-[-1] overflow-hidden" messageList={previousMessageList!} updateMessage={() => { }} />
-                    {/* button for jumping back to previous level */}
-                    <div className="absolute top-0 left-0 border-r bg-white bg-opacity-80 w-24 h-full 
+        <ChatSettingsContext.Provider value={chatSettings}>
+            <div className="w-4/5 h-full relative overflow-auto custom-scrollbar">
+                {/* current message list */}
+                <MessageList key={msgListSwitchSignal.key + 1}
+                    className={`absolute bg-white h-full overflow-auto custom-scrollbar ${!isTopLevel && 'left-24 pl-10'} ${!isTopLevel ? 'w-[calc(100%-96px)]' : 'w-full'}`}
+                    messageList={currentMessageList} updateMessage={updateMessage} />
+                {
+                    !isTopLevel && <>
+                        {/* previous message list in the background */}
+                        <MessageList key={msgListSwitchSignal.key} className="absolute top-0 left-0 h-full z-[-1] overflow-hidden" messageList={previousMessageList!} updateMessage={() => { }} />
+                        {/* button for jumping back to previous level */}
+                        <div className="absolute top-0 left-0 border-r bg-white bg-opacity-80 w-24 h-full 
                     flex items-center justify-end shadow-[inset_-4px_0_6px_-4px_rgba(0,0,0,0.1)]"
-                        onClick={goBackToPreviousLevel}
-                    >
-                        <div id="back-to-previous-level" className="relative left-5">
-                            <MdKeyboardArrowRight className="cursor-pointer" size={20} color="#898989" onClick={goBackToPreviousLevel} />
+                            onClick={goBackToPreviousLevel}
+                        >
+                            <div id="back-to-previous-level" className="relative left-5">
+                                <MdKeyboardArrowRight className="cursor-pointer" size={20} color="#898989" onClick={goBackToPreviousLevel} />
+                            </div>
+                            <Tooltip anchorSelect="#back-to-previous-level"
+                                delayShow={100} delayHide={0} place="top" offset={5} style={{ borderRadius: '0.75rem' }}>
+                                {t('chat.backToPreviousLevel')}
+                            </Tooltip>
                         </div>
-                        <Tooltip anchorSelect="#back-to-previous-level"
-                            delayShow={100} delayHide={0} place="top" offset={5} style={{ borderRadius: '0.75rem' }}>
-                            {t('chat.backToPreviousLevel')}
-                        </Tooltip>
-                    </div>
-                </>
+                    </>
 
-            }
-        </div>
-        <MessageInput addInputHandler={(handler) => {
-            updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
-        }} className="w-4/5"
-            chatID={chatID}
-            msgListSwitchSignal={msgListSwitchSignal}
-            inputHandlers={inputHandlers}
-            addMesssage={addMesssage} messageList={currentMessageList}
-            // Temporarily forbid nested multi-level discussions, the component has already supported, 
-            // it's just the AI might be unable to handle too many levels
-            allowFollowUpDiscussion={isTopLevel}
-            startFollowUpDiscussion={startFollowUpDiscussion}
-        />
+                }
+            </div>
+            <MessageInput addInputHandler={(handler) => {
+                updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
+            }} className="w-4/5"
+                chatID={chatID}
+                msgListSwitchSignal={msgListSwitchSignal}
+                inputHandlers={inputHandlers}
+                addMesssage={addMesssage} messageList={currentMessageList}
+                // Temporarily forbid nested multi-level discussions, the component has already supported, 
+                // it's just the AI might be unable to handle too many levels
+                allowFollowUpDiscussion={isTopLevel}
+                startFollowUpDiscussion={startFollowUpDiscussion}
+            />
+        </ChatSettingsContext.Provider>
     </div>
 }
 

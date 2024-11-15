@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Message } from "../lib/message";
 // import { CgChevronDoubleDown } from "react-icons/cg";
 import { TbPencil } from "react-icons/tb";
@@ -11,6 +11,7 @@ import { FaStopCircle } from "react-icons/fa";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
 import { I18nText } from "@/app/i18n/i18n";
+import { ChatSettingsContext } from "./chat";
 
 export const MessageTypes = {
     SYSTEM: 'systemMessage',
@@ -192,7 +193,7 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         };
         getVoices();
         let prefferedVoice: SpeechSynthesisVoice | undefined = undefined;
-        const preferredVoices = ['Google US English', 'Nicky', 'Karen', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine']
+        const preferredVoices = ['Karen', 'Nicky', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine', 'Google US English']
         while (allVoices.length === 0) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -225,6 +226,7 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
             setCompState({ type: 'normal', content: compState.content, showMore: true })
         }
         setCompState({ ...compState, type: 'playingAudio' })
+        window.speechSynthesis.cancel()
         window.speechSynthesis.speak(utterance)
     }
     async function stopPlaying() {
@@ -329,141 +331,6 @@ export class TextMessage extends Message {
         return new TextMessage(this.role, content, this.displayToUser, this.includedInChatCompletion)
     }
 
-    // make it reusable for other message components
-    renderControlled = ({ compState, setCompState, messageID, updateMessage, className }: {
-        compState: textMessageState,
-        setCompState: React.Dispatch<React.SetStateAction<textMessageState>>,
-        messageID: number,
-        updateMessage: (messageID: number, message: Message) => void,
-        className?: string
-    }) => {
-        const showMore = (compState.type === 'normal' && compState.showMore)
-            || compState.type === 'playingAudio' // you will want to keep the buttons showing while playing the audio
-        const isEditing = (compState.type === 'editing')
-        const isPlaying = compState.type === 'playingAudio'
-
-        // state convertors
-        function setShowMore(showMore: boolean): void {
-            if (compState.type !== 'normal') {
-                return
-            }
-            setCompState({ ...compState, showMore: showMore })
-        }
-        const toEditingState = () => {
-            if (compState.type === 'editing') {
-                return
-            }
-            setCompState({ type: 'editing', editingContent: compState.content, originalContent: compState.content })
-        }
-        function saveEdit() {
-            if (compState.type !== 'editing') {
-                return
-            }
-            setCompState({ type: 'normal', showMore: false, content: compState.editingContent })
-        }
-        function cancelEdit() {
-            if (compState.type !== 'editing') {
-                return
-            }
-            setCompState({ type: 'normal', showMore: false, content: compState.originalContent })
-        }
-        async function startPlaying() {
-            if (compState.type !== 'normal') {
-                return
-            }
-            const utterance = new SpeechSynthesisUtterance();
-            // TODO detect the text language
-            utterance.lang = 'en-US';
-            const allVoices: SpeechSynthesisVoice[] = [];
-            const getVoices = () => {
-                const voices = speechSynthesis.getVoices();
-                if (voices.length > 0) {
-                    allVoices.push(...voices);
-                } else {
-                    setTimeout(getVoices, 100);
-                }
-            };
-            getVoices();
-            let prefferedVoice: SpeechSynthesisVoice | undefined = undefined;
-            const preferredVoices = ['Google US English', 'Nicky', 'Karen', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine']
-            while (allVoices.length === 0) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            for (const name of preferredVoices) {
-                for (const voice of allVoices) {
-                    if (voice.name === name) {
-                        prefferedVoice = voice;
-                        break;
-                    }
-                }
-                if (prefferedVoice !== undefined) {
-                    break;
-                }
-            }
-            if (prefferedVoice !== undefined) {
-                utterance.voice = prefferedVoice;
-            }
-            // https://stackoverflow.com/questions/21947730/chrome-speech-synthesis-with-longer-texts
-            let myTimeout: NodeJS.Timeout
-            function myTimer() {
-                window.speechSynthesis.pause();
-                window.speechSynthesis.resume();
-                myTimeout = setTimeout(myTimer, 10000);
-            }
-            window.speechSynthesis.cancel()
-            myTimeout = setTimeout(myTimer, 10000)
-            utterance.text = compState.content
-            utterance.onend = () => {
-                clearTimeout(myTimeout)
-                setCompState({ type: 'normal', content: compState.content, showMore: true })
-            }
-            setCompState({ ...compState, type: 'playingAudio' })
-            window.speechSynthesis.speak(utterance)
-        }
-        async function stopPlaying() {
-            if (!isPlaying) {
-                return
-            }
-            window.speechSynthesis.cancel()
-            setCompState({ type: 'normal', showMore: true, content: compState.content })
-        }
-
-        return <div className={`flex flex-col ${className}`}
-            onMouseEnter={() => { setShowMore(true) }} onMouseLeave={() => { setShowMore(false) }}>
-            <Role className="mb-2" name={this.role} />
-            {!isEditing && <MessageContent content={compState.content} />}
-            {isEditing &&
-                <div className="bg-[#F6F5F5] rounded-lg max-w-[80%] p-4">
-                    <textarea className="w-full bg-[#F6F5F5] h-32 resize-none focus:outline-none"
-                        value={compState.editingContent} onChange={(e) => { setCompState({ type: 'editing', editingContent: e.target.value, originalContent: compState.originalContent }) }
-                        } />
-                    <div className="flex flex-row">
-                        <button className="rounded-2xl border border-gray-300 bg-white p-2 mr-2"
-                            onClick={() => {
-                                cancelEdit()
-                            }}>
-                            Cancel
-                        </button>
-                        <button className="rounded-2xl bg-black text-white p-2"
-                            onClick={() => {
-                                updateMessage(messageID, this.updateContent(compState.editingContent)) // TODO error handling
-                                saveEdit()
-                            }}>Save</button>
-                    </div>
-                </div>
-            }
-            <div className={`flex flex-row mt-1 pl-1 ${showMore ? 'visible' : 'invisible'}`}>
-                <div className="mr-2 cursor-pointer" onClick={!isPlaying ? startPlaying : stopPlaying}>
-                    {isPlaying ? <FaStopCircle size={25} /> : <HiMiniSpeakerWave size={23} />}
-                </div>
-                <TbPencil size={20} className="cursor-pointer"
-                    onClick={() => {
-                        toEditingState()
-                    }} />
-            </div>
-        </div>
-    }
-
     component() {
         return TextMessageComponent
     }
@@ -549,6 +416,7 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
     const isPlaying = msgState.type === 'streaming' && msgState.playing
 
     const [textMsgState, setTextMsgState] = useState<textMessageState>({ type: 'normal', showMore: false, content: '' }) // TODO maybe useRef?
+    const chatSettings = useContext(ChatSettingsContext)
 
     // state convertors
     const stopPlaying = () => {
@@ -570,7 +438,7 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
         const startStreaming = () => {
             const iterator = message.streamingGenerator[Symbol.asyncIterator]();
 
-            const autoPlay = true // TODO read from settings
+            const autoPlay = chatSettings?.autoPlayAudio ?? false
             let _finished = false
             let unmounted = false
             const buffer: string[] = []
@@ -620,6 +488,8 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                 // if autoPlay is on, the TextMessage component should be in 'playingAudio' mode while rendering
                 if (autoPlay) {
                     setTextMsgState({ type: 'playingAudio', content: message.consumedChunks.join('') })
+                } else {
+                    setTextMsgState({ type: 'normal', content: message.consumedChunks.join(''), showMore: false })
                 }
                 stateRef.current = { type: 'finished', content: message.consumedChunks.join('') }
             };
@@ -664,7 +534,7 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'en-US';
                     if (prefferedVoice === undefined) {
-                        const preferredVoices = ['Google US English', 'Nicky', 'Karen', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine']
+                        const preferredVoices = ['Karen', 'Nicky', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine', 'Google US English']
                         // wait until voices have been loaded
                         while (allVoices.length === 0) {
                             await new Promise(resolve => setTimeout(resolve, 100));
@@ -711,20 +581,11 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                                 return;
                             }
                         })
-                        // const _wait = () => {
-                        //     if (!window.speechSynthesis.speaking) {
-                        //         setTextMsgState((prev) => {
-                        //             if (prev.type === 'playingAudio') {
-                        //                 return { type: 'normal', content: prev.content, showMore: false }
-                        //             }
-                        //             return prev
-                        //         })
-                        //         return;
-                        //     }
-                        //     window.setTimeout(_wait, 200);
-                        // }
-                        // _wait();
                     }
+                    utterance.addEventListener('error', (e) => {
+                        console.error(e)
+                    })
+                    window.speechSynthesis.cancel() // https://stackoverflow.com/questions/41539680/speechsynthesis-speak-not-working-in-chrome
                     window.speechSynthesis.speak(utterance)
                     await new Promise(resolve => {
                         utterance.onend = resolve;

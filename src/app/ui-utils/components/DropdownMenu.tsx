@@ -9,7 +9,7 @@ interface DropdownMenuProps {
 export function DropdownMenu({ menuItems, className }: DropdownMenuProps) {
     return (
         <>
-            <div className={`absolute z-50 bg-white border rounded-xl p-2 ${className}`}>
+            <div className={`absolute z-50 bg-white border rounded-xl p-2 overflow-y-auto custom-scrollbar max-h-[300px] ${className}`}>
                 {menuItems.map((item, index) => (
                     <div
                         key={index}

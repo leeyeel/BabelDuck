@@ -13,6 +13,7 @@ import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/a
 import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { InputHandler } from "@/app/chat/components/input-handlers";
 import { OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
+import Switch from "react-switch";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -162,8 +163,12 @@ function GeneralSettings() {
 }
 
 function GlobalChatSettings() {
-    const chatSettings = loadGlobalChatSettings()
-    return <CommonChatSettings chatSettings={chatSettings} updateChatSettings={setGlobalChatSettings} />
+
+    const [chatSettings, setChatSettings] = useState(loadGlobalChatSettings())
+    return <CommonChatSettings chatSettings={chatSettings} updateChatSettings={(newChatSettings) => {
+        setChatSettings(newChatSettings)
+        setGlobalChatSettings(newChatSettings)
+    }} />
 }
 
 // TODO documentation for naming abbreviations
@@ -218,8 +223,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
 
     const { t } = useTranslation();
 
-    const [selectedChatISettings, setSelectedChatISettings] = useState(chatSettings)
-    const chatSettingsRO = assembleChatSettingsRO(selectedChatISettings)
+    const chatSettingsRO = assembleChatSettingsRO(chatSettings)
 
     const [showIntelligenceDropdown, setShowIntelligenceDropdown] = useState(false);
     const toggleIntelligenceDropdown = () => setShowIntelligenceDropdown(!showIntelligenceDropdown);
@@ -232,29 +236,17 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
                 settings: chatISettingsRecord.settings,
             },
             inputHandlers: chatSettingsRO.inputHandlers,
-        })
-        setSelectedChatISettings({
-            ChatISettings: {
-                id: chatIID,
-                settings: chatISettingsRecord.settings,
-            },
-            inputHandlers: chatSettings.inputHandlers,
+            autoPlayAudio: chatSettings.autoPlayAudio,
         })
     }
     function updateSelectedChatISettings(newChatIsettings: object) {
         updateChatSettings({
             ChatISettings: {
-                id: selectedChatISettings.ChatISettings.id,
+                id: chatSettings.ChatISettings.id,
                 settings: newChatIsettings,
             },
-            inputHandlers: selectedChatISettings.inputHandlers,
-        })
-        setSelectedChatISettings({
-            ChatISettings: {
-                id: selectedChatISettings.ChatISettings.id,
-                settings: newChatIsettings,
-            },
-            inputHandlers: selectedChatISettings.inputHandlers,
+            inputHandlers: chatSettings.inputHandlers,
+            autoPlayAudio: chatSettings.autoPlayAudio,
         })
     }
 
@@ -266,8 +258,8 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         }
     }))
 
-    return <div className={`flex flex-col ${className}`}>
-        {/* intelligence settings */}
+    return <div className={`flex flex-col pl-8 ${className}`}>
+        {/* chat intelligence settings */}
         <div className="flex flex-row items-center justify-between relative mb-4">
             <span className="text-gray-700 font-bold">{t('Chat Model')}</span>
             <DropdownMenuEntry
@@ -280,10 +272,20 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             </>}
         </div>
         {chatSettingsRO.chatISettings.chatIType === OpenAIChatIntelligence.type &&
-            <OpenAIChatISettings settings={chatSettingsRO.chatISettings.settings}
-                updateChatISettings={updateSelectedChatISettings} />}
+            <div className="flex flex-col mb-4">
+                <OpenAIChatISettings settings={chatSettingsRO.chatISettings.settings}
+                    updateChatISettings={updateSelectedChatISettings} />
+            </div>
+        }
         {/* input handlers settings */}
 
+        {/* auto play audio settings */}
+        <div className="flex flex-row items-center justify-between mb-4">
+            <span className="text-gray-700 font-bold">{t('Auto Play Audio')}</span>
+            <Switch checked={chatSettings.autoPlayAudio}
+                className={`mr-2`} width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                onChange={(checked) => { updateChatSettings({ ...chatSettings, autoPlayAudio: checked }) }} />
+        </div>
     </div>
 }
 
