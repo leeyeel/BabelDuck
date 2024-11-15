@@ -46,7 +46,7 @@ export type ChatSettings = {
         id: string
         settings: object
     }
-    inputHandlers: InputHandler[];
+    inputHandlers: { handler: InputHandler, display: boolean }[];
     autoPlayAudio: boolean;
 }
 
@@ -85,7 +85,11 @@ const defaultGlobalChatSettings: ChatSettings = {
         settings: {}
     },
     autoPlayAudio: false,
-    inputHandlers: [new TranslationHandler("English"), new RespGenerationHandler(), new GrammarCheckingHandler()]
+    inputHandlers: [
+        { handler: new TranslationHandler("English"), display: true },
+        { handler: new RespGenerationHandler(), display: true },
+        { handler: new GrammarCheckingHandler(), display: true }
+    ]
 }
 
 export const GlobalDefaultChatSettingID = 'global_default_chat_settings'
@@ -96,7 +100,10 @@ export function loadGlobalChatSettings(): ChatSettings {
         setGlobalChatSettings(defaultGlobalChatSettings);
         return defaultGlobalChatSettings;
     }
-    const inputHandlers = chatSettingsData.rawInputHandlers.map((rawHandler) => InputHandler.deserialize(rawHandler))
+    const inputHandlers = chatSettingsData.rawInputHandlers.map((rawHandler) => ({
+        handler: InputHandler.deserialize(rawHandler.payload),
+        display: rawHandler.display
+    }))
     return {
         autoPlayAudio: chatSettingsData.autoPlayAudio,
         ChatISettings: chatSettingsData.ChatISettings,
@@ -106,7 +113,10 @@ export function loadGlobalChatSettings(): ChatSettings {
 
 export function setGlobalChatSettings(settings: ChatSettings): void {
     setChatSettingsData(GlobalDefaultChatSettingID, {
-        rawInputHandlers: settings.inputHandlers.map((handler) => handler.serialize()),
+        rawInputHandlers: settings.inputHandlers.map((handler) => ({
+            payload: handler.handler.serialize(),
+            display: handler.display
+        })),
         ChatISettings: settings.ChatISettings,
         autoPlayAudio: settings.autoPlayAudio
     });
@@ -118,13 +128,22 @@ export function addInputHandlersInChat(chatID: string, handlers: InputHandler[])
     if (chatSettings.usingGlobalSettings) {
         // add the handlers to the global settings
         const globalSettings = loadGlobalChatSettings();
-        globalSettings.inputHandlers.push(...handlers);
+        globalSettings.inputHandlers.push(...handlers.map((handler) => ({
+            handler: handler,
+            display: true
+        })));
         setGlobalChatSettings(globalSettings);
     } else {
         // add the handlers to the chat local settings
-        chatSettings.inputHandlers.push(...handlers);
+        chatSettings.inputHandlers.push(...handlers.map((handler) => ({
+            handler: handler,
+            display: true
+        })));
         setChatSettingsData(`chatSettings_${chatID}`, {
-            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => ({
+                payload: handler.handler.serialize(),
+                display: handler.display
+            })),
             ChatISettings: chatSettings.ChatISettings,
             autoPlayAudio: chatSettings.autoPlayAudio
         });
@@ -136,17 +155,23 @@ export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: n
     if (chatSettings.usingGlobalSettings) {
         // update the global settings
         const globalSettings = loadGlobalChatSettings();
-        globalSettings.inputHandlers[handlerIndex] = handler;
+        globalSettings.inputHandlers[handlerIndex] = { handler: handler, display: true };
         setChatSettingsData(GlobalDefaultChatSettingID, {
-            rawInputHandlers: globalSettings.inputHandlers.map((handler) => handler.serialize()),
+            rawInputHandlers: globalSettings.inputHandlers.map((handler) => ({
+                payload: handler.handler.serialize(),
+                display: handler.display
+            })),
             ChatISettings: globalSettings.ChatISettings,
             autoPlayAudio: globalSettings.autoPlayAudio
         });
     } else {
         // update the chat local settings
-        chatSettings.inputHandlers[handlerIndex] = handler;
+        chatSettings.inputHandlers[handlerIndex] = { handler: handler, display: true };
         setChatSettingsData(`chatSettings_${chatID}`, {
-            rawInputHandlers: chatSettings.inputHandlers.map((handler) => handler.serialize()),
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => ({
+                payload: handler.handler.serialize(),
+                display: handler.display
+            })),
             ChatISettings: chatSettings.ChatISettings,
             autoPlayAudio: chatSettings.autoPlayAudio
         });

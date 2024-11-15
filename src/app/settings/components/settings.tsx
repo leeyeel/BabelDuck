@@ -278,7 +278,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             </div>
         }
         {/* input handlers settings */}
-
+        
         {/* auto play audio settings */}
         <div className="flex flex-row items-center justify-between mb-4">
             <span className="text-gray-700 font-bold">{t('Auto Play Audio')}</span>

@@ -6,8 +6,6 @@ import { Message } from "../lib/message";
 import { TbPencil } from "react-icons/tb";
 import React from "react";
 import { ThreeDots } from "react-loader-spinner";
-import { HiMiniSpeakerWave } from "react-icons/hi2";
-import { FaStopCircle } from "react-icons/fa";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
 import { I18nText } from "@/app/i18n/i18n";
