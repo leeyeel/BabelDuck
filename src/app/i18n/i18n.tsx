@@ -73,7 +73,7 @@ i18n
                     'If you have any more questions or requests, feel free to reach out to me': 'If you have any more questions or requests, feel free to reach out to me',
                     'chat.backToPreviousLevel': 'Back to previous conversation',
                     'addCustomInstruction': 'Add your custom instruction',
-                    'Auto Play Audio': 'Auto Play Audio',
+                    'Auto Play Audio': 'Auto Play Speech',
                 }
             },
             zh: {
@@ -129,7 +129,7 @@ i18n
                     'If you have any more questions or requests, feel free to reach out to me': '如果你还有什么疑问或要求，欢迎进一步找我讨论',
                     'chat.backToPreviousLevel': '返回上一层对话',
                     'addCustomInstruction': '添加自定义指令',
-                    'Auto Play Audio': '自动播放音频',
+                    'Auto Play Audio': '自动播放语音',
                 }
             },
             ja: {
@@ -185,7 +185,7 @@ i18n
                     'If you have any more questions or requests, feel free to reach out to me': 'もし、さらなる質問や要望があれば、お気軽にお問い合わせください。',
                     'chat.backToPreviousLevel': '前の会話に戻る',
                     'addCustomInstruction': 'カスタム指示を追加',
-                    'Auto Play Audio': '自動再生',
+                    'Auto Play Audio': '音声自動再生',
                 }
             }
         }
