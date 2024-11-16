@@ -261,8 +261,6 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         }
     }))
 
-    console.log(chatSettingsRO.inputHandlers)
-
     return <div className={`flex flex-col pl-8 ${className}`}>
         {/* chat intelligence settings */}
         <div className="flex flex-row items-center justify-between relative mb-8">

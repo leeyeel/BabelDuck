@@ -171,7 +171,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
                             onClick={goBackToPreviousLevel}
                         >
                             <div id="back-to-previous-level" className="relative left-5">
-                                <MdKeyboardArrowRight className="cursor-pointer" size={20} color="#898989" onClick={goBackToPreviousLevel} />
+                                <MdKeyboardArrowRight className="cursor-pointer" size={20} color="#898989" onClick={(e) => { goBackToPreviousLevel(); e.stopPropagation() }} />
                             </div>
                             <Tooltip anchorSelect="#back-to-previous-level"
                                 delayShow={100} delayHide={0} place="top" offset={5} style={{ borderRadius: '0.75rem' }}>
