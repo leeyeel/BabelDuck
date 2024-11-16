@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
 import i18n, { i18nText, I18nText } from '../../i18n/i18n';
-import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
+import { DropdownMenu, DropdownMenuEntry, DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { getBuiltInLLMServicesSettings, LLMServiceSettingsRecord, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
@@ -17,6 +17,8 @@ import Switch from "react-switch";
 import { IconCircleWrapper } from "@/app/chat/components/message";
 import { PiTrashBold } from "react-icons/pi";
 import { Tooltip } from "react-tooltip";
+import { FaPlus } from "react-icons/fa";
+import { TbCloud, TbCloudPlus } from "react-icons/tb";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -261,6 +263,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         }
     }))
 
+
     return <div className={`flex flex-col pl-8 ${className}`}>
         {/* chat intelligence settings */}
         <div className="flex flex-row items-center justify-between relative mb-8">
@@ -350,9 +353,6 @@ function LLMSettings() {
     const selectedSvc = compState.llmServices.find((svc) => svc.id === compState.selectedSvcId)
     const SettingsComponent = selectedSvc?.type ? getLLMSettingsComponent(selectedSvc.type) : null;
 
-    const [showDropdown, setShowDropdown] = useState(false)
-    const toggleDropdown = () => setShowDropdown(!showDropdown)
-
     useEffect(() => {
         const defaultSvcs = getBuiltInLLMServicesSettings()
         setCompState({ llmServices: defaultSvcs, selectedSvcId: defaultSvcs.length > 0 ? defaultSvcs[0].id : null })
@@ -367,19 +367,23 @@ function LLMSettings() {
     }
 
     return <div className="flex flex-col pl-8">
-        <div className="flex flex-row items-center justify-between relative mb-4">
+        <div className="flex flex-row items-center justify-between mb-4">
             <span className="text-gray-700 font-bold">{t('Models Service')}</span>
-            <DropdownMenuEntry label={selectedSvc ? <I18nText i18nText={selectedSvc.name} /> : 'No LLM Service'}
-                onClick={toggleDropdown} />
-            {showDropdown && <>
-                <DropdownMenu menuItems={
-                    compState.llmServices.map((service) => ({
-                        label: <I18nText i18nText={service.name} />,
-                        onClick: () => { setCompState({ ...compState, selectedSvcId: service.id }); toggleDropdown() }
-                    }))
-                } className="absolute right-0 top-full" />
-                <TransparentOverlay onClick={toggleDropdown} />
-            </>}
+            <DropDownMenuV2
+                entryLabel={selectedSvc ? <I18nText i18nText={selectedSvc.name} /> : 'No LLM Service'}
+                menuItems={
+                    [
+                        ...compState.llmServices.map((service) => ({
+                            label: <div className="flex flex-row items-center"><TbCloud color="gray" className="mr-2" /><I18nText i18nText={service.name} /></div>,
+                            onClick: () => { setCompState({ ...compState, selectedSvcId: service.id }) }
+                        })),
+                        { label: <div className="flex flex-row items-center">
+                            <TbCloudPlus className="mr-2" color="gray" />
+                            <span className="text-gray-500">{t('Add Service')}</span>
+                        </div>, onClick: () => { } }
+                    ]}
+                menuClassName="right-0"
+            />
         </div>
         {selectedSvc?.type && SettingsComponent && <SettingsComponent settings={selectedSvc.settings}
             updateSettings={(settings) => { updateSettings(selectedSvc.id, settings) }} />}
