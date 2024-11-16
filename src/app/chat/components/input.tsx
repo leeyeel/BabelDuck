@@ -527,35 +527,32 @@ function TextInput(
         setInputState({ type: 'transcribing', previousState: inputState.previousState })
     }
     const startTranscribing = (audioBlob: Blob, previousState: typingOrVoiceMode) => {
-        // TODO switch to server actions
         const form = new FormData();
         form.append("model", "FunAudioLLM/SenseVoiceSmall");
         form.append("file", audioBlob, "recording.wav");
-        const options = {
+
+        fetch('/api/stt', {
             method: 'POST',
-            headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`
-            },
             body: form
-        };
-        const apiUrl = process.env.NEXT_PUBLIC_STT_API_URL;
-        if (!apiUrl) {
-            throw new Error('API URL is not defined');
-        }
-        fetch(apiUrl, options)
+        })
             .then(response => {
-                response.json().then(data => {
-                    const newMsg = msg.updateContent(msg.content + data.text);
-                    setMsg(newMsg);
-                    setInputState(previousState)
-                    if (previousState.type === 'voiceMode' && previousState.autoSend) {
-                        handleSend(newMsg)
-                    }
-                    if (previousState.type === 'typing') {
-                        textAreaRef.current?.focus();
-                    }
-                });
-            }).catch(err => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const newMsg = msg.updateContent(msg.content + data.text);
+                setMsg(newMsg);
+                setInputState(previousState)
+                if (previousState.type === 'voiceMode' && previousState.autoSend) {
+                    handleSend(newMsg)
+                }
+                if (previousState.type === 'typing') {
+                    textAreaRef.current?.focus();
+                }
+            })
+            .catch(err => {
                 console.error(err);
                 stopRecording();
             });
