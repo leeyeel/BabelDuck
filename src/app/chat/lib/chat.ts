@@ -79,7 +79,7 @@ export function loadChatSettings(chatID: string): LocalChatSettings {
     // return { usingGlobalSettings: false, ...chatSettings };
 }
 
-const defaultGlobalChatSettings: ChatSettings = {
+export const defaultGlobalChatSettings: ChatSettings = {
     ChatISettings: {
         id: FreeTrialChatIntelligence.id,
         settings: {}
