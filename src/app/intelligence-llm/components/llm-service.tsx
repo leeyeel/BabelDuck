@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslation } from "react-i18next";
-import { OpenAIService, OpenAISettings, SiliconFlowService } from "../lib/llm-service";
+import { OpenAICompatibleAPIService, OpenAICompatibleAPISettings, OpenAIService, OpenAISettings, SiliconFlowService } from "../lib/llm-service";
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { useState } from "react";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
@@ -33,6 +33,76 @@ export function registerLLMSettingsComponent(
 }
 
 // ============================= LLM Service Settings Components =============================
+
+export function OpenAICompatibleAPIServiceSettings({ settings: unTypedSettings, updateSettings }: LLMSettingsProps<object>) {
+    const settings = unTypedSettings as OpenAICompatibleAPISettings;
+    const { t } = useTranslation();
+
+    const [name, setName] = useState(settings.name);
+    const [baseURL, setBaseURL] = useState(settings.baseURL);
+    const [apiKey, setApiKey] = useState(settings.apiKey);
+    const [chatCompletionModel, setChatCompletionModel] = useState(settings.chatCompletionModel);
+
+    const [lastTimeSavedSettings, setLastTimeSavedSettings] = useState(settings);
+    const settingsChanged: boolean = lastTimeSavedSettings.baseURL !== baseURL
+        || lastTimeSavedSettings.apiKey !== apiKey
+        || lastTimeSavedSettings.name !== name
+        || lastTimeSavedSettings.chatCompletionModel !== chatCompletionModel;
+
+    return <div className="flex flex-col">
+        {/* name */}
+        <div className="flex flex-col mb-8">
+            <span className="text-gray-700 font-bold mb-2">{t('Name')}</span>
+            <input 
+                type="text" 
+                placeholder="Service Name"
+                className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+            />
+        </div>
+        {/* model */}
+        <div className="flex flex-col mb-8">
+            <span className="text-gray-700 font-bold mb-2">{t('Model-Single-Form')}</span>
+            <input 
+                type="text" 
+                placeholder="gpt-3.5-turbo"
+                className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={chatCompletionModel} 
+                onChange={e => setChatCompletionModel(e.target.value)} 
+            />
+        </div>
+        {/* base url */}
+        <div className="mb-8 flex flex-col">
+            <span className="text-gray-700 font-bold mb-2">{t('baseURL')}</span>
+            <input type="text" id="base-url" placeholder="https://api.openai.com"
+                className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={baseURL} onChange={e => setBaseURL(e.target.value)} />
+        </div>
+        {/* api key */}
+        <div className="mb-8 flex flex-col">
+            <span className="text-gray-700 font-bold mb-2">{t('API Key')}</span>
+            <input type="text" id="api-key" placeholder="sk-..."
+                className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={apiKey} onChange={e => setApiKey(e.target.value)} />
+        </div>
+        {/* save button */}
+        {settingsChanged && <FilledButton
+            className="w-fit self-end"
+            onClick={() => {
+                const newSettings = {
+                    name,
+                    baseURL, 
+                    apiKey, 
+                    chatCompletionModel 
+                };
+                setLastTimeSavedSettings(newSettings);
+                updateSettings(newSettings)
+            }}>
+            {t('Save')}
+        </FilledButton>}
+    </div>
+}
 
 export function OpenAIServiceSettings({ settings: unTypedSettings, updateSettings }: LLMSettingsProps<object>) {
     const settings = unTypedSettings as OpenAISettings;
@@ -111,16 +181,13 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
         {/* model */}
         <div className="flex flex-col mb-8">
             <span className="text-gray-700 font-bold mb-2">{t('Model-Single-Form')}</span>
-            <div className="relative">
-                <DropdownMenuEntry className="w-fit bg-gray-100" label={chatCompletionModel} onClick={toggleModelDropdown} />
-                {showModelDropdown && <> <DropdownMenu className="absolute left-0 top-full"
-                    menuItems={SiliconFlowService.availableChatModels.map(
-                        model => ({ label: model, onClick: () => { setChatCompletionModel(model); toggleModelDropdown() } })
-                    )}
-                />
-                    <TransparentOverlay onClick={toggleModelDropdown} />
-                </>}
-            </div>
+            <input 
+                type="text" 
+                placeholder="gpt-3.5-turbo"
+                className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={chatCompletionModel} 
+                onChange={e => setChatCompletionModel(e.target.value)} 
+            />
         </div>
         {/* base url */}
         <div className="mb-8 flex flex-col">
@@ -150,3 +217,4 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
 
 registerLLMSettingsComponent(OpenAIService.type, OpenAIServiceSettings);
 registerLLMSettingsComponent(SiliconFlowService.type, SiliconFlowServiceSettings);
+registerLLMSettingsComponent(OpenAICompatibleAPIService.type, OpenAICompatibleAPIServiceSettings);

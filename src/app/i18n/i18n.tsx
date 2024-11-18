@@ -97,6 +97,7 @@ i18n
                     'recordingButtonTips': 'Click to start recording, click again to stop',
                     'Welcome to BabelDuck': 'Welcome to BabelDuck',
                     'Please set up your preferences to get started': 'Please set up your preferences to get started',
+                    'Custom Service': 'Custom Service',
                 }
             },
             zh: {
@@ -176,6 +177,7 @@ i18n
                     'recordingButtonTips': '点击开始录音，再次点击停止录音',
                     'Welcome to BabelDuck': '欢迎使用 BabelDuck',
                     'Please set up your preferences to get started': '完成以下偏好设置后即可开始使用',
+                    'Custom Service': '自定义服务',
                 }
             },
             ja: {
@@ -255,6 +257,7 @@ i18n
                     'recordingButtonTips': 'クリックして録音を開始し、もう一度クリックして停止します',
                     'Welcome to BabelDuck': 'BabelDuck へようこそ',
                     'Please set up your preferences to get started': '始めるには設定を行ってください',
+                    'Custom Service': 'カスタムサービス',
                 }
             }
         }

@@ -42,7 +42,7 @@ export function DropDownMenuV2({ entryLabel, entryClassName, menuItems, menuClas
 
     return <div>
         <div className="relative">
-            <div className="flex flex-row items-center hover:bg-gray-100 cursor-pointer rounded-md p-2 pl-3"
+            <div className={`flex flex-row items-center hover:bg-gray-100 cursor-pointer rounded-md p-2 pl-3 ${entryClassName}`}
                 onClick={() => setShowMenu(!showMenu)}>
                 <div className="mr-2">{entryLabel}</div>
                 <FaChevronDown size={12} />

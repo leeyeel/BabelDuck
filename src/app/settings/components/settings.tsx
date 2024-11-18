@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import i18n, { i18nText, I18nText } from '../../i18n/i18n';
 import { DropdownMenu, DropdownMenuEntry, DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
-import { getBuiltInLLMServicesSettings, LLMServiceSettingsRecord, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
+import { addCustomLLMServiceSettings, getBuiltInLLMServicesSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
 import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
 import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
@@ -17,7 +17,6 @@ import Switch from "react-switch";
 import { IconCircleWrapper } from "@/app/chat/components/message";
 import { PiTrashBold } from "react-icons/pi";
 import { Tooltip } from "react-tooltip";
-import { FaPlus } from "react-icons/fa";
 import { TbCloud, TbCloudPlus } from "react-icons/tb";
 
 // settings entry in the sidebar
@@ -41,13 +40,13 @@ export function SettingsEntry({ className = "" }: { className?: string }) {
 
 export function Settings({ onClose }: { onClose: () => void }) {
     const { t } = useTranslation();
-    const [selectedItem, setSelectedItem] = useState('General');
+    const [selectedItem, setSelectedItem] = useState('Chat');
 
     const firstLevelMenuEntries = [
-        { key: 'General', name: t('General') },
         { key: 'Chat', name: t('Chat') },
-        { key: 'Speech', name: t('Speech') },
+        // { key: 'Speech', name: t('Speech') },
         { key: 'Models', name: t('Models') },
+        { key: 'General', name: t('General') }, // Currently there are few options to set, so it's placed at the end, though it should normally be at the front
     ];
 
     return (
@@ -354,7 +353,7 @@ function LLMSettings() {
     const SettingsComponent = selectedSvc?.type ? getLLMSettingsComponent(selectedSvc.type) : null;
 
     useEffect(() => {
-        const defaultSvcs = getBuiltInLLMServicesSettings()
+        const defaultSvcs = getLLMServiceSettings()
         setCompState({ llmServices: defaultSvcs, selectedSvcId: defaultSvcs.length > 0 ? defaultSvcs[0].id : null })
     }, [])
 
@@ -363,6 +362,19 @@ function LLMSettings() {
         setCompState({
             llmServices: compState.llmServices.map((svc) => svc.id === serviceId ? { ...svc, settings } : svc),
             selectedSvcId: compState.selectedSvcId,
+        })
+    }
+    function addLLMServiceAndSwitchToIt() {
+        const serviceName = t('Custom Service')
+        // save data
+        const newServiceRecord = addCustomLLMServiceSettings({
+            type: OpenAICompatibleAPIService.type,
+            settings: { name: serviceName },
+        })
+        // load the new service
+        setCompState({
+            llmServices: compState.llmServices.concat(newServiceRecord),
+            selectedSvcId: newServiceRecord.id,
         })
     }
 
@@ -377,10 +389,12 @@ function LLMSettings() {
                             label: <div className="flex flex-row items-center"><TbCloud color="gray" className="mr-2" /><I18nText i18nText={service.name} /></div>,
                             onClick: () => { setCompState({ ...compState, selectedSvcId: service.id }) }
                         })),
-                        { label: <div className="flex flex-row items-center">
-                            <TbCloudPlus className="mr-2" color="gray" />
-                            <span className="text-gray-500">{t('Add Service')}</span>
-                        </div>, onClick: () => { } }
+                        {
+                            label: <div className="flex flex-row items-center">
+                                <TbCloudPlus className="mr-2" color="gray" />
+                                <span className="text-gray-500">{t('Add Service')}</span>
+                            </div>, onClick: () => { addLLMServiceAndSwitchToIt() }
+                        }
                     ]}
                 menuClassName="right-0"
             />
