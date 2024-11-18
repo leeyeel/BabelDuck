@@ -159,7 +159,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             <div className="w-4/5 h-full relative overflow-auto custom-scrollbar">
                 {/* current message list */}
                 <MessageList key={msgListSwitchSignal.key + 1}
-                    className={`absolute bg-white h-full overflow-auto custom-scrollbar ${!isTopLevel && 'left-24 pl-10'} ${!isTopLevel ? 'w-[calc(100%-96px)]' : 'w-full'}`}
+                    className={`absolute bg-white h-full overflow-auto custom-scrollbar pb-6 ${!isTopLevel && 'left-24 pl-10'} ${!isTopLevel ? 'w-[calc(100%-96px)]' : 'w-full'}`}
                     messageList={currentMessageList} updateMessage={updateMessage} />
                 {
                     !isTopLevel && <>

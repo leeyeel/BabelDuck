@@ -91,6 +91,11 @@ i18n
                     'Edit': 'Edit',
                     'Save': 'Save',
                     'Please turn off diff view to edit': 'Turn off diff view to edit',
+                    'voiceModeTips': `Press the backspace key to clear the current input, press I to exit voice mode`,
+                    'autoSendTips': 'When enabled, the message will be sent automatically after voice recording ends',
+                    'recordingButtonTips': 'Click to start recording, click again to stop',
+                    'Welcome to BabelDuck': 'Welcome to BabelDuck',
+                    'Please set up your preferences to get started': 'Please set up your preferences to get started',
                 }
             },
             zh: {
@@ -125,9 +130,9 @@ i18n
                     'customIconNote': '自定义图标功能后续会推出，目前仅支持使用一个字符作为图标',
                     'generationExplanation': '生成指令可以让 AI 帮你生成回复内容，例如帮你回答你答不上来的问题。该指令类型只有输入为空时才能触发。\n尽量把指令写得简洁和具体一些，指示 AI 生成你想要的回复内容。',
                     'modificationExplanation': '修改指令可以让 AI 帮你修改当前的输入内容，只有输入内容不为空时才能触发。\n可以用它来纠正语法错误、润色表达方式，或将你的输入翻译成另一种语言。',
-                    'typeMessage': '在这里输入你的消息...',
-                    'sendTips': '按 Enter 发送，Ctrl+Enter 添加消息，Shift+Enter 换行',
-                    'recordingTips': '按空格开始录音，松开停止',
+                    'typeMessage': '在这里输入消息内容...',
+                    'sendTips': '按 Enter 发送，Ctrl+Enter 添加消息但不触发回复，Shift+Enter 换行',
+                    'recordingTips': '按空格开始录音，松开则停止录音',
                     'system': '系统',
                     'assistant': '助手',
                     'user': '用户',
@@ -164,6 +169,11 @@ i18n
                     'Edit': '编辑',
                     'Save': '保存',
                     'Please turn off diff view to edit': '仅允许在差异视图关闭时进行编辑',
+                    'voiceModeTips': `按退格键清空当前输入，按 I 键退出语音模式`,
+                    'autoSendTips': '开启后，语音录制结束时会自动发送消息',
+                    'recordingButtonTips': '点击开始录音，再次点击停止录音',
+                    'Welcome to BabelDuck': '欢迎使用 BabelDuck',
+                    'Please set up your preferences to get started': '完成以下偏好设置后即可开始使用',
                 }
             },
             ja: {
@@ -237,6 +247,11 @@ i18n
                     'Edit': '編集',
                     'Save': '保存',
                     'Please turn off diff view to edit': '編集するには差分表示をオフにしてください',
+                    'voiceModeTips': `バックスペースキーを押して現在の入力をクリアし、I キーを押して音声モードを終了します`,
+                    'autoSendTips': '有効にすると、音声録音終了後にメッセージが自動的に送信されます',
+                    'recordingButtonTips': 'クリックして録音を開始し、もう一度クリックして停止します',
+                    'Welcome to BabelDuck': 'BabelDuck へようこそ',
+                    'Please set up your preferences to get started': '始めるには設定を行ってください',
                 }
             }
         }

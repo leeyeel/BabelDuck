@@ -655,7 +655,7 @@ function TextInput(
                     || (inputState.type === 'transcribing' && inputState.previousState.type === 'voiceMode')
                     || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode')
                 )
-                    && <label className={`flex items-center mr-2 cursor-pointer`}>
+                    && <label id="auto-send-label" className={`flex items-center mr-2 cursor-pointer`}>
                         <span className="mr-1">{t('Auto Send')}</span>
                         <Switch
                             disabled={!isVoiceMode}
@@ -666,11 +666,14 @@ function TextInput(
                                 || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode' && inputState.recoverState.autoSend)
                             }
                             onChange={toggleAutoSend}
-                            className={`mr-2`} width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                            className={`mr-2`} width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000"
                         />
                     </label>
                 }
-                <label className="flex items-center mr-2 cursor-pointer">
+                <Tooltip
+                    anchorSelect="#auto-send-label" delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
+                >{t('autoSendTips')}</Tooltip>
+                <label id="voice-mode-label" className="flex items-center mr-2 cursor-pointer">
                     <span className="mr-1">{t('Voice Mode')}</span>
                     <Switch checked={
                         isVoiceMode
@@ -680,9 +683,17 @@ function TextInput(
                         || (inputState.type === 'noEdit' && inputState.recoverState.type === 'voiceMode')
                     }
                         onChange={(checked) => { return checked ? enableVoiceMode() : disableVoiceMode() }}
-                        className="mr-2" width={34} height={17} uncheckedIcon={false} checkedIcon={false} />
+                        className="mr-2" width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000" />
                 </label>
+                <Tooltip
+                    anchorSelect="#voice-mode-label" 
+                    delayShow={100} 
+                    delayHide={0} 
+                    place="top" 
+                    style={{ borderRadius: '0.75rem' }}
+                >{t('voiceModeTips')}</Tooltip>
                 <button
+                    id="recording-button"
                     className="rounded-full bg-black hover:bg-gray-700 focus:outline-none"
                     onClick={isRecording ? stopRecording : startRecording}
                 >
@@ -695,6 +706,9 @@ function TextInput(
                         </div>
                     }
                 </button>
+                <Tooltip
+                    anchorSelect="#recording-button" delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
+                >{t('recordingButtonTips')}</Tooltip>
             </div>
         </div>
     </div>
@@ -717,7 +731,7 @@ export function DiffView(
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState((revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content);
     const [tempEditText, setTempEditText] = useState(editedText);
-    
+
     const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
     const revisedText = (revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
 
@@ -741,7 +755,7 @@ export function DiffView(
     };
 
     const changes = diffChars(originalText, editedText);
-    
+
     return (
         <div className={`p-4 pb-2 rounded-lg border-2 shadow-md focus:outline-none ${className}`} style={style}
             tabIndex={0} ref={containerRef}
@@ -795,12 +809,13 @@ export function DiffView(
                             <Switch
                                 checked={showDiff}
                                 onChange={setShowDiff}
-                                width={34}
+                                width={28}
                                 height={17}
                                 uncheckedIcon={false}
                                 checkedIcon={false}
                                 disabled={isEditing}
                                 className="mr-4"
+                                onColor="#000000"
                             />
                             {isEditing ? (
                                 <TmpFilledButton
@@ -835,20 +850,20 @@ export function DiffView(
                         </div>
                         {/* action buttons on the right */}
                         <div className="flex flex-row">
-                            <TmpFilledButton 
-                                className="py-0 px-2 mr-2 rounded-md text-[13px]" 
+                            <TmpFilledButton
+                                className="py-0 px-2 mr-2 rounded-md text-[13px]"
                                 onClick={() => { approveRevisionCallback(editedText); }}
                             >
                                 <PiKeyReturnBold className="inline-block mr-1" size={20} color="white" /> {t('Approve')}
                             </TmpFilledButton>
-                            <TmpTransparentButton 
-                                className="py-0 px-1 mr-2 rounded-lg text-gray-500 text-[15px]" 
+                            <TmpTransparentButton
+                                className="py-0 px-1 mr-2 rounded-lg text-gray-500 text-[15px]"
                                 onClick={rejectRevisionCallback}
                             >
                                 <FaBackspace className="inline-block mr-1" color="6b7280" /> {t('Reject')}
                             </TmpTransparentButton>
-                            {allowFollowUpDiscussion && 
-                                <button 
+                            {allowFollowUpDiscussion &&
+                                <button
                                     className="mr-2 py-0 px-1 rounded-lg text-[15px] text-gray-500"
                                     onClick={() => startFollowUpDiscussion(originalMsg, new TextMessage(revisedMsg.role, editedText))}
                                 >

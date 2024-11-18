@@ -299,7 +299,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
                     {/* toggle display and delete button */}
                     <div className="flex flex-row items-center">
                         <div id={`toggle-instruction-${index}`}>
-                            <Switch className={`mr-3`} width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                            <Switch className={`mr-3`} width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000"
                                 checked={handler.display} onChange={(checked) => { updateChatSettings({ ...chatSettings, inputHandlers: chatSettings.inputHandlers.map((h) => h.handler.implType === handler.handler.implType ? { ...h, display: checked } : h) }) }} />
                         </div>
                         <Tooltip
@@ -333,7 +333,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         <div className="flex flex-row items-center justify-between mb-8">
             <span className="text-gray-700 font-bold">{t('Auto Play Audio')}</span>
             <Switch checked={chatSettings.autoPlayAudio}
-                width={34} height={17} uncheckedIcon={false} checkedIcon={false}
+                width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000"
                 onChange={(checked) => { updateChatSettings({ ...chatSettings, autoPlayAudio: checked }) }} />
         </div>
     </div>
