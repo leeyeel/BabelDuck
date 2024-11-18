@@ -84,6 +84,10 @@ i18n
                     'lang.ja': 'Japanese',
                     'practiceLanguageHint': 'This is just for configuring shortcuts. You can change it later',
                     'betaWarning': 'This application is currently in beta testing. Please do not store any important data in it.',
+                    'Approve': 'Approve',
+                    'Reject': 'Reject',
+                    'Follow-up discussions': 'Follow-up discussions',
+                    'Show Diff': 'Show Diff',
                 }
             },
             zh: {
@@ -150,6 +154,10 @@ i18n
                     'lang.ja': '日语',
                     'practiceLanguageHint': '仅用于配置一些快捷操作，之后随时可以更改',
                     'betaWarning': '该应用目前尚处于 beta 测试阶段，请勿将重要数据保存于应用中。',
+                    'Approve': '采纳',
+                    'Reject': '取消',
+                    'Follow-up discussions': '讨论｜追问',
+                    'Show Diff': '显示差异',
                 }
             },
             ja: {
@@ -216,6 +224,10 @@ i18n
                     'lang.ja': '日本語',
                     'practiceLanguageHint': 'これはショートカット設定用です。後で変更できます',
                     'betaWarning': 'このアプリケーションは現在ベータテスト中です。重要なデータを保存しないでください。',
+                    'Approve': '承認',
+                    'Reject': '拒否',
+                    'Follow-up discussions': 'フォローアップ討論',
+                    'Show Diff': '差分表示',
                 }
             }
         }
