@@ -88,6 +88,9 @@ i18n
                     'Reject': 'Reject',
                     'Follow-up discussions': 'Follow-up discussions',
                     'Show Diff': 'Show Diff',
+                    'Edit': 'Edit',
+                    'Save': 'Save',
+                    'Please turn off diff view to edit': 'Turn off diff view to edit',
                 }
             },
             zh: {
@@ -158,6 +161,9 @@ i18n
                     'Reject': '取消',
                     'Follow-up discussions': '讨论｜追问',
                     'Show Diff': '显示差异',
+                    'Edit': '编辑',
+                    'Save': '保存',
+                    'Please turn off diff view to edit': '仅允许在差异视图关闭时进行编辑',
                 }
             },
             ja: {
@@ -228,6 +234,9 @@ i18n
                     'Reject': '拒否',
                     'Follow-up discussions': 'フォローアップ討論',
                     'Show Diff': '差分表示',
+                    'Edit': '編集',
+                    'Save': '保存',
+                    'Please turn off diff view to edit': '編集するには差分表示をオフにしてください',
                 }
             }
         }

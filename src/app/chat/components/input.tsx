@@ -25,6 +25,7 @@ import { Overlay } from "@/app/ui-utils/components/overlay";
 import { useTranslation } from "react-i18next";
 import { I18nText } from "@/app/i18n/i18n";
 import { FilledButton, TmpFilledButton, TmpTransparentButton, TransparentButton } from "@/app/ui-utils/components/button";
+import { TbPencil } from "react-icons/tb";
 
 export async function reviseMessage(
     messageToRevise: string,
@@ -713,7 +714,10 @@ export function DiffView(
 ) {
     const { t } = useTranslation();
     const [showDiff, setShowDiff] = useState(true);
-    // TODO integrate the message mechanism, so far just assuming all messages are OpenAILikeMessage (which they are)
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedText, setEditedText] = useState((revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content);
+    const [tempEditText, setTempEditText] = useState(editedText);
+    
     const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
     const revisedText = (revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
 
@@ -724,7 +728,20 @@ export function DiffView(
         }
     }, []);
 
-    const changes = diffChars(originalText, revisedText);
+    // 当切换到编辑模式时，初始化临时编辑文本
+    useEffect(() => {
+        if (isEditing) {
+            setTempEditText(editedText);
+        }
+    }, [isEditing, editedText]);
+
+    const handleSave = () => {
+        setEditedText(tempEditText);
+        setIsEditing(false);
+    };
+
+    const changes = diffChars(originalText, editedText);
+    
     return (
         <div className={`p-4 pb-2 rounded-lg border-2 shadow-md focus:outline-none ${className}`} style={style}
             tabIndex={0} ref={containerRef}
@@ -738,32 +755,41 @@ export function DiffView(
                 e.stopPropagation();
                 e.preventDefault();
                 if (e.key === 'Enter') {
-                    approveRevisionCallback(revisedText);
+                    approveRevisionCallback(editedText);
                 } else if (e.key === 'Backspace') {
                     rejectRevisionCallback();
                 } else if (e.key === 'Tab') {
-                    startFollowUpDiscussion(originalMsg, revisedMsg);
+                    startFollowUpDiscussion(originalMsg, new TextMessage(revisedMsg.role, editedText));
                 }
             }}>
             {changes.length > 0 && (
                 <div className="flex flex-col relative">
                     {/* diff text */}
                     <div className="flex flex-wrap mb-4">
-                        {showDiff ? (
-                            changes.map((change, index) => (
-                                <div key={index} className={`inline-block whitespace-pre-wrap break-words ${change.added ? 'bg-green-200' : change.removed ? 'bg-red-200 line-through text-gray-500' : ''}`}>
-                                    {change.value}
-                                </div>
-                            ))
+                        {isEditing ? (
+                            <textarea
+                                className="w-full whitespace-pre-wrap break-words min-h-[100px] p-2 rounded bg-[#F6F5F5] focus:outline-none resize-none"
+                                value={tempEditText}
+                                onChange={(e) => setTempEditText(e.target.value)}
+                                autoFocus
+                            />
                         ) : (
-                            <div className="whitespace-pre-wrap break-words">
-                                {revisedText}
-                            </div>
+                            showDiff ? (
+                                changes.map((change, index) => (
+                                    <div key={index} className={`inline-block whitespace-pre-wrap break-words ${change.added ? 'bg-green-200' : change.removed ? 'bg-red-200 line-through text-gray-500' : ''}`}>
+                                        {change.value}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="whitespace-pre-wrap break-words">
+                                    {editedText}
+                                </div>
+                            )
                         )}
                     </div>
                     {/* buttons */}
                     <div className="flex flex-row justify-between items-center">
-                        {/* diff switch on the left */}
+                        {/* left side controls */}
                         <div className="flex flex-row items-center">
                             <span className="mr-2 text-sm text-gray-600">{t('Show Diff')}</span>
                             <Switch
@@ -773,20 +799,62 @@ export function DiffView(
                                 height={17}
                                 uncheckedIcon={false}
                                 checkedIcon={false}
+                                disabled={isEditing}
+                                className="mr-4"
                             />
+                            {isEditing ? (
+                                <TmpFilledButton
+                                    className="py-0 px-2 rounded-md text-[13px]"
+                                    onClick={handleSave}
+                                >
+                                    {t('Save')}
+                                </TmpFilledButton>
+                            ) : (
+                                <>
+                                    <div id="edit-button" className="flex flex-row items-center">
+                                        <TmpTransparentButton
+                                            className={`py-0 px-2 text-[13px] ${showDiff ? 'cursor-not-allowed opacity-50' : ''}`}
+                                            onClick={() => !showDiff && setIsEditing(true)}
+                                        >
+                                            <TbPencil className="inline-block mr-1" size={16} /> {t('Edit')}
+                                        </TmpTransparentButton>
+                                    </div>
+                                    {showDiff && (
+                                        <Tooltip
+                                            anchorSelect="#edit-button"
+                                            delayShow={100}
+                                            delayHide={0}
+                                            place="top"
+                                            style={{ borderRadius: '0.75rem' }}
+                                        >
+                                            {t('Please turn off diff view to edit')}
+                                        </Tooltip>
+                                    )}
+                                </>
+                            )}
                         </div>
                         {/* action buttons on the right */}
                         <div className="flex flex-row">
-                            <TmpFilledButton className="py-0 px-2 mr-2 rounded-md text-[13px]" onClick={() => { approveRevisionCallback(revisedText); }}>
+                            <TmpFilledButton 
+                                className="py-0 px-2 mr-2 rounded-md text-[13px]" 
+                                onClick={() => { approveRevisionCallback(editedText); }}
+                            >
                                 <PiKeyReturnBold className="inline-block mr-1" size={20} color="white" /> {t('Approve')}
                             </TmpFilledButton>
-                            <TmpTransparentButton className="py-0 px-1 mr-2 rounded-lg text-gray-500 text-[15px]" onClick={rejectRevisionCallback}>
+                            <TmpTransparentButton 
+                                className="py-0 px-1 mr-2 rounded-lg text-gray-500 text-[15px]" 
+                                onClick={rejectRevisionCallback}
+                            >
                                 <FaBackspace className="inline-block mr-1" color="6b7280" /> {t('Reject')}
                             </TmpTransparentButton>
-                            {allowFollowUpDiscussion && <button className="mr-2 py-0 px-1 rounded-lg text-[15px] text-gray-500"
-                                onClick={() => startFollowUpDiscussion(originalMsg, revisedMsg)}>
-                                <LiaComments className="inline-block mr-1" color="6b7280" /> {t('Follow-up discussions')}
-                            </button>}
+                            {allowFollowUpDiscussion && 
+                                <button 
+                                    className="mr-2 py-0 px-1 rounded-lg text-[15px] text-gray-500"
+                                    onClick={() => startFollowUpDiscussion(originalMsg, new TextMessage(revisedMsg.role, editedText))}
+                                >
+                                    <LiaComments className="inline-block mr-1" color="6b7280" /> {t('Follow-up discussions')}
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
