@@ -8,7 +8,7 @@ import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } fro
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { ChatIntelligence, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
@@ -49,6 +49,10 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
         } else if (type === FreeTrialChatIntelligence.type) {
             chatIntelligenceRef.current = new FreeTrialChatIntelligence()
+        } else if (type === CustomLLMChatIntelligence.type) {
+            const settings = chatSettings.ChatISettings.settings as CustomLLMServiceChatISettings
+            console.log(settings)
+            chatIntelligenceRef.current = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
         } else {
             throw new Error(`Chat intelligence with type ${type} not found`)
         }

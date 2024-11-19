@@ -4,7 +4,7 @@ import { freeTrialChatCompletionInStream } from "./intelligence-server"
 import { SpecialRoles, TextMessage } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { readStreamableValue } from "ai/rsc"
-import { getLLMServiceSettingsRecord, OpenAIService, OpenAISettings } from "./llm-service"
+import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
 
 // ============================= business logic =============================
 
@@ -29,7 +29,7 @@ export function getChatIntelligenceSettingsByID(id: string): chatIntelligenceSet
 
 // the settings of these reocrds are more like default settings, they are not actually stored
 export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
-    return getBuiltInChatIntelligenceSettings()
+    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings())
 }
 
 export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
@@ -46,6 +46,21 @@ export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRe
     //     _saveBuiltInChatIntelligencesToLocalStorage(builtinIntelligencesFromStorage)
     // }
     // return builtinIntelligencesFromStorage
+}
+
+function getCustomLLMChatISettings(): chatIntelligenceSettingsRecord[] {
+    const customLLMServiceSettings = getCustomLLMServiceSettings()
+    console.log(customLLMServiceSettings)
+    return customLLMServiceSettings.map((s) => ({
+        id: s.id,
+        name: s.name,
+        type: 'customLLMSvc',
+        // TODO 1. declare const 2. define at some other place
+        settings: {
+            settingsType: 'link',
+            svcID: s.id,
+        }
+    }))
 }
 
 export class ChatIntelligenceRegistry {
@@ -171,7 +186,7 @@ export class OpenAIChatIntelligence extends ChatIntelligenceBase {
     completeChat(messageList: Message[]): Message[] {
         const openAIService = this.getOpenAIService()
         async function* genFunc() {
-            const {textStream} = await openAIService.chatCompletionInStream(
+            const { textStream } = await openAIService.chatCompletionInStream(
                 messageList.filter((msg) => msg.includedInChatCompletion)
                     .filter((msg) => isOpenAILikeMessage(msg))
                     .map((msg) => (msg.toOpenAIMessage()))
@@ -194,6 +209,71 @@ export class OpenAIChatIntelligence extends ChatIntelligenceBase {
         return new OpenAIChatIntelligence(settingsType, settings)
     }
 
+}
+
+export type CustomLLMServiceChatISettings = {
+    settingsType: 'link' | 'local'
+    svcID: string
+    localSettings?: { name: string } & object // only accessible when settingsType is 'local'
+}
+
+export class CustomLLMChatIntelligence extends ChatIntelligenceBase {
+    static readonly type = 'customLLMSvc'
+
+    settingsType: 'link' | 'local'
+    svcID: string
+    localSettings?: { name: string } & object // only makes sense when settingsType is 'local'
+
+    constructor(settingsType: 'link' | 'local', svcID: string, settings?: { name: string } & object) {
+        console.log(settingsType, svcID, settings)
+        super(CustomLLMChatIntelligence.type, { text: settings?.name ?? '' })
+        if (settingsType === 'local' && !settings) {
+            throw new Error('settings is required when settingsType is local')
+        }
+        this.settingsType = settingsType
+        this.svcID = svcID
+        this.localSettings = settings
+    }
+
+    private getOpenAICompatibleService(): OpenAICompatibleAPIService {
+        console.log(this.settingsType, this.svcID, this.localSettings)
+        if (this.settingsType === 'link') {
+            const customLLMServiceSettingsRecord = getLLMServiceSettingsRecord(this.svcID)
+            if (!customLLMServiceSettingsRecord) {
+                throw new Error('custom LLM service settings not found')
+            }
+            const openAIService = OpenAIService.deserialize(customLLMServiceSettingsRecord.settings)
+            return openAIService
+        } else {
+            return OpenAIService.deserialize(this.localSettings!)
+        }
+    }
+
+    completeChat(messageList: Message[]): Message[] {
+        const customLLMService = this.getOpenAICompatibleService()
+        async function* genFunc() {
+            const { textStream } = await customLLMService.chatCompletionInStream(
+                messageList.filter((msg) => msg.includedInChatCompletion)
+                    .filter((msg) => isOpenAILikeMessage(msg))
+                    .map((msg) => (msg.toOpenAIMessage()))
+            )
+            for await (const value of textStream) {
+                yield value
+            }
+            return
+        }
+        const gen = genFunc()
+        return [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
+    }
+
+    serialize(): string {
+        return JSON.stringify({ type: this.type, settingsType: this.settingsType, svcID: this.svcID, settings: this.localSettings })
+    }
+
+    static deserialize(serialized: string): CustomLLMChatIntelligence {
+        const { settingsType, settings } = JSON.parse(serialized)
+        return new CustomLLMChatIntelligence(settingsType, settings.svcID, settings.localSettings)
+    }
 }
 
 // BabelDuck intelligence (just for fun :D)

@@ -1,9 +1,9 @@
 'use client'
 
 import { TransparentButton } from "@/app/ui-utils/components/button"
-import type { OpenAIChatISettings } from "../lib/intelligence"
+import type { CustomLLMServiceChatISettings, OpenAIChatISettings } from "../lib/intelligence"
 import { getLLMServiceSettingsRecord } from "../lib/llm-service"
-import { OpenAIServiceSettings } from "./llm-service"
+import { OpenAICompatibleAPIServiceSettings, OpenAIServiceSettings } from "./llm-service"
 import { useState } from "react"
 
 export function OpenAIChatISettings(
@@ -38,6 +38,48 @@ export function OpenAIChatISettings(
                 updateChatISettings({
                     'settingsType': 'local',
                     'localSettings': openaiSettings
+                })
+            }} />
+        {isLocal &&
+            <TransparentButton className="absolute right-0 top-0" onClick={() => { resetToLinkTypeSettings() }}> Reset to Default </TransparentButton>
+        }
+    </div>
+}
+
+export function CustomLLMChatISettings(
+    { settings: untypedSettings, updateChatISettings }: { settings: object, updateChatISettings: (settings: object) => void }
+) {
+    const settings = untypedSettings as CustomLLMServiceChatISettings
+    const [customLLMSvcSettingsKey, setCustomLLMSvcSettingsKey] = useState(0)
+
+    let customLLMSvcSettings: { name: string } & object
+    if (settings.settingsType === 'local') {
+        customLLMSvcSettings = settings.localSettings!
+    } else {
+        const llmServiceSettings = getLLMServiceSettingsRecord(settings.svcID)
+        if (!llmServiceSettings) {
+            throw new Error(`Custom LLM service settings not found: ${settings.svcID}`)
+        }
+        customLLMSvcSettings = llmServiceSettings.settings as { name: string } & object
+    }
+
+    function resetToLinkTypeSettings() {
+        updateChatISettings({
+            'settingsType': 'link',
+            'svcID': settings.svcID
+        })
+        setCustomLLMSvcSettingsKey(customLLMSvcSettingsKey + 1)
+    }
+
+    const isLocal = settings.settingsType === 'local'
+
+    return <div className="flex flex-col relative">
+        <OpenAICompatibleAPIServiceSettings key={customLLMSvcSettingsKey} settings={customLLMSvcSettings}
+            updateSettings={(customLLMSvcSettings) => {
+                updateChatISettings({
+                    'settingsType': 'local',
+                    'svcID': settings.svcID,
+                    'localSettings': customLLMSvcSettings
                 })
             }} />
         {isLocal &&

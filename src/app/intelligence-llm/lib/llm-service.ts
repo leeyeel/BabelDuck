@@ -61,7 +61,7 @@ export function updateLLMServiceSettings(serviceId: string, settings: object) {
     const customLLMServices = _getCustomLLMServicesFromLocalStorage()
     const customService = customLLMServices.find((s) => s.id === serviceId)
     if (customService) {
-        customService.settings = settings as { name: string } & Record<string, any>
+        customService.settings = settings as { name: string } & object
         _saveCustomLLMServicesToLocalStorage(customLLMServices)
     }
 }
@@ -82,7 +82,7 @@ export function getCustomLLMServiceSettings(): LLMServiceSettingsRecord[] {
 
 export function addCustomLLMServiceSettings(service: {
     type: string
-    settings: { name: string } & Record<string, any>
+    settings: { name: string } & object
 }): LLMServiceSettingsRecord {
     const customLLMServices = _getCustomLLMServicesFromLocalStorage()
     const newServiceRecord = { id: generateUUID(), ...service }
@@ -111,7 +111,7 @@ function _saveBuiltInLLMServicesToLocalStorage(builtInLLMServices: LLMServiceSet
     localStorage.setItem('builtInLLMServices', JSON.stringify(builtInLLMServices))
 }
 
-function _getCustomLLMServicesFromLocalStorage(): { id: string, type: string, settings: { name: string } & Record<string, any> }[] {
+function _getCustomLLMServicesFromLocalStorage(): { id: string, type: string, settings: { name: string } & object }[] {
     const customLLMServices = localStorage.getItem('customLLMServices')
     if (customLLMServices) {
         return JSON.parse(customLLMServices)
@@ -119,7 +119,7 @@ function _getCustomLLMServicesFromLocalStorage(): { id: string, type: string, se
     return []
 }
 
-function _saveCustomLLMServicesToLocalStorage(customLLMServices: { id: string, type: string, settings: { name: string } & Record<string, any> }[]) {
+function _saveCustomLLMServicesToLocalStorage(customLLMServices: { id: string, type: string, settings: { name: string } & object }[]) {
     localStorage.setItem('customLLMServices', JSON.stringify(customLLMServices))
 }
 

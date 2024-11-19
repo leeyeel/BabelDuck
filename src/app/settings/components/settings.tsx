@@ -5,14 +5,13 @@ import { useEffect, useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 import { useTranslation } from "react-i18next";
 import i18n, { i18nText, I18nText } from '../../i18n/i18n';
-import { DropdownMenu, DropdownMenuEntry, DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
-import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
-import { addCustomLLMServiceSettings, getBuiltInLLMServicesSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
+import { DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
+import { addCustomLLMServiceSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
 import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
 import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { InputHandler } from "@/app/chat/components/input-handlers";
-import { OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
+import { CustomLLMChatISettings, OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
 import Switch from "react-switch";
 import { IconCircleWrapper } from "@/app/chat/components/message";
 import { PiTrashBold } from "react-icons/pi";
@@ -124,9 +123,7 @@ function FirstLevelMenuEntry({
 
 function GeneralSettings() {
     const { t } = useTranslation();
-
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
-    const [showDropdown, setShowDropdown] = useState(false);
     const langNameMapping = {
         en: 'English',
         zh: '中文',
@@ -138,7 +135,6 @@ function GeneralSettings() {
         setSelectedLanguage(newLanguage);
         i18n.changeLanguage(newLanguage);
         localStorage.setItem('selectedLanguage', newLanguage);
-        setShowDropdown(false);
     };
 
     return (
@@ -146,21 +142,15 @@ function GeneralSettings() {
             {/* language settings */}
             <div className="flex flex-row items-center justify-between">
                 <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
-                <div className="flex flex-col relative">
-                    <DropdownMenuEntry label={langName} onClick={() => setShowDropdown(true)} className="" />
-                    {showDropdown &&
-                        <>
-                            <DropdownMenu
-                                className="absolute right-0 top-full"
-                                menuItems={[
-                                    { label: 'English', onClick: () => handleLanguageChange('en') },
-                                    { label: '中文', onClick: () => handleLanguageChange('zh') },
-                                    { label: '日本語', onClick: () => handleLanguageChange('ja') },
-                                ]} />
-                            <TransparentOverlay onClick={() => setShowDropdown(false)} />
-                        </>
-                    }
-                </div>
+                <DropDownMenuV2
+                    entryLabel={langName}
+                    menuItems={[
+                        { label: 'English', onClick: () => handleLanguageChange('en') },
+                        { label: '中文', onClick: () => handleLanguageChange('zh') },
+                        { label: '日本語', onClick: () => handleLanguageChange('ja') },
+                    ]}
+                    menuClassName="right-0"
+                />
             </div>
         </div>
     );
@@ -176,7 +166,7 @@ function GlobalChatSettings() {
 }
 
 // TODO documentation for naming abbreviations
-// RO = Rendering Object
+// RO = Rendering Object [this might be a bad design...]
 // chatI = chatIntelligence
 
 type ChatSettingsRO = {
@@ -192,6 +182,7 @@ type ChatSettingsRO = {
 
 function assembleChatSettingsRO(chatSettings: ChatSettings): ChatSettingsRO {
     const availableChatIs = getAvailableChatIntelligenceSettings()
+    console.log(availableChatIs)
     const chatIID = chatSettings.ChatISettings.id
     const rawChatISettings = chatSettings.ChatISettings.settings
     const currentChatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
@@ -229,9 +220,6 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
 
     const chatSettingsRO = assembleChatSettingsRO(chatSettings)
 
-    const [showIntelligenceDropdown, setShowIntelligenceDropdown] = useState(false);
-    const toggleIntelligenceDropdown = () => setShowIntelligenceDropdown(!showIntelligenceDropdown);
-
     function switchChatI(chatIID: string) {
         const chatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
         updateChatSettings({
@@ -244,6 +232,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         })
     }
     function updateSelectedChatISettings(newChatIsettings: object) {
+        console.log(newChatIsettings)
         updateChatSettings({
             ChatISettings: {
                 id: chatSettings.ChatISettings.id,
@@ -254,31 +243,28 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         })
     }
 
-    const intelligenceDropdownItems = chatSettingsRO.availableChatIs.map((intelligence) => ({
-        label: <I18nText i18nText={intelligence.name} />,
-        onClick: () => {
-            switchChatI(intelligence.id)
-            toggleIntelligenceDropdown()
-        }
-    }))
-
-
     return <div className={`flex flex-col pl-8 ${className}`}>
         {/* chat intelligence settings */}
-        <div className="flex flex-row items-center justify-between relative mb-8">
+        <div className="flex flex-row items-center justify-between mb-8">
             <span className="text-gray-700 font-bold">{t('Chat Model')}</span>
-            <DropdownMenuEntry
-                label={<I18nText i18nText={chatSettingsRO.chatISettings.name} />}
-                onClick={toggleIntelligenceDropdown}
+            <DropDownMenuV2
+                entryLabel={<I18nText i18nText={chatSettingsRO.chatISettings.name} />}
+                menuItems={chatSettingsRO.availableChatIs.map((intelligence) => ({
+                    label: <I18nText i18nText={intelligence.name} />,
+                    onClick: () => switchChatI(intelligence.id)
+                }))}
+                menuClassName="right-0"
             />
-            {showIntelligenceDropdown && <>
-                <DropdownMenu className="absolute right-0 top-full" menuItems={intelligenceDropdownItems} />
-                <TransparentOverlay onClick={toggleIntelligenceDropdown} />
-            </>}
         </div>
         {chatSettingsRO.chatISettings.chatIType === OpenAIChatIntelligence.type &&
             <div className="flex flex-col mb-4">
                 <OpenAIChatISettings settings={chatSettingsRO.chatISettings.settings}
+                    updateChatISettings={updateSelectedChatISettings} />
+            </div>
+        }
+        {chatSettingsRO.chatISettings.chatIType === 'customLLMSvc' &&
+            <div className="flex flex-col mb-4">
+                <CustomLLMChatISettings key={chatSettingsRO.chatISettings.id} settings={chatSettingsRO.chatISettings.settings}
                     updateChatISettings={updateSelectedChatISettings} />
             </div>
         }
@@ -399,7 +385,7 @@ function LLMSettings() {
                 menuClassName="right-0"
             />
         </div>
-        {selectedSvc?.type && SettingsComponent && <SettingsComponent settings={selectedSvc.settings}
+        {selectedSvc?.type && SettingsComponent && <SettingsComponent key={selectedSvc.id} settings={selectedSvc.settings}
             updateSettings={(settings) => { updateSettings(selectedSvc.id, settings) }} />}
     </div>
 }

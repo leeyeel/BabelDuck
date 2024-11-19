@@ -169,9 +169,6 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
     const [apiKey, setApiKey] = useState(settings.apiKey);
     const [chatCompletionModel, setChatCompletionModel] = useState(settings.chatCompletionModel);
 
-    const [showModelDropdown, setShowModelDropdown] = useState(false);
-    const toggleModelDropdown = () => setShowModelDropdown(!showModelDropdown);
-
     const [lastTimeSavedSettings, setLastTimeSavedSettings] = useState(settings);
     const settingsChanged: boolean = lastTimeSavedSettings.baseURL !== baseURL
         || lastTimeSavedSettings.apiKey !== apiKey
