@@ -24,7 +24,7 @@ import {
 import { Overlay } from "@/app/ui-utils/components/overlay";
 import { useTranslation } from "react-i18next";
 import { I18nText } from "@/app/i18n/i18n";
-import { FilledButton, TmpFilledButton, TmpTransparentButton, TransparentButton } from "@/app/ui-utils/components/button";
+import { TmpFilledButton, TmpTransparentButton } from "@/app/ui-utils/components/button";
 import { TbPencil } from "react-icons/tb";
 
 export async function reviseMessage(
@@ -733,7 +733,6 @@ export function DiffView(
     const [tempEditText, setTempEditText] = useState(editedText);
 
     const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
-    const revisedText = (revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
 
     const containerRef = useRef<HTMLDivElement>(null);
     useEffect(() => {

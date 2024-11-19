@@ -66,6 +66,7 @@ i18n
                     'Models Service': 'Models Service',
                     'baseURL': 'Base URL',
                     'Chat Model': 'Chat Service',
+                    'Add Service': 'Add Service',
                     'translateTooltip': 'Ask AI to translate your input into {{targetLanguage}}',
                     'generateResponseTooltip': 'Ask AI to help generate a response',
                     'grammarCheckTooltip': 'Ask AI to help correct potential grammar issues',
@@ -96,6 +97,7 @@ i18n
                     'recordingButtonTips': 'Click to start recording, click again to stop',
                     'Welcome to BabelDuck': 'Welcome to BabelDuck',
                     'Please set up your preferences to get started': 'Please set up your preferences to get started',
+                    'Custom Service': 'Custom Service',
                 }
             },
             zh: {
@@ -144,6 +146,7 @@ i18n
                     'Models Service': '模型服务',
                     'baseURL': '基础 URL',
                     'Chat Model': '对话服务',
+                    'Add Service': '添加服务',
                     'translateTooltip': '让 AI 将消息内容翻译为 {{targetLanguage}}',
                     'generateResponseTooltip': '让 AI 帮忙回复当前消息',
                     'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
@@ -174,6 +177,7 @@ i18n
                     'recordingButtonTips': '点击开始录音，再次点击停止录音',
                     'Welcome to BabelDuck': '欢迎使用 BabelDuck',
                     'Please set up your preferences to get started': '完成以下偏好设置后即可开始使用',
+                    'Custom Service': '自定义服务',
                 }
             },
             ja: {
@@ -222,6 +226,7 @@ i18n
                     'Models Service': 'モデルサービス',
                     'baseURL': 'ベースURL',
                     'Chat Model': 'チャットサービス',
+                    'Add Service': 'サービスを追加',
                     'translateTooltip': '入力を{{targetLanguage}}に翻訳',
                     'generateResponseTooltip': '応答の生成を支援',
                     'grammarCheckTooltip': '文法の問題を修正',
@@ -252,6 +257,7 @@ i18n
                     'recordingButtonTips': 'クリックして録音を開始し、もう一度クリックして停止します',
                     'Welcome to BabelDuck': 'BabelDuck へようこそ',
                     'Please set up your preferences to get started': '始めるには設定を行ってください',
+                    'Custom Service': 'カスタムサービス',
                 }
             }
         }

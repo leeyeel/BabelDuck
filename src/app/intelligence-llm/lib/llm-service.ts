@@ -1,4 +1,5 @@
 import { i18nText } from "@/app/i18n/i18n"
+import { generateUUID } from "@/app/lib/uuid";
 import { createOpenAI } from "@ai-sdk/openai"
 import { convertToCoreMessages, streamText } from 'ai';
 
@@ -17,7 +18,7 @@ export type LLMServiceSettings = {
 
 export function getLLMServiceSettings(): LLMServiceSettingsRecord[] {
     // built-in services + user defined services
-    return getBuiltInLLMServicesSettings()
+    return getBuiltInLLMServicesSettings().concat(getCustomLLMServiceSettings())
 }
 
 // side effect: if some built-in services missing in local storage, they will be saved to local storage
@@ -51,16 +52,49 @@ export function getBuiltInLLMServicesSettings(): LLMServiceSettingsRecord[] {
 }
 
 export function updateLLMServiceSettings(serviceId: string, settings: object) {
-    const builtInLLMServices = getLLMServiceSettings()
+    const builtInLLMServices = _getBuiltInLLMServicesFromLocalStorage()
     const service = builtInLLMServices.find((s) => s.id === serviceId)
     if (service) {
         service.settings = settings
         _saveBuiltInLLMServicesToLocalStorage(builtInLLMServices)
     }
+    const customLLMServices = _getCustomLLMServicesFromLocalStorage()
+    const customService = customLLMServices.find((s) => s.id === serviceId)
+    if (customService) {
+        customService.settings = settings as { name: string } & object
+        _saveCustomLLMServicesToLocalStorage(customLLMServices)
+    }
 }
 
 export function getLLMServiceSettingsRecord(serviceId: string): LLMServiceSettingsRecord | undefined {
     return getLLMServiceSettings().find((s) => s.id === serviceId)
+}
+
+export function getCustomLLMServiceSettings(): LLMServiceSettingsRecord[] {
+    return _getCustomLLMServicesFromLocalStorage().map((s) => ({
+        id: s.id,
+        type: s.type,
+        name: { text: s.settings.name },
+        deletable: true,
+        settings: s.settings,
+    }))
+}
+
+export function addCustomLLMServiceSettings(service: {
+    type: string
+    settings: { name: string } & object
+}): LLMServiceSettingsRecord {
+    const customLLMServices = _getCustomLLMServicesFromLocalStorage()
+    const newServiceRecord = { id: generateUUID(), ...service }
+    customLLMServices.push(newServiceRecord)
+    _saveCustomLLMServicesToLocalStorage(customLLMServices)
+    return {
+        id: newServiceRecord.id,
+        type: newServiceRecord.type,
+        name: { text: newServiceRecord.settings.name },
+        deletable: true,
+        settings: newServiceRecord.settings,
+    }
 }
 
 // ================================ local storage ================================
@@ -77,15 +111,33 @@ function _saveBuiltInLLMServicesToLocalStorage(builtInLLMServices: LLMServiceSet
     localStorage.setItem('builtInLLMServices', JSON.stringify(builtInLLMServices))
 }
 
+function _getCustomLLMServicesFromLocalStorage(): { id: string, type: string, settings: { name: string } & object }[] {
+    const customLLMServices = localStorage.getItem('customLLMServices')
+    if (customLLMServices) {
+        return JSON.parse(customLLMServices)
+    }
+    return []
+}
+
+function _saveCustomLLMServicesToLocalStorage(customLLMServices: { id: string, type: string, settings: { name: string } & object }[]) {
+    localStorage.setItem('customLLMServices', JSON.stringify(customLLMServices))
+}
+
 // ================================ LLM Service implementations ================================
 
+export type OpenAICompatibleAPISettings = {
+    name: string
+} & OpenAISettings
+
 export class OpenAICompatibleAPIService {
+    name: i18nText
     baseUrl: string
     apiKey: string
     chatCompletionModel: string
     static type = 'openai-compatible-api'
 
-    constructor(baseUrl: string, apiKey: string, chatCompletionModel: string) {
+    constructor(name: i18nText, baseUrl: string, apiKey: string, chatCompletionModel: string) {
+        this.name = name
         this.baseUrl = baseUrl
         this.apiKey = apiKey
         this.chatCompletionModel = chatCompletionModel
@@ -147,7 +199,7 @@ export class OpenAIService extends OpenAICompatibleAPIService {
     }
 
     constructor(host: string, apiKey: string, chatCompletionModel: string) {
-        super(host, apiKey, chatCompletionModel)
+        super({ text: 'OpenAI' }, host, apiKey, chatCompletionModel)
         this.host = host
     }
 
@@ -177,7 +229,7 @@ export class SiliconFlowService extends OpenAICompatibleAPIService {
     static type = 'siliconflow'
 
     constructor(apiKey: string, chatCompletionModel: string) {
-        super(SiliconFlowService.defaultHost, apiKey, chatCompletionModel)
+        super({ text: 'SiliconFlow' }, SiliconFlowService.defaultHost, apiKey, chatCompletionModel)
     }
 
     static defaultHost = 'https://api.siliconflow.cn'
