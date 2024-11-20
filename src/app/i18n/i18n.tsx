@@ -59,7 +59,7 @@ i18n
                     'assistant': 'assistant',
                     'user': 'user',
                     'Auto Send': 'Auto Send',
-                    'Voice Mode': 'Voice Mode',
+                    'Voice Mode': 'Voice Input',
                     'Rename': 'Rename',
                     'Delete': 'Delete',
                     'Free Trial': 'Free Trial',
@@ -92,7 +92,7 @@ i18n
                     'Edit': 'Edit',
                     'Save': 'Save',
                     'Please turn off diff view to edit': 'Turn off diff view to edit',
-                    'voiceModeTips': `Press the backspace key to clear the current input, press I to exit voice mode`,
+                    'voiceModeTips': `Press the backspace key to clear the current input, press the I key to exit voice input mode`,
                     'autoSendTips': 'When enabled, the message will be sent automatically after voice recording ends',
                     'recordingButtonTips': 'Click to start recording, click again to stop',
                     'Welcome to BabelDuck': 'Welcome to BabelDuck',
@@ -180,6 +180,8 @@ i18n
                     'Custom Service': '自定义服务',
                 }
             },
+            // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
+            // 日本語の翻訳はLLMを使用して生成されています。より良い翻訳のPRを歓迎します。
             ja: {
                 translation: {
                     'About': 'について',
@@ -252,7 +254,7 @@ i18n
                     'Edit': '編集',
                     'Save': '保存',
                     'Please turn off diff view to edit': '編集するには差分表示をオフにしてください',
-                    'voiceModeTips': `バックスペースキーを押して現在の入力をクリアし、I キーを押して音声モードを終了します`,
+                    'voiceModeTips': `バックスペースキーを押して現在の入力をクリアし、I キーを押して音声入力モードを終了します`,
                     'autoSendTips': '有効にすると、音声録音終了後にメッセージが自動的に送信されます',
                     'recordingButtonTips': 'クリックして録音を開始し、もう一度クリックして停止します',
                     'Welcome to BabelDuck': 'BabelDuck へようこそ',

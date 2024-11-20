@@ -51,7 +51,6 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             chatIntelligenceRef.current = new FreeTrialChatIntelligence()
         } else if (type === CustomLLMChatIntelligence.type) {
             const settings = chatSettings.ChatISettings.settings as CustomLLMServiceChatISettings
-            console.log(settings)
             chatIntelligenceRef.current = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
         } else {
             throw new Error(`Chat intelligence with type ${type} not found`)

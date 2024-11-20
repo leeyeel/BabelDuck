@@ -50,7 +50,6 @@ export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRe
 
 function getCustomLLMChatISettings(): chatIntelligenceSettingsRecord[] {
     const customLLMServiceSettings = getCustomLLMServiceSettings()
-    console.log(customLLMServiceSettings)
     return customLLMServiceSettings.map((s) => ({
         id: s.id,
         name: s.name,
@@ -225,7 +224,7 @@ export class CustomLLMChatIntelligence extends ChatIntelligenceBase {
     localSettings?: { name: string } & object // only makes sense when settingsType is 'local'
 
     constructor(settingsType: 'link' | 'local', svcID: string, settings?: { name: string } & object) {
-        console.log(settingsType, svcID, settings)
+
         super(CustomLLMChatIntelligence.type, { text: settings?.name ?? '' })
         if (settingsType === 'local' && !settings) {
             throw new Error('settings is required when settingsType is local')
@@ -236,7 +235,6 @@ export class CustomLLMChatIntelligence extends ChatIntelligenceBase {
     }
 
     private getOpenAICompatibleService(): OpenAICompatibleAPIService {
-        console.log(this.settingsType, this.svcID, this.localSettings)
         if (this.settingsType === 'link') {
             const customLLMServiceSettingsRecord = getLLMServiceSettingsRecord(this.svcID)
             if (!customLLMServiceSettingsRecord) {

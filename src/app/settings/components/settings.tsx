@@ -182,7 +182,6 @@ type ChatSettingsRO = {
 
 function assembleChatSettingsRO(chatSettings: ChatSettings): ChatSettingsRO {
     const availableChatIs = getAvailableChatIntelligenceSettings()
-    console.log(availableChatIs)
     const chatIID = chatSettings.ChatISettings.id
     const rawChatISettings = chatSettings.ChatISettings.settings
     const currentChatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
@@ -232,7 +231,6 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
         })
     }
     function updateSelectedChatISettings(newChatIsettings: object) {
-        console.log(newChatIsettings)
         updateChatSettings({
             ChatISettings: {
                 id: chatSettings.ChatISettings.id,
