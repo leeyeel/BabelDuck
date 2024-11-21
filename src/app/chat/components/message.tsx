@@ -183,7 +183,7 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         if (compState.type !== 'normal') {
             return;
         }
-        const USE_AZURE_TTS = true;
+        const USE_AZURE_TTS = false;
         if (USE_AZURE_TTS) {
             try {
                 const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;

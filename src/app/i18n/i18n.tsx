@@ -67,6 +67,7 @@ i18n
                     'baseURL': 'Base URL',
                     'Chat Model': 'Chat Service',
                     'Add Service': 'Add Service',
+                    'Speech Synthesis Service': 'Speech Synthesis Service',
                     'translateTooltip': 'Ask AI to translate your input into {{targetLanguage}}',
                     'generateResponseTooltip': 'Ask AI to help generate a response',
                     'grammarCheckTooltip': 'Ask AI to help correct potential grammar issues',
@@ -98,6 +99,13 @@ i18n
                     'Welcome to BabelDuck': 'Welcome to BabelDuck',
                     'Please set up your preferences to get started': 'Please set up your preferences to get started',
                     'Custom Service': 'Custom Service',
+                    'Speech Language': 'Speech Language',
+                    'Speech Voice': 'Speech Voice',
+                    'Test Speech': 'Test Speech',
+                    'Default': 'Default',
+                    'Enter text to test speech': 'Enter text to test speech',
+                    'What is the answer to life, the universe and everything?': 'What is the answer to life, the universe and everything?',
+                    'speechVoiceTestTip': 'Voice quality may vary across browsers and devices. Try different voices and texts to find the best one for you.',
                 }
             },
             zh: {
@@ -147,7 +155,8 @@ i18n
                     'baseURL': '基础 URL',
                     'Chat Model': '对话服务',
                     'Add Service': '添加服务',
-                    'translateTooltip': '让 AI 将消息内容翻译为 {{targetLanguage}}',
+                    'Speech Synthesis Service': '语音合成服务',
+                    'translateTooltip': '让 AI 将输入框中的消息翻译为 {{targetLanguage}}',
                     'generateResponseTooltip': '让 AI 帮忙回复当前消息',
                     'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
                     'The recommended response is as follows': '根据你的要求调整后的消息如下',
@@ -178,6 +187,13 @@ i18n
                     'Welcome to BabelDuck': '欢迎使用 BabelDuck',
                     'Please set up your preferences to get started': '完成以下偏好设置后即可开始使用',
                     'Custom Service': '自定义服务',
+                    'Speech Language': '语音语言',
+                    'Speech Voice': '语音声音',
+                    'Test Speech': '测试语音',
+                    'Default': '默认',
+                    'Enter text to test speech': '输入文本测试语音',
+                    'What is the answer to life, the universe and everything?': 'What is the answer to life, the universe and everything?',
+                    'speechVoiceTestTip': '语音效果可能因浏览器和设备而异，建议尝试不同的声音和文本，找到最适合的组合',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -229,6 +245,7 @@ i18n
                     'baseURL': 'ベースURL',
                     'Chat Model': 'チャットサービス',
                     'Add Service': 'サービスを追加',
+                    'Speech Synthesis Service': '音声合成サービス',
                     'translateTooltip': '入力を{{targetLanguage}}に翻訳',
                     'generateResponseTooltip': '応答の生成を支援',
                     'grammarCheckTooltip': '文法の問題を修正',
@@ -260,6 +277,13 @@ i18n
                     'Welcome to BabelDuck': 'BabelDuck へようこそ',
                     'Please set up your preferences to get started': '始めるには設定を行ってください',
                     'Custom Service': 'カスタムサービス',
+                    'Speech Language': '音声言語',
+                    'Speech Voice': '音声の声',
+                    'Test Speech': '音声テスト',
+                    'Default': 'デフォルト',
+                    'Enter text to test speech': 'テスト用のテキストを入力',
+                    'What is the answer to life, the universe and everything?': 'What is the answer to life, the universe and everything?',
+                    'speechVoiceTestTip': '音声の品質はブラウザやデバイスによって異なる場合があります。最適な音声を見つけるため、様々な声や文章をお試しください。',
                 }
             }
         }
