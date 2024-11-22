@@ -8,7 +8,7 @@ import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } fro
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
@@ -52,6 +52,8 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         } else if (type === CustomLLMChatIntelligence.type) {
             const settings = chatSettings.ChatISettings.settings as CustomLLMServiceChatISettings
             chatIntelligenceRef.current = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
+        } else if (type === BabelDuckChatIntelligence.type) {
+            chatIntelligenceRef.current = new BabelDuckChatIntelligence()
         } else {
             throw new Error(`Chat intelligence with type ${type} not found`)
         }

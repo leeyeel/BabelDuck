@@ -1,35 +1,4 @@
 "use server"
-import { createStreamableValue } from 'ai/rsc';
-import { convertToCoreMessages, streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
-
-// TODO reorganize the functions
-
-export const chatCompletionInStream = async (
-    messageList: { role: string, content: string }[],
-) => {
-    const openai = createOpenAI({
-        baseURL: process.env.OPENAI_BASE_URL,
-        apiKey: process.env.OPENAI_API_KEY,
-    })
-
-    const result = streamText({
-        model: openai.chat('deepseek-ai/DeepSeek-V2.5'),
-        messages: convertToCoreMessages(messageList as { role: 'system' | 'user' | 'assistant', content: string }[]),
-    })
-
-    const streamableStatus = createStreamableValue<string>();
-    (async () => {
-        for await (const chunk of (await result).textStream) {
-            streamableStatus.update(chunk);
-        }
-        streamableStatus.done();
-    })();
-
-    return {
-        status: streamableStatus.value,
-    };
-};
 
 export async function chatCompletion(messages: { role: string, content: string }[]) {
     'use server'
@@ -45,7 +14,7 @@ export async function chatCompletion(messages: { role: string, content: string }
             'Authorization': "Bearer " + process.env.OPENAI_API_KEY,
         },
         body: JSON.stringify({
-            model: 'deepseek-ai/DeepSeek-V2.5',
+            model: process.env.OPENAI_MODEL_NAME,
             messages: messages,
             temperature: 0.7,
             response_format: { type: 'json_object' },

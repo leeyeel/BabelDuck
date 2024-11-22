@@ -1,7 +1,7 @@
 'use client'
 import { FreeTrialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
-import { StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
+import { BabelDuckMessage, StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
 import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
 import { generateUUID } from "@/app/lib/uuid";
@@ -31,6 +31,8 @@ export function loadChatMessages(chatID: string): Message[] {
                 return TextMessage.deserialize(JSON.stringify(rest));
             case 'streamingText':
                 return StreamingTextMessage.deserialize(JSON.stringify(rest));
+            case 'babelDuck':
+                return BabelDuckMessage.deserialize(JSON.stringify(rest));
             default:
                 throw new Error(`Unknown message type: ${type}`);
         }

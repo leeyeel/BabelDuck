@@ -13,6 +13,7 @@ import { ChatSettingsContext } from "./chat";
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { WebSpeechTTS } from '../lib/tts-service';
 import { getSelectedSpeechSvcID, getSpeechSvcSettings } from "@/app/settings/components/settings";
+import { useTranslation } from "react-i18next";
 
 export const MessageTypes = {
     SYSTEM: 'systemMessage',
@@ -879,4 +880,49 @@ async function getSpeechServiceSettings() {
         serviceId: selectedSvcId,
         settings: settings
     };
+}
+
+export class BabelDuckMessage extends Message {
+    quackCount: number
+    static readonly type = 'babelDuck'
+
+    constructor(role: string, displayToUser: boolean = true, includedInChatCompletion: boolean = true, quackCount?: number) {
+        super(BabelDuckMessage.type, role, displayToUser, includedInChatCompletion)
+        this.quackCount = quackCount || Math.floor(Math.random() * 10)
+    }
+
+    serialize(): string {
+        return JSON.stringify({
+            type: this.type,
+            role: this.role,
+            displayToUser: this.displayToUser,
+            includedInChatCompletion: this.includedInChatCompletion,
+            quackCount: this.quackCount
+        });
+    }
+
+    static deserialize(serialized: string): BabelDuckMessage {
+        const { role, displayToUser, includedInChatCompletion, quackCount } = JSON.parse(serialized);
+        return new BabelDuckMessage(role, displayToUser, includedInChatCompletion, quackCount);
+    }
+
+    component() {
+        return BabelDuckMessageComponent
+    }
+
+    isEmpty(): boolean {
+        return false
+    }
+
+}
+
+export const BabelDuckMessageComponent = ({ message: untypedMessage, messageID, updateMessage, className }: {
+    message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string;
+}) => {
+    const { t } = useTranslation()
+    const message = untypedMessage as unknown as BabelDuckMessage
+    const translatedQuack = t('Quack!')
+    const quackCount = message.quackCount
+    const messageContent = Array(quackCount).fill(translatedQuack).join(' ')
+    return <TextMessageComponent message={new TextMessage(message.role, messageContent)} messageID={messageID} updateMessage={updateMessage} className={className} />
 }

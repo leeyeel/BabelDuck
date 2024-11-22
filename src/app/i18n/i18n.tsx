@@ -115,6 +115,7 @@ i18n
                     'speechSvc.webSpeech': 'Browser Built-in TTS',
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'Quick Trial',
+                    'Quack!': 'Quack!',
                 }
             },
             zh: {
@@ -212,6 +213,7 @@ i18n
                     'speechSvc.webSpeech': '浏览器内置 TTS',
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': '快速体验',
+                    'Quack!': '嘎！',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -311,6 +313,7 @@ i18n
                     'speechSvc.webSpeech': 'ブラウザ内蔵 TTS',
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'クイック体験',
+                    'Quack!': 'ガー！',
                 }
             }
         }

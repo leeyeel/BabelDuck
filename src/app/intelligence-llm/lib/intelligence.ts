@@ -1,7 +1,7 @@
 import { i18nText } from "@/app/i18n/i18n"
 import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
 import { freeTrialChatCompletionInStream } from "./intelligence-server"
-import { SpecialRoles, TextMessage } from "@/app/chat/components/message"
+import { BabelDuckMessage, SpecialRoles } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { readStreamableValue } from "ai/rsc"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
@@ -275,7 +275,7 @@ export class CustomLLMChatIntelligence extends ChatIntelligenceBase {
 }
 
 // BabelDuck intelligence (just for fun :D)
-class BabelDuckChatIntelligence extends ChatIntelligenceBase {
+export class BabelDuckChatIntelligence extends ChatIntelligenceBase {
     static readonly id = 'babel_duck'
     static readonly type = 'babel_duck'
 
@@ -284,9 +284,7 @@ class BabelDuckChatIntelligence extends ChatIntelligenceBase {
     }
 
     completeChat(): Message[] {
-        const quackCount = Math.floor(Math.random() * 10)
-        const quacks: string = Array(quackCount).fill('quack').join(' ')
-        return [new TextMessage(SpecialRoles.ASSISTANT, quacks)]
+        return [new BabelDuckMessage(SpecialRoles.ASSISTANT)]
     }
 
     serialize(): string {
