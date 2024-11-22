@@ -6,13 +6,20 @@ export interface TTSService {
 }
 
 export class WebSpeechTTS implements TTSService {
+    lang: string
+    voiceURI?: string
     private timeout?: NodeJS.Timeout;
 
+    constructor(lang: string, voiceURI?: string){
+        this.lang = lang
+        this.voiceURI = voiceURI
+    }
+    
     async speak(text: string): Promise<void> {
         const utterance = new SpeechSynthesisUtterance();
-        utterance.lang = 'en-US';
-        const allVoices: SpeechSynthesisVoice[] = [];
-        
+        utterance.lang = this.lang
+
+        const allVoices: SpeechSynthesisVoice[] = [];        
         const getVoices = () => {
             const voices = speechSynthesis.getVoices();
             if (voices.length > 0) {
@@ -22,26 +29,17 @@ export class WebSpeechTTS implements TTSService {
             }
         };
         getVoices();
-
-        let prefferedVoice: SpeechSynthesisVoice | undefined = undefined;
-        const preferredVoices = ['Karen', 'Nicky', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine', 'Google US English']
-        
         while (allVoices.length === 0) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-
-        for (const name of preferredVoices) {
-            for (const voice of allVoices) {
-                if (voice.name === name) {
-                    prefferedVoice = voice;
-                    break;
-                }
-            }
-            if (prefferedVoice !== undefined) {
+        
+        let prefferedVoice: SpeechSynthesisVoice | undefined = undefined;
+        for (const voice of allVoices) {
+            if (voice.voiceURI === this.voiceURI) {
+                prefferedVoice = voice;
                 break;
             }
         }
-
         if (prefferedVoice !== undefined) {
             utterance.voice = prefferedVoice;
         }
@@ -72,6 +70,23 @@ export class WebSpeechTTS implements TTSService {
         });
     }
 
+    static async getVoices(): Promise<SpeechSynthesisVoice[]> {
+        const allVoices: SpeechSynthesisVoice[] = [];        
+        const getVoices = () => {
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                allVoices.push(...voices);
+            } else {
+                setTimeout(getVoices, 100);
+            }
+        };
+        getVoices();
+        while (allVoices.length === 0) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return allVoices;
+    }
+    
     stop(): void {
         if (this.timeout) {
             clearTimeout(this.timeout);
@@ -104,8 +119,7 @@ export class AzureTTS implements TTSService {
 
             this.synthesizer.speakTextAsync(
                 text,
-                result => {
-                    console.log('Speech synthesis result:', result);
+                () => {
                     this.cleanup();
                     resolve();
                 },
@@ -136,7 +150,7 @@ export class AzureTTS implements TTSService {
 
 // export const USE_AZURE_TTS = false;
 
-export function createTTSService(): TTSService {
-    // return USE_AZURE_TTS ? new AzureTTS() new WebSpeechTTS();
-    return new WebSpeechTTS();
-} 
+// export function createTTSService(): TTSService {
+//     // return USE_AZURE_TTS ? new AzureTTS() new WebSpeechTTS();
+//     return new WebSpeechTTS();
+// } 

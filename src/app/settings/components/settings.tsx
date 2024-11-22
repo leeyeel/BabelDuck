@@ -19,6 +19,7 @@ import { Tooltip } from "react-tooltip";
 import { TbCloud, TbCloudPlus } from "react-icons/tb";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
+import { WebSpeechTTS } from "@/app/chat/lib/tts-service";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -333,8 +334,6 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
 function SpeechSettings() {
     const { t } = useTranslation();
 
-    // TODO tech-debt: abstraction and layering
-
     const availableSpeechSvcs = [
         { id: 'webSpeech', name: { key: 'speechSvc.webSpeech' } },
         { id: 'azure', name: { key: 'speechSvc.azure' } },
@@ -345,85 +344,136 @@ function SpeechSettings() {
         availableSpeechSvcs.unshift({ id: 'freeTrial', name: { key: 'speechSvc.freeTrial' } })
     }
 
-    const defaultSvcId = (() => {
-        // 优先使用 freeTrial (如果可用)
-        if (freeTrialSvcEnabled) {
-            return 'freeTrial'
-        }
-        // 否则使用浏览器内置服务
-        return 'webSpeech'
-    })()
+    const [selectedSvcId, setSelectedSvcId] = useState(getSelectedSpeechSvcID());
+    const [speechSettings, setSpeechSettings] = useState<object | null>(null);
 
-    const [selectedSvcId, setSelectedSvcId] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('selectedSpeechServiceId')
-            if (saved === 'freeTrial' && !freeTrialSvcEnabled) {
-                localStorage.setItem('selectedSpeechServiceId', defaultSvcId)
-                return defaultSvcId
-            }
-            if (!saved) {
-                localStorage.setItem('selectedSpeechServiceId', defaultSvcId)
-                return defaultSvcId
-            }
-            return saved
+    // 使用 useEffect 来加载异步数据
+    useEffect(() => {
+        async function loadSettings() {
+            const settings = await getSpeechSvcSettings(selectedSvcId);
+            setSpeechSettings(settings);
         }
-        return defaultSvcId
-    });
+        loadSettings();
+    }, [selectedSvcId]); // 当 selectedSvcId 改变时重新加载设置
 
     function changeSpeechSvc(svcId: string) {
-        setSelectedSvcId(svcId)
-        localStorage.setItem('selectedSpeechServiceId', svcId)
+        setSelectedSvcId(svcId);
+        localStorage.setItem('selectedSpeechServiceId', svcId);
     }
-    // 添加 WebSpeech 设置的状态管理
-    const [speechSettings, setSpeechSettings] = useState<object>(() => (
-        getSpeechSvcSettings(selectedSvcId)
-    ));
 
     const updateSpeechSettings = (svcId: string, newSettings: Partial<object>) => {
         const updatedSettings = { ...speechSettings, ...newSettings };
-        setSpeechSettings(updatedSettings);
-        // 更新 localStorage
         localStorage.setItem(`speechSettings-${svcId}`, JSON.stringify(updatedSettings));
+        setSpeechSettings(updatedSettings);
     };
 
-
-    function getSpeechSvcSettings(svcId: string) {
-        const saved = localStorage.getItem(`speechSettings-${svcId}`)
-        return saved ? JSON.parse(saved) : {}
+    if (speechSettings === null) {
+        return <div></div>;
     }
 
-    return <div>
-        {/* service selector */}
-        <div className="flex flex-row items-center justify-between mb-4">
-            <span className="text-gray-700 font-bold">{t('Speech Synthesis Service')}</span>
-            <DropDownMenuV2
-                entryLabel={<I18nText i18nText={availableSpeechSvcs.find((svc) => svc.id === selectedSvcId)?.name || availableSpeechSvcs[0].name} />}
-                menuItems={availableSpeechSvcs.map((svc) => ({
-                    label: <I18nText i18nText={svc.name} />,
-                    onClick: () => { changeSpeechSvc(svc.id) }
-                }))}
-                menuClassName="right-0"
-            />
+    return (
+        <div>
+            {/* service selector */}
+            <div className="flex flex-row items-center justify-between mb-4">
+                <span className="text-gray-700 font-bold">{t('Speech Synthesis Service')}</span>
+                <DropDownMenuV2
+                    entryLabel={<I18nText i18nText={availableSpeechSvcs.find((svc) => svc.id === selectedSvcId)?.name || availableSpeechSvcs[0].name} />}
+                    menuItems={availableSpeechSvcs.map((svc) => ({
+                        label: <I18nText i18nText={svc.name} />,
+                        onClick: () => { changeSpeechSvc(svc.id) }
+                    }))}
+                    menuClassName="right-0"
+                />
+            </div>
+            {/* settings */}
+            {selectedSvcId === 'webSpeech' &&
+                <WebSpeechSettingsPanel
+                    unTypedSettings={speechSettings}
+                    updateSettings={(newSettings) => { updateSpeechSettings(selectedSvcId, newSettings); }}
+                />
+            }
+            {selectedSvcId === 'azure' &&
+                <AzureTTSSettingsPanel
+                    unTypedSettings={speechSettings}
+                    updateSettings={(newSettings) => updateSpeechSettings(selectedSvcId, newSettings)}
+                />
+            }
+            {selectedSvcId === 'freeTrial' &&
+                <FreeTrialSettings />
+            }
         </div>
-        {/* settings */}
-        {selectedSvcId === 'webSpeech' &&
-            <WebSpeechSettingsPanel
-                unTypedSettings={speechSettings}
-                updateSettings={(newSettings) => updateSpeechSettings(selectedSvcId, newSettings)}
-            />
-        }
-        {selectedSvcId === 'azure' &&
-            <AzureTTSSettingsPanel
-                unTypedSettings={speechSettings}
-                updateSettings={(newSettings) => updateSpeechSettings(selectedSvcId, newSettings)}
-            />
-        }
-        {selectedSvcId === 'freeTrial' &&
-            <FreeTrialSettings />
-        }
-    </div>
+    );
 }
 
+export function getSelectedSpeechSvcID() {
+    const freeTrialSvcEnabled = !!(process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY && process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION)
+    const defaultSvcId = freeTrialSvcEnabled ? 'freeTrial' : 'webSpeech'
+    const selectedSvcId = localStorage.getItem('selectedSpeechServiceId') || defaultSvcId
+    if (selectedSvcId === 'freeTrial' && !freeTrialSvcEnabled) {
+        return defaultSvcId
+    }
+    return selectedSvcId
+}
+
+// load speech settings from local storage, and automatically correct invalid settings with default values
+export async function getSpeechSvcSettings(svcId: string): Promise<object> {
+    const saved = localStorage.getItem(`speechSettings-${svcId}`)
+    const unTypedSettings = saved ? JSON.parse(saved) : {}
+    switch (svcId) {
+        case 'freeTrial':
+            return {}
+        case 'webSpeech':
+            const webSpeechSettings = unTypedSettings as { lang?: string; voiceURI?: string }
+            // validate lang
+            let validLang = webSpeechSettings.lang || 'en'
+            if (!speechSynthesisSystemLanguages[validLang]) {
+                validLang = 'en'
+            }
+            // validate voiceURI
+            const allVoices: SpeechSynthesisVoice[] = [];
+            // sometimes voices are not loaded immediately
+            const getVoices = () => {
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    allVoices.push(...voices);
+                } else {
+                    setTimeout(getVoices, 100);
+                }
+            };
+            getVoices();
+            while (allVoices.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            const availableVoices = allVoices.filter(voice => voice.lang.split('-')[0] === validLang);
+            if (availableVoices.length === 0) {
+                throw new Error(`No available voices for lang: ${validLang}`)
+            }
+            let validVoiceURI = webSpeechSettings.voiceURI
+            if (!availableVoices.some(voice => voice.voiceURI === validVoiceURI)) {
+                validVoiceURI = availableVoices[0].voiceURI
+            }
+            return { lang: validLang, voiceURI: validVoiceURI }
+        case 'azure':
+            const azureSettings = unTypedSettings as { region?: string; subscriptionKey?: string; lang?: string; voiceName?: string }
+            // validate region
+            let validRegion = azureSettings.region || azureRegions[0]
+            if (!azureRegions.includes(validRegion)) {
+                validRegion = azureRegions[0]
+            }
+            // validate lang
+            let validAzureLang = azureSettings.lang || 'en-US'
+            if (!azureSpeechSynthesisLanguagesLocale[validAzureLang]) {
+                validAzureLang = 'en-US'
+            }
+            // validate voiceName
+            let validVoiceName = azureSettings.voiceName || azureSpeechSynthesisVoices[validAzureLang][0]
+            if (!azureSpeechSynthesisVoices[validAzureLang].includes(validVoiceName)) {
+                validVoiceName = azureSpeechSynthesisVoices[validAzureLang][0]
+            }
+            return { region: validRegion, lang: validAzureLang, voiceName: validVoiceName, ...azureSettings }
+    }
+    return {}
+}
 
 function WebSpeechSettingsPanel({
     unTypedSettings,
@@ -433,77 +483,25 @@ function WebSpeechSettingsPanel({
     updateSettings: (settings: Partial<{ lang: string; voiceURI: string }>) => void
 }) {
     const { t } = useTranslation();
-
-    // 声音选择状态
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const settings = unTypedSettings as {
+        lang: string;
+        voiceURI: string;
+    };
 
-    // 验证和修正设置
-    const settings = useMemo(() => {
-        const typedSettings = unTypedSettings as {
-            lang?: string;
-            voiceURI?: string;
-        };
-
-        // 默认设置
-        const defaultSettings = {
-            lang: 'en',
-            voiceURI: ''
-        };
-
-        // 验证语言是否有效
-        const isValidLang = (lang?: string) => {
-            return lang && speechSynthesisSystemLanguages[lang];
-        };
-
-        // 验证声音是否有效
-        const isValidVoice = (voiceURI?: string) => {
-            if (!voiceURI) return true; // 空字符串是有效的（表示默认声音）
-            return voices.some(v => v.voiceURI === voiceURI);
-        };
-
-        // 构建有效的设置对象
-        const validSettings = {
-            lang: isValidLang(typedSettings.lang) ? typedSettings.lang : defaultSettings.lang,
-            voiceURI: isValidVoice(typedSettings.voiceURI) ? typedSettings.voiceURI : defaultSettings.voiceURI
-        };
-
-        // 如果设置无效，更新存储的设置
-        if (validSettings.lang !== typedSettings.lang || validSettings.voiceURI !== typedSettings.voiceURI) {
-            updateSettings(validSettings);
-        }
-
-        return validSettings;
-    }, [unTypedSettings, voices, updateSettings]);
-
-    // 初始化和更新可用的声音列表
+    // Load available voices
     useEffect(() => {
-        function loadVoices() {
-            const availableVoices = window.speechSynthesis.getVoices();
-            setVoices(availableVoices);
+        async function loadVoices() {
+            const allVoices = await WebSpeechTTS.getVoices();
+            setVoices(allVoices);
         }
         loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        return () => {
-            window.speechSynthesis.onvoiceschanged = null;
-        };
     }, []);
-
-    // 获取当前语言可用的声音
-    const availableVoices = useMemo(() => {
-        return voices.filter(voice => voice.lang.split('-')[0] === settings.lang);
-    }, [voices, settings.lang]);
-
-    // 如果当前选择的声音不在可用列表中，重置为默认值
-    useEffect(() => {
-        if (settings.voiceURI && !availableVoices.some(v => v.voiceURI === settings.voiceURI)) {
-            updateSettings({ voiceURI: '' });
-        }
-    }, [availableVoices, settings.voiceURI, updateSettings]);
 
     const [testText, setTestText] = useState(t('What is the answer to life, the universe and everything?'));
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const playTestAudio = () => {
+    const playTestAudio = async () => {
         if (!window.speechSynthesis) return;
 
         if (isPlaying) {
@@ -513,6 +511,7 @@ function WebSpeechSettingsPanel({
         }
 
         const utterance = new SpeechSynthesisUtterance(testText);
+        const voices = speechSynthesis.getVoices();
 
         if (settings.voiceURI) {
             const voice = voices.find(v => v.voiceURI === settings.voiceURI);
@@ -526,6 +525,15 @@ function WebSpeechSettingsPanel({
         window.speechSynthesis.speak(utterance);
     };
 
+    async function switchLang(lang: string) {
+        const voices = await WebSpeechTTS.getVoices()
+        const availableVoices = voices.filter(voice => voice.lang.split('-')[0] === lang);
+        if (availableVoices.length === 0) {
+            throw new Error(`No available voices for lang: ${lang}`)
+        }
+        updateSettings({ lang, voiceURI: availableVoices[0].voiceURI })
+    }
+
     return <div className="flex flex-col pl-8">
         {/* Language selector */}
         <div className="flex flex-row items-center justify-between mb-4">
@@ -534,12 +542,7 @@ function WebSpeechSettingsPanel({
                 entryLabel={speechSynthesisSystemLanguages[settings.lang as keyof typeof speechSynthesisSystemLanguages]}
                 menuItems={Object.entries(speechSynthesisSystemLanguages).map(([key, value]) => ({
                     label: value,
-                    onClick: () => {
-                        updateSettings({
-                            lang: key,
-                            voiceURI: '' // 重置声音选择
-                        });
-                    }
+                    onClick: () => { switchLang(key) }
                 }))}
                 menuClassName="right-0 max-h-96 overflow-y-auto"
             />
@@ -549,14 +552,11 @@ function WebSpeechSettingsPanel({
         <div className="flex flex-row items-center justify-between mb-4">
             <span className="text-gray-700 font-bold">{t('Speech Voice')}</span>
             <DropDownMenuV2
-                entryLabel={availableVoices.find(v => v.voiceURI === settings.voiceURI)?.name || t('Default')}
-                menuItems={[
-                    { label: t('Default'), onClick: () => updateSettings({ voiceURI: '' }) },
-                    ...availableVoices.map(voice => ({
-                        label: voice.name,
-                        onClick: () => updateSettings({ voiceURI: voice.voiceURI })
-                    }))
-                ]}
+                entryLabel={voices.length > 0 ? voices.find(v => v.voiceURI === settings.voiceURI)?.name : 'Loading...'}
+                menuItems={voices.filter(voice => voice.lang.split('-')[0] === settings.lang).map((voice) => ({
+                    label: voice.name,
+                    onClick: () => updateSettings({ ...settings, voiceURI: voice.voiceURI })
+                }))}
                 menuClassName="right-0"
             />
         </div>
@@ -599,39 +599,7 @@ function AzureTTSSettingsPanel({
 }) {
     const { t } = useTranslation();
 
-    // Validate and correct settings
-    const settings = useMemo(() => {
-        const typedSettings = unTypedSettings as {
-            region?: string;
-            subscriptionKey?: string;
-            lang?: string;
-            voiceName?: string;
-        };
-
-        // Ensure region is valid
-        let region = typedSettings.region || '';
-        if (!azureRegions.includes(region)) {
-            region = azureRegions[0]; // Default to first region
-            updateSettings({ region });
-        }
-
-        // Ensure language is valid
-        let lang = typedSettings.lang || '';
-        if (!azureSpeechSynthesisLanguagesLocale[lang]) {
-            lang = 'en-US'; // Default to English (US)
-            updateSettings({ lang });
-        }
-
-        // Ensure voice is valid
-        let voiceName = typedSettings.voiceName || '';
-        const availableVoices = azureSpeechSynthesisVoices[lang] || [];
-        if (!availableVoices.includes(voiceName)) {
-            voiceName = availableVoices[0] || ''; // Default to first available voice
-            updateSettings({ voiceName });
-        }
-
-        return { ...typedSettings, region, lang, voiceName };
-    }, [unTypedSettings, updateSettings]);
+    const settings = unTypedSettings as { region: string; subscriptionKey: string; lang: string; voiceName: string };
 
     // Get available voices based on selected language
     const availableVoices = useMemo(() => {
@@ -652,7 +620,6 @@ function AzureTTSSettingsPanel({
                     menuClassName="right-0"
                 />
             </div>
-
             {/* Subscription Key */}
             <div className="flex flex-col mb-4">
                 <label className="text-gray-700 font-bold mb-2">{t('Subscription Key')}</label>
@@ -664,7 +631,6 @@ function AzureTTSSettingsPanel({
                     placeholder={t('Enter your Azure subscription key')}
                 />
             </div>
-
             {/* Language Selection */}
             <div className="flex flex-row items-center justify-between mb-4">
                 <span className="text-gray-700 font-bold">{t('Language')}</span>
@@ -677,7 +643,6 @@ function AzureTTSSettingsPanel({
                     menuClassName="right-0 max-h-96 overflow-y-auto"
                 />
             </div>
-
             {/* Voice Selection */}
             <div className="flex flex-row items-center justify-between mb-4">
                 <span className="text-gray-700 font-bold">{t('Voice')}</span>
@@ -748,7 +713,7 @@ const speechSynthesisSystemLanguages: { [key: string]: string } = {
     jv: 'Basa Jawa', // Javanese
     kn: 'ಕನ್ನಡ', // Kannada
     kk: 'Қазақша', // Kazakh
-    km: 'ភាសាខ្មែរ', // Khmer
+    km: 'ភាាខ្មែរ', // Khmer
     lo: 'ລາວ', // Lao
     lv: 'Latviešu', // Latvian
     lt: 'Lietuvių', // Lithuanian
@@ -915,7 +880,7 @@ const azureSpeechSynthesisLanguagesLocale: { [key: string]: string } = {
     'mt-MT': 'Malti',
     'my-MM': 'မြန်မာ',
     'nb-NO': 'Norsk Bokmål',
-    'ne-NP': 'नेप��ली',
+    'ne-NP': 'नेपली',
     'nl-BE': 'Nederlands (België)',
     'nl-NL': 'Nederlands (Nederland)',
     'pl-PL': 'Polski',

@@ -11,7 +11,8 @@ import { PiSpeakerHighBold } from "react-icons/pi";
 import { I18nText } from "@/app/i18n/i18n";
 import { ChatSettingsContext } from "./chat";
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
-import { createTTSService } from '../lib/tts-service';
+import { WebSpeechTTS } from '../lib/tts-service';
+import { getSelectedSpeechSvcID, getSpeechSvcSettings } from "@/app/settings/components/settings";
 
 export const MessageTypes = {
     SYSTEM: 'systemMessage',
@@ -145,12 +146,13 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
     updateMessage: (messageID: number, message: Message) => void,
     className?: string
 }) {
-    const [ttsService] = useState(createTTSService);
     const showMore = (compState.type === 'normal' && compState.showMore)
         || compState.type === 'playingAudio' // you will want to keep the buttons showing while playing the audio
     const isEditing = (compState.type === 'editing')
     const isPlaying = compState.type === 'playingAudio'
 
+    // const { serviceId, settings } = getSpeechServiceSettings();
+    const ttsService = useRef<WebSpeechTTS | null>(null);
     const playerRef = useRef<sdk.SpeakerAudioDestination | null>(null);
     const synthesizerRef = useRef<sdk.SpeechSynthesizer | null>(null);
 
@@ -183,21 +185,22 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         if (compState.type !== 'normal') {
             return;
         }
-        const USE_AZURE_TTS = false;
-        if (USE_AZURE_TTS) {
+        const { serviceId, settings } = await getSpeechServiceSettings();
+        if (serviceId === 'azure') {
             try {
-                const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;
-                const region = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION;
+                const azureSettings = settings as { region: string; subscriptionKey: string; lang: string; voiceName: string };
+                const subscriptionKey = azureSettings.subscriptionKey;
+                const region = azureSettings.region;
 
                 if (!subscriptionKey || !region) {
-                    console.error('Azure Speech subscription key or region not found');
+                    console.error('Azure Speech subscription key or region not found in settings');
                     setCompState({ type: 'normal', content: compState.content, showMore: true });
                     return;
                 }
 
                 const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
-                speechConfig.speechRecognitionLanguage = 'en-US';
-                speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
+                speechConfig.speechRecognitionLanguage = azureSettings.lang || 'en-US';
+                speechConfig.speechSynthesisVoiceName = azureSettings.voiceName || 'en-US-JennyNeural';
 
                 playerRef.current = new sdk.SpeakerAudioDestination();
                 const audioConfig = sdk.AudioConfig.fromSpeakerOutput(playerRef.current);
@@ -234,13 +237,67 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
             // TODO 不知道为什么如果用封装的 azure ttsService，就会遇到一个很奇怪的现象：
             // 点击播放音频的时候，macOS 会加载这段音频，但是却自动暂停
             // 如果直接用上面这段，就能直接自动播放
-        } else {
+        } else if (serviceId === 'webSpeech') {
             try {
+                if (!ttsService.current) {
+                    const { lang, voiceURI } = settings as { lang: string; voiceURI: string };
+                    ttsService.current = new WebSpeechTTS(lang, voiceURI);
+                }
                 setCompState({ ...compState, type: 'playingAudio' });
-                await ttsService.speak(compState.content);
+                await ttsService.current.speak(compState.content);
                 setCompState({ type: 'normal', content: compState.content, showMore: true });
             } catch (error) {
                 console.error('Speech synthesis error:', error);
+                setCompState({ type: 'normal', content: compState.content, showMore: true });
+            }
+        } else if (serviceId === 'freeTrial') {
+            try {
+                const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;
+                const region = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION;
+                // Q: Why expose the key to the frontend?
+                // A: Although we can easily hide it in the backend, however this might become a performance bottleneck when the product is published.
+                //    Therefore, the free trial TTS logic is deliberately implemented purely on client side. And by irregularly changing the keys, to some extent, it prevents abuse.
+                //    When the peak time is over, move the free trial feature to backend (or simply remove it).
+                // Anyway, it's up to you whether to provide the free trial tts feature. So long as you don't set these two variables, the free trial feature will be disabled.
+                if (!subscriptionKey || !region) {
+                    console.error('Azure Speech subscription key or region not found');
+                    setCompState({ type: 'normal', content: compState.content, showMore: true });
+                    return;
+                }
+
+                const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
+                speechConfig.speechRecognitionLanguage = 'en-US';
+                speechConfig.speechSynthesisVoiceName = 'en-US-JennyMultilingualNeural';
+
+                playerRef.current = new sdk.SpeakerAudioDestination();
+                const audioConfig = sdk.AudioConfig.fromSpeakerOutput(playerRef.current);
+                synthesizerRef.current = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+
+                if (playerRef.current) {
+                    playerRef.current.onAudioEnd = () => {
+                        setCompState({ type: 'normal', content: compState.content, showMore: true });
+                    };
+                }
+                synthesizerRef.current.speakTextAsync(
+                    compState.content,
+                    () => {
+                        if (synthesizerRef.current) {
+                            synthesizerRef.current.close();
+                            synthesizerRef.current = null;
+                        }
+                    },
+                    error => {
+                        console.error('Speech synthesis error:', error);
+                        if (synthesizerRef.current) {
+                            synthesizerRef.current.close();
+                            synthesizerRef.current = null;
+                        }
+                        setCompState({ type: 'normal', content: compState.content, showMore: true });
+                    }
+                );
+                setCompState({ ...compState, type: 'playingAudio' });
+            } catch (error) {
+                console.error('Failed to initialize speech synthesis:', error);
                 setCompState({ type: 'normal', content: compState.content, showMore: true });
             }
         }
@@ -250,7 +307,9 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         if (!isPlaying) {
             return;
         }
-        ttsService.stop();
+        if (ttsService.current) {
+            ttsService.current.stop();
+        }
         if (playerRef.current) {
             playerRef.current.pause();
             playerRef.current.close();
@@ -595,7 +654,6 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                             }
                         );
                         await new Promise(resolve => {
-                            console.log('finished', _finished, buffer.length)
                             if (_finished && buffer.length === 0) {
                                 player.onAudioEnd = () => {
                                     setTextMsgState((prev) => {
@@ -794,4 +852,13 @@ export function MessageContent({ content, className = "" }: {
             <div dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
         </div>
     );
+}
+
+async function getSpeechServiceSettings() {
+    const selectedSvcId = getSelectedSpeechSvcID()
+    const settings = await getSpeechSvcSettings(selectedSvcId)
+    return {
+        serviceId: selectedSvcId,
+        settings: settings
+    };
 }
