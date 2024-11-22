@@ -50,7 +50,7 @@ export class WebSpeechTTS implements TTSService {
                 window.speechSynthesis.resume();
                 this.timeout = setTimeout(myTimer, 10000);
             };
-
+            // https://stackoverflow.com/questions/21947730/chrome-speech-synthesis-with-longer-texts
             window.speechSynthesis.cancel();
             this.timeout = setTimeout(myTimer, 10000);
             utterance.text = text;
@@ -66,11 +66,13 @@ export class WebSpeechTTS implements TTSService {
                 }
                 reject(error);
             };
+            window.speechSynthesis.cancel() // https://stackoverflow.com/questions/41539680/speechsynthesis-speak-not-working-in-chrome
             window.speechSynthesis.speak(utterance);
         });
     }
 
     static async getVoices(): Promise<SpeechSynthesisVoice[]> {
+        // https://stackoverflow.com/questions/49506716/speechsynthesis-getvoices-returns-empty-array-on-windows
         const allVoices: SpeechSynthesisVoice[] = [];        
         const getVoices = () => {
             const voices = window.speechSynthesis.getVoices();

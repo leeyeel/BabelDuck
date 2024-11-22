@@ -518,6 +518,8 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
         containerRef.current?.scrollIntoView({ behavior: 'instant' })
     }, [msgState]);
 
+    const azurePlayer = useRef<sdk.SpeakerAudioDestination | null>(null)
+    const azureSynthesizer = useRef<sdk.SpeechSynthesizer | null>(null)
     // TODO: Issues exist with strict mode
     useEffect(() => {
         const startStreaming = () => {
@@ -582,34 +584,8 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
             };
 
             const playAudioFromBuffer = async () => {
-                // avoid garbage collection issues
-                // https://stackoverflow.com/questions/23483990/speechsynthesis-api-onend-callback-not-working
-                const utterances = [];
-                const allVoices: SpeechSynthesisVoice[] = [];
-                let prefferedVoice: SpeechSynthesisVoice | undefined = undefined
-                const tryLoadingVoices = () => {
-                    // https://stackoverflow.com/questions/49506716/speechsynthesis-getvoices-returns-empty-array-on-windows
-                    if (allVoices.length > 0) { return }
-                    const voices = speechSynthesis.getVoices();
-                    if (voices.length > 0) {
-                        allVoices.push(...voices);
-                    } else {
-                        setTimeout(tryLoadingVoices, 100);
-                    }
-                };
-                tryLoadingVoices();
-                // https://stackoverflow.com/questions/21947730/chrome-speech-synthesis-with-longer-texts
-                let myTimeout: NodeJS.Timeout
-                function myTimer() {
-                    window.speechSynthesis.pause();
-                    window.speechSynthesis.resume();
-                    myTimeout = setTimeout(myTimer, 10000);
-                }
-                window.speechSynthesis.cancel()
-                myTimeout = setTimeout(myTimer, 10000)
 
                 let isFirstUtt = true
-                const USE_AZURE_TTS = true
                 while (!_finished || splited.length > 0) {
                     if (unmounted) {
                         return
@@ -619,20 +595,25 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                         continue
                     }
                     const text = splited.shift()!
-                    if (USE_AZURE_TTS) {
-                        const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;
-                        const region = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION;
+                    // TODO tech-debt: abstraction and layering
+                    const { serviceId, settings } = await getSpeechServiceSettings();
+                    if (serviceId === 'azure') {
+                        const azureSettings = settings as { subscriptionKey: string; region: string; lang: string; voiceName: string };
+                        const subscriptionKey = azureSettings.subscriptionKey;
+                        const region = azureSettings.region;
                         if (!subscriptionKey || !region) {
                             console.error('Azure Speech subscription key or region not found');
                             setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: false });
                             return;
                         }
                         const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
-                        speechConfig.speechRecognitionLanguage = 'en-US';
-                        speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
+                        speechConfig.speechRecognitionLanguage = azureSettings.lang || 'en-US';
+                        speechConfig.speechSynthesisVoiceName = azureSettings.voiceName || 'en-US-JennyNeural';
                         const player = new sdk.SpeakerAudioDestination();
+                        azurePlayer.current = player
                         const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
                         const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+                        azureSynthesizer.current = synthesizer
 
                         if (isFirstUtt) {
                             // when the first utterance starts speaking, set playing=true
@@ -644,12 +625,14 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                             () => {
                                 if (synthesizer) {
                                     synthesizer.close();
+                                    azureSynthesizer.current = null
                                 }
                             },
                             error => {
                                 console.error(error)
                                 if (synthesizer) {
                                     synthesizer.close();
+                                    azureSynthesizer.current = null
                                 }
                             }
                         );
@@ -668,65 +651,89 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                                 player.onAudioEnd = resolve;
                             }
                         });
-                    } else {
-                        const utterance = new SpeechSynthesisUtterance(text);
-                        utterance.lang = 'en-US';
-                        if (prefferedVoice === undefined) {
-                            const preferredVoices = ['Karen', 'Nicky', 'Aaron', 'Gordon', 'Google UK English Male', 'Google UK English Female', 'Catherine', 'Google US English']
-                            // wait until voices have been loaded
-                            while (allVoices.length === 0) {
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                            }
-                            for (const name of preferredVoices) {
-                                for (const voice of allVoices) {
-                                    if (voice.name === name) {
-                                        prefferedVoice = voice
-                                        break
-                                    }
-                                }
-                                if (prefferedVoice !== undefined) {
-                                    break
-                                }
-                            }
-                        }
-                        if (prefferedVoice !== undefined) {
-                            utterance.voice = prefferedVoice
-                        }
-                        utterances.push(utterance)
-                        utterance.text = text
-                        utterance.onend = () => {
-                            clearTimeout(myTimeout)
-                        }
+                    } else if (serviceId === 'webSpeech') {
+                        const webSpeechSettings = settings as { lang: string; voiceURI: string };
+                        const ttsService = new WebSpeechTTS(webSpeechSettings.lang, webSpeechSettings.voiceURI)
                         if (isFirstUtt) {
                             // when the first utterance starts speaking, set playing=true
                             setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: true })
                             stateRef.current = { ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: true }
                             isFirstUtt = false
                         }
+                        await ttsService.speak(text)
                         if (_finished && buffer.length === 0) {
+                            setTextMsgState((prev) => {
+                                if (!window.speechSynthesis.speaking) {
+                                    if (prev.type === 'playingAudio') {
+                                        return { type: 'normal', content: prev.content, showMore: false }
+                                    }
+                                }
+                                return prev
+                            })
+                            return;
                             // when the last utterance is finished, set the text message to normal state
                             // for some reason utterance.onend callback does not work:
                             // https://stackoverflow.com/questions/23483990/speechsynthesis-api-onend-callback-not-working
-                            utterance.addEventListener('end', () => {
-                                if (!window.speechSynthesis.speaking) {
-                                    setTextMsgState((prev) => {
-                                        if (prev.type === 'playingAudio') {
-                                            return { type: 'normal', content: prev.content, showMore: false }
-                                        }
-                                        return prev
-                                    })
-                                    return;
-                                }
-                            })
+                            // utterance.addEventListener('end', () => {
+                            // })
                         }
-                        utterance.addEventListener('error', (e) => {
-                            console.error(e)
-                        })
-                        window.speechSynthesis.cancel() // https://stackoverflow.com/questions/41539680/speechsynthesis-speak-not-working-in-chrome
-                        window.speechSynthesis.speak(utterance)
-                        await new Promise(resolve => {
-                            utterance.onend = resolve;
-                        });
+                    } else if (serviceId === 'freeTrial') {
+                        try {
+                            const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;
+                            const region = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION;
+                            if (!subscriptionKey || !region) {
+                                console.error('Azure Speech subscription key or region not found');
+                                setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: false });
+                                return;
+                            }
+                            const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
+                            speechConfig.speechRecognitionLanguage = 'en-US';
+                            speechConfig.speechSynthesisVoiceName = 'en-US-JennyMultilingualNeural';
+                            const player = new sdk.SpeakerAudioDestination();
+                            azurePlayer.current = player
+                            const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
+                            const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+                            azureSynthesizer.current = synthesizer
+                            if (isFirstUtt) {
+                                setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: true })
+                                stateRef.current = { ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: true }
+                                isFirstUtt = false
+                            }
+                            synthesizer.speakTextAsync(text,
+                                () => {
+                                    if (synthesizer) {
+                                        synthesizer.close();
+                                        azureSynthesizer.current = null
+                                    }
+                                },
+                                error => {
+                                    console.error(error)
+                                    if (synthesizer) {
+                                        synthesizer.close();
+                                        azureSynthesizer.current = null
+                                    }
+                                }
+                            );
+                            await new Promise(resolve => {
+                                if (_finished && buffer.length === 0) {
+                                    player.onAudioEnd = () => {
+                                        setTextMsgState((prev) => {
+                                            if (prev.type === 'playingAudio') {
+                                                return { type: 'normal', content: prev.content, showMore: false }
+                                            }
+                                            return prev
+                                        })
+                                        resolve(void 0);
+                                    }
+                                } else {
+                                    player.onAudioEnd = resolve;
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Azure Speech error:', error);
+                            setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: false });
+                            return;
+                        }
                     }
                 }
             }
@@ -742,9 +749,20 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
         const informUnmounted = startStreaming()
         return () => {
             window.speechSynthesis.cancel()
+            if (azurePlayer.current) {
+                azurePlayer.current.pause()
+                if (!azurePlayer.current.isClosed) {
+                    azurePlayer.current.close()
+                }
+                azurePlayer.current = null
+            }
+            if (azureSynthesizer.current) {
+                azureSynthesizer.current.close()
+                azureSynthesizer.current = null
+            }
             if (informUnmounted) { informUnmounted() }
         }
-    }, [message, messageID, persistMessage]);
+    }, [chatSettings?.autoPlayAudio, message, messageID, persistMessage]);
 
     return (
         <>
