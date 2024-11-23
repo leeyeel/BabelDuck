@@ -75,9 +75,10 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
         <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-8">
           <div className="flex flex-col">
             {/* Welcome message */}
-            <div className="text-center mb-8">
+            <div className="flex flex-col items-center">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('Welcome to BabelDuck')}</h2>
-              <p className="text-gray-600">{t('Please set up your preferences to get started')}</p>
+              <p className="text-gray-400 mb-12">{t('welcomeMessage')}</p>
+              <p className="text-gray-600 self-start mb-4">{t('Please set up your preferences to get started')}</p>
             </div>
 
             {/* Interface language selection */}
