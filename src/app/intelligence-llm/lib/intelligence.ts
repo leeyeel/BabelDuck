@@ -1,9 +1,7 @@
 import { i18nText } from "@/app/i18n/i18n"
 import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
-import { freeTrialChatCompletionInStream } from "./intelligence-server"
 import { BabelDuckMessage, FreeTrialMessage, SpecialRoles } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
-import { readStreamableValue } from "ai/rsc"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
 
 // ============================= business logic =============================
@@ -116,17 +114,32 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
         // Check if there's already a FreeTrialMessage in the message list
         const hasFreeTrialMessage = messageList.some(msg => msg instanceof FreeTrialMessage)
         async function* genFunc() {
-            const { status } = await freeTrialChatCompletionInStream(
-                messageList
+            // Fetch the stream from the server
+            const response = await fetch('/api/chat/quick-trial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ messageList: messageList
+
                     .filter((msg) => msg.includedInChatCompletion)
                     .filter((msg) => isOpenAILikeMessage(msg))
                     .map((msg) => (msg.toOpenAIMessage()))
-            )
+                 }),
+            });
 
-            for await (const value of readStreamableValue(status)) {
-                yield value ?? '' // no idea what it represents when the value is undefined, so just replace it with ''
+            if (!response.body) {
+                throw new Error('No response body');
             }
-            return
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                yield decoder.decode(value);
+            }
         }
         const gen = genFunc()
         return hasFreeTrialMessage 

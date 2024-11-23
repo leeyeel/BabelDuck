@@ -117,6 +117,7 @@ i18n
                     'speechSvc.freeTrial': 'Quick Trial',
                     'Quack!': 'Quack!',
                     'freeTrialHintMessage': 'The current chat model service is for quick trial only, with limited speed and usage frequency. Go to Settings -> "Chat -> Chat Model Service" to switch to other model services.',
+                    'welcomeMessage': 'BabelDuck is an AI-powered conversation practice application for language learners of all proficiency levels',
                 }
             },
             zh: {
@@ -196,7 +197,7 @@ i18n
                     'autoSendTips': '开启后，语音录制结束时会自动发送消息',
                     'recordingButtonTips': '点击开始录音，再次点击停止录音',
                     'Welcome to BabelDuck': '欢迎使用 BabelDuck',
-                    'Please set up your preferences to get started': '完成以下偏好设置后即可开始使用',
+                    'Please set up your preferences to get started': '完成以下偏好设置，即刻开始体验',
                     'Custom Service': '自定义服务',
                     'Speech Language': '语音语言',
                     'Speech Voice': '语音声音',
@@ -216,6 +217,7 @@ i18n
                     'speechSvc.freeTrial': '快速体验',
                     'Quack!': '嘎！',
                     'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验试用，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
+                    'welcomeMessage': 'BabelDuck 是一款面向各水平层次语言学习者的 AI 口语对话练习应用',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -297,7 +299,7 @@ i18n
                     'autoSendTips': '有効にすると、音声録音終了後にメッセージが自動的に送信されます',
                     'recordingButtonTips': 'クリックして録音を開始し、もう一度クリックして停止します',
                     'Welcome to BabelDuck': 'BabelDuck へようこそ',
-                    'Please set up your preferences to get started': '始めるには設定を行ってください',
+                    'Please set up your preferences to get started': '設定を完了して始めましょう',
                     'Custom Service': 'カスタムサービス',
                     'Speech Language': '音声言語',
                     'Speech Voice': '音声の声',
@@ -316,7 +318,8 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'クイック体験',
                     'Quack!': 'ガー！',
-                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と使用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
+                    'freeTrialHintMessage': '現在のチャットモデルサービ��は、速度と用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
+                    'welcomeMessage': 'BabelDuckは、全ての習熟度レベルの言語学習者のためのAI会話練習アプリケーションです',
                 }
             }
         }
