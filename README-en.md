@@ -2,9 +2,9 @@ English | [简体中文](./README.md)
 
 ## BabelDuck
 
-BabelDuck is a web application designed for language learners with relatively weak oral expression skills, aiming to minimize the barriers and cognitive load of language practice through AI conversations.
+BabelDuck is a highly customizable AI conversation practice application designed for language learners of all proficiency levels, with enhanced support for beginners, aiming to minimize the barriers and cognitive load of oral communication practice.
 
-### 🌐 Live Demo
+### 🌐 Online Demo
 
 [BabelDuck](https://duck.orenoid.com/)
 
@@ -22,6 +22,6 @@ BabelDuck is a web application designed for language learners with relatively we
 
 1. Install Docker
 2. Clone the repository
-3. Rename `.env.example` to `.env` and fill in the relevant configurations
+3. Rename `.env.example` to `.env` and fill in the configurations
 4. Run `docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest`
-5. Visit `http://localhost:9000` to see the result 
+5. Visit `http://localhost:9000` to see it in action 
