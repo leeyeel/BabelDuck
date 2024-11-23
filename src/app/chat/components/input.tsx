@@ -10,7 +10,6 @@ import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
 import { PiKeyReturnBold } from "react-icons/pi";
 import { isOpenAILikeMessage, Message, OpenAILikeMessage } from "../lib/message";
-import { chatCompletion } from "../lib/chat-server";
 import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
 import { Tooltip } from "react-tooltip";
@@ -96,7 +95,20 @@ ${userInstruction}
         { role: 'assistant', content: fewShotMessages[1] },
         { role: 'user', content: userMessage }
     ]
-    const rawJson = await chatCompletion(messages);
+
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages, action: 'revise' }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to get chat completion');
+    }
+
+    const rawJson = await response.text();
     const revision = JSON.parse(rawJson).revision;
     return revision;
 }
@@ -107,7 +119,6 @@ export async function generateMessage(
     includeHistory: boolean = true,
     historyMessageCount: number | undefined = undefined
 ) {
-
     const historyContext = includeHistory ?
         historyMessages.slice(-(historyMessageCount ?? historyMessages.length)).
             filter((msg) => msg.includedInChatCompletion).
@@ -158,7 +169,20 @@ ${userInstruction}
         { role: 'assistant', content: fewShotMessages[1] },
         { role: 'user', content: userMessage }
     ]
-    const rawJson = await chatCompletion(messages);
+
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages, action: 'generate' }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to get chat completion');
+    }
+
+    const rawJson = await response.text();
     const recommended = JSON.parse(rawJson).recommended;
     return recommended;
 }
