@@ -26,7 +26,8 @@ export const MessageTypes = {
 export const SpecialRoles = {
     SYSTEM: 'system',
     USER: 'user',
-    ASSISTANT: 'assistant'
+    ASSISTANT: 'assistant',
+    FREE_TRIAL: 'freeTrial'
 };
 
 
@@ -914,6 +915,9 @@ export class BabelDuckMessage extends Message {
         return false
     }
 
+    toOpenAIMessage(): { role: string, content: string } {
+        return { role: this.role, content: Array(this.quackCount).fill('Quack!').join(' ') }
+    }
 }
 
 export const BabelDuckMessageComponent = ({ message: untypedMessage, messageID, updateMessage, className }: {
@@ -925,4 +929,40 @@ export const BabelDuckMessageComponent = ({ message: untypedMessage, messageID, 
     const quackCount = message.quackCount
     const messageContent = Array(quackCount).fill(translatedQuack).join(' ')
     return <TextMessageComponent message={new TextMessage(message.role, messageContent)} messageID={messageID} updateMessage={updateMessage} className={className} />
+}
+
+export class FreeTrialMessage extends Message {
+    static readonly type = 'freeTrial'
+
+    constructor() {
+        super(FreeTrialMessage.type, SpecialRoles.FREE_TRIAL, true, false)
+    }
+
+    component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element {
+        return FreeTrialMessageComponent
+    }
+
+    serialize(): string {
+        return JSON.stringify({ type: this.type });
+    }
+
+    static deserialize(): FreeTrialMessage {
+        return new FreeTrialMessage()
+    }
+
+    isEmpty(): boolean {
+        return true
+    }
+
+}
+
+export const FreeTrialMessageComponent = ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => {
+    const { t } = useTranslation()
+    return (
+        <div className="w-fit self-center bg-transparent mb-3">
+            <p className="text-xs text-gray-400 text-center">
+                {t('freeTrialHintMessage')}
+            </p>
+        </div>
+    )
 }

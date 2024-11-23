@@ -116,6 +116,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'Quick Trial',
                     'Quack!': 'Quack!',
+                    'freeTrialHintMessage': 'The current chat model service is for quick trial only, with limited speed and usage frequency. Go to Settings -> "Chat -> Chat Model Service" to switch to other model services.',
                 }
             },
             zh: {
@@ -214,6 +215,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': '快速体验',
                     'Quack!': '嘎！',
+                    'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验试用，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -314,6 +316,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'クイック体験',
                     'Quack!': 'ガー！',
+                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と使用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
                 }
             }
         }

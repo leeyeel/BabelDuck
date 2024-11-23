@@ -67,7 +67,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             // only generate assistant message if the last message is from the user
             if (messageList.length === 0 || messageList[messageList.length - 1].role !== SpecialRoles.USER) return
 
-            const newMessages = chatIntelligenceRef.current!.completeChat(messageList.filter((msg) => msg.includedInChatCompletion))
+            const newMessages = chatIntelligenceRef.current!.completeChat(messageList)
             if (isTopLevel) {
                 // only top level chat need to be persisted
                 AddMesssageInChat(chatID, newMessages)

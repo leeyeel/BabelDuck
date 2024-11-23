@@ -3,7 +3,7 @@ export abstract class Message {
     type: string
     role: string
     displayToUser: boolean
-    includedInChatCompletion: boolean
+    includedInChatCompletion: boolean // TODO tech-debt: 定义不清晰
 
     constructor(
         type: string, role: string,

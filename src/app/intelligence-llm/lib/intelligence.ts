@@ -1,7 +1,7 @@
 import { i18nText } from "@/app/i18n/i18n"
 import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
 import { freeTrialChatCompletionInStream } from "./intelligence-server"
-import { BabelDuckMessage, SpecialRoles } from "@/app/chat/components/message"
+import { BabelDuckMessage, FreeTrialMessage, SpecialRoles } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { readStreamableValue } from "ai/rsc"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
@@ -113,6 +113,8 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
     static readonly _name: i18nText = { key: 'Free Trial' }
 
     completeChat(messageList: Message[]): Message[] {
+        // Check if there's already a FreeTrialMessage in the message list
+        const hasFreeTrialMessage = messageList.some(msg => msg instanceof FreeTrialMessage)
         async function* genFunc() {
             const { status } = await freeTrialChatCompletionInStream(
                 messageList
@@ -127,7 +129,9 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
             return
         }
         const gen = genFunc()
-        return [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
+        return hasFreeTrialMessage 
+            ? [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
+            : [new FreeTrialMessage(), new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
     }
 
     serialize(): string {
