@@ -1,5 +1,8 @@
 import { NextRequest } from 'next/server';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic'; // always run dynamically
+
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();

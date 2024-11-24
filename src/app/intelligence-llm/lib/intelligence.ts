@@ -27,7 +27,7 @@ export function getChatIntelligenceSettingsByID(id: string): chatIntelligenceSet
 
 // the settings of these reocrds are more like default settings, they are not actually stored
 export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
-    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings())
+    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings()).concat([babelDuckSettings])
 }
 
 export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
@@ -52,7 +52,7 @@ function getCustomLLMChatISettings(): chatIntelligenceSettingsRecord[] {
         id: s.id,
         name: s.name,
         type: 'customLLMSvc',
-        // TODO 1. declare const 2. define at some other place
+        // TODO tech-debt: 1. declare const 2. define at some other place
         settings: {
             settingsType: 'link',
             svcID: s.id,
@@ -320,5 +320,11 @@ intelligenceRegistry.registerChatIntelligenceSerializer(BabelDuckChatIntelligenc
 export const builtinIntelligenceSettings: Record<string, chatIntelligenceSettings> = {
     [FreeTrialChatIntelligence.id]: { name: { key: 'Free Trial' }, type: FreeTrialChatIntelligence.type, settings: {} },
     [OpenAIChatIntelligence.id]: { name: OpenAIChatIntelligence._name, type: OpenAIChatIntelligence.type, settings: OpenAIChatIntelligence.defaultSettings },
-    [BabelDuckChatIntelligence.id]: { name: { key: 'Babel Duck' }, type: BabelDuckChatIntelligence.type, settings: {} }
+}
+
+const babelDuckSettings = {
+    id: BabelDuckChatIntelligence.id,
+    name: { key: 'BabelDuck' },
+    type: BabelDuckChatIntelligence.type,
+    settings: {}
 }

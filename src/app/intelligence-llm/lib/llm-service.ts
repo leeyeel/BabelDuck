@@ -30,12 +30,12 @@ export function getBuiltInLLMServicesSettings(): LLMServiceSettingsRecord[] {
             deletable: false,
             settings: OpenAIService.defaultSettings,
         },
-        siliconflow: {
-            type: 'siliconflow',
-            name: { text: 'SiliconFlow' },
-            deletable: false,
-            settings: SiliconFlowService.defaultSettings,
-        }
+        // siliconflow: {
+        //     type: 'siliconflow',
+        //     name: { text: 'SiliconFlow' },
+        //     deletable: false,
+        //     settings: SiliconFlowService.defaultSettings,
+        // }
     }
     const builtInLLMServicesFromStorage = _getBuiltInLLMServicesFromLocalStorage()
     const inStorageServicesNumber = builtInLLMServicesFromStorage.length
@@ -129,24 +129,31 @@ export type OpenAICompatibleAPISettings = {
     name: string
 } & OpenAISettings
 
+function getFetchFunction(url: string): typeof globalThis.fetch {
+    return async (input, init) => {
+        return fetch(url, init)
+    }
+}
+
 export class OpenAICompatibleAPIService {
     name: i18nText
-    baseUrl: string
+    url: string
     apiKey: string
     chatCompletionModel: string
     static type = 'openai-compatible-api'
 
-    constructor(name: i18nText, baseUrl: string, apiKey: string, chatCompletionModel: string) {
+    constructor(name: i18nText, url: string, apiKey: string, chatCompletionModel: string) {
         this.name = name
-        this.baseUrl = baseUrl
+        this.url = url
         this.apiKey = apiKey
         this.chatCompletionModel = chatCompletionModel
     }
 
     chatCompletionInStream(messageList: { role: string, content: string }[]) {
         const openai = createOpenAI({
-            baseURL: this.baseUrl,
+            baseURL: '',
             apiKey: this.apiKey,
+            fetch: getFetchFunction(this.url),
         })
 
         const stream = streamText({
@@ -159,7 +166,7 @@ export class OpenAICompatibleAPIService {
 }
 
 export class OpenAIService extends OpenAICompatibleAPIService {
-    host: string = 'https://api.openai.com'
+    chatCompletionURL: string = 'https://api.openai.com/v1/chat/completions'
     static type = 'openai'
     static availableChatModels = [
         'gpt-3.5-turbo',
@@ -193,20 +200,19 @@ export class OpenAIService extends OpenAICompatibleAPIService {
         'o1-mini-2024-09-12'
     ]
     static defaultSettings: OpenAISettings = {
-        baseURL: 'https://api.openai.com',
+        URL: 'https://api.openai.com/v1/chat/completions',
         apiKey: '',
         chatCompletionModel: 'gpt-4o-mini',
     }
 
-    constructor(host: string, apiKey: string, chatCompletionModel: string) {
-        super({ text: 'OpenAI' }, host, apiKey, chatCompletionModel)
-        this.host = host
+    constructor(url: string, apiKey: string, chatCompletionModel: string) {
+        super({ text: 'OpenAI' }, url, apiKey, chatCompletionModel)
     }
 
     static deserialize(settings: object): OpenAIService {
         // Type guard to check if settings matches OpenAISettings structure
         const isOpenAISettings = (obj: object): obj is OpenAISettings => {
-            return 'baseURL' in obj && typeof obj.baseURL === 'string' &&
+            return 'URL' in obj && typeof obj.URL === 'string' &&
                 'apiKey' in obj && typeof obj.apiKey === 'string' &&
                 'chatCompletionModel' in obj && typeof obj.chatCompletionModel === 'string';
         }
@@ -215,12 +221,12 @@ export class OpenAIService extends OpenAICompatibleAPIService {
             throw new Error('Invalid OpenAI settings');
         }
 
-        return new OpenAIService(settings.baseURL, settings.apiKey, settings.chatCompletionModel);
+        return new OpenAIService(settings.URL, settings.apiKey, settings.chatCompletionModel);
     }
 }
 
 export type OpenAISettings = {
-    baseURL: string
+    URL: string
     apiKey: string
     chatCompletionModel: string
 }
@@ -229,16 +235,16 @@ export class SiliconFlowService extends OpenAICompatibleAPIService {
     static type = 'siliconflow'
 
     constructor(apiKey: string, chatCompletionModel: string) {
-        super({ text: 'SiliconFlow' }, SiliconFlowService.defaultHost, apiKey, chatCompletionModel)
+        super({ text: 'SiliconFlow' }, SiliconFlowService.defaultChatCompletionURL, apiKey, chatCompletionModel)
     }
 
-    static defaultHost = 'https://api.siliconflow.cn'
+    static defaultChatCompletionURL = 'https://api.siliconflow.cn/v1/chat/completions'
 
     static availableChatModels = ['deepseek-ai/DeepSeek-V2.5']
 
     static defaultSettings: OpenAISettings = {
-        baseURL: SiliconFlowService.defaultHost,
+        URL: SiliconFlowService.defaultChatCompletionURL,
         apiKey: '',
-        chatCompletionModel: 'deepseek-ai/DeepSeek-V2.5',
+        chatCompletionModel: '',
     }
 }
