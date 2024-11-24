@@ -20,6 +20,8 @@ import { TbCloud, TbCloudPlus } from "react-icons/tb";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
 import { WebSpeechTTS } from "@/app/chat/lib/tts-service";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { setCurrentChatSettings } from "@/app/chat/components/chat";
 
 // settings entry in the sidebar
 export function SettingsEntry({ className = "" }: { className?: string }) {
@@ -162,10 +164,27 @@ function GeneralSettings() {
 
 function GlobalChatSettings() {
 
+    const dispatch = useAppDispatch()
     const [chatSettings, setChatSettings] = useState(loadGlobalChatSettings())
+    const { currentChatID, currentChatSettings } = useAppSelector((state) => state.currentChatSettings)
+
     return <CommonChatSettings chatSettings={chatSettings} updateChatSettings={(newChatSettings) => {
         setChatSettings(newChatSettings)
         setGlobalChatSettings(newChatSettings)
+        if (currentChatID !== undefined && currentChatSettings !== undefined) {
+            // TODO feat: local chat settings
+            dispatch(setCurrentChatSettings({
+                chatID: currentChatID,
+                chatSettings: {
+                    ...newChatSettings,
+                    usingGlobalSettings: true,
+                    inputHandlers: newChatSettings.inputHandlers.map((handler) => ({
+                        handler: handler.handler.serialize(),
+                        display: handler.display
+                    }))
+                }
+            }))
+        }
     }} />
 }
 
@@ -360,14 +379,13 @@ export function SpeechSettings({ className = "" }: { className?: string }) {
     const [selectedSvcId, setSelectedSvcId] = useState(getSelectedSpeechSvcID());
     const [speechSettings, setSpeechSettings] = useState<object | null>(null);
 
-    // 使用 useEffect 来加载异步数据
     useEffect(() => {
         async function loadSettings() {
             const settings = await getSpeechSvcSettings(selectedSvcId);
             setSpeechSettings(settings);
         }
         loadSettings();
-    }, [selectedSvcId]); // 当 selectedSvcId 改变时重新加载设置
+    }, [selectedSvcId]);
 
     function changeSpeechSvc(svcId: string) {
         setSelectedSvcId(svcId);

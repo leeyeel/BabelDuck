@@ -928,7 +928,16 @@ export const BabelDuckMessageComponent = ({ message: untypedMessage, messageID, 
     const translatedQuack = t('Quack!')
     const quackCount = message.quackCount
     const messageContent = Array(quackCount).fill(translatedQuack).join(' ')
-    return <TextMessageComponent message={new TextMessage(message.role, messageContent)} messageID={messageID} updateMessage={updateMessage} className={className} />
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [messageContent])
+
+    return <>
+        <TextMessageComponent message={new TextMessage(message.role, messageContent)} messageID={messageID} updateMessage={updateMessage} className={className} />
+        <div ref={scrollRef} className="invisible" />
+    </>
 }
 
 export class FreeTrialMessage extends Message {

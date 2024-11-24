@@ -12,6 +12,8 @@ import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence,
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
 
 export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
 
@@ -23,41 +25,64 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 }) {
     const { t } = useTranslation();
 
-    // compState: normal, stacking
     const [messageListStack, updateMessageListStack] = useImmer<Message[][]>([])
     const isTopLevel = messageListStack.length <= 1
     const previousMessageList = messageListStack.length > 1 ? messageListStack[messageListStack.length - 2] : undefined
     const currentMessageList = messageListStack.length > 0 ? messageListStack[messageListStack.length - 1] : []
-    const betweenMsgListCache = useRef<{ message: Message, handledMsg: Message, handlerInstruction: string }>()
 
     const [msgListSwitchSignal, setMsgListSwitchSignal] = useState<MsgListSwitchSignal>({ type: 'init', key: 0 })
+    const betweenMsgListCache = useRef<{ message: Message, handledMsg: Message, handlerInstruction: string }>()
 
-    const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
-    const chatIntelligenceRef = useRef<ChatIntelligence>()
+    const chatSettingsRaw = useAppSelector((state) => state.currentChatSettings)
+    const chatSettings: LocalChatSettings | undefined = chatSettingsRaw.currentChatSettings !== undefined ? {
+        ...chatSettingsRaw.currentChatSettings,
+        inputHandlers: chatSettingsRaw.currentChatSettings.inputHandlers.map((rawHandler) => ({
+            handler: InputHandler.deserialize(rawHandler.handler),
+            display: rawHandler.display
+        }))
+    } : undefined
 
-    const chatSettings: LocalChatSettings = loadChatSettings(chatID) // TODO tech-debt: remove duplicate load
+    const dispatch = useAppDispatch()
+    // TODO read from redux instead
+    let chatIntelligence: ChatIntelligence
+    if (chatSettings !== undefined) {
+        const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
+        // TODO tech-debt: dynamic load from registry
+        if (type === OpenAIChatIntelligence.type) {
+            const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings
+            chatIntelligence = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
+        } else if (type === FreeTrialChatIntelligence.type) {
+            chatIntelligence = new FreeTrialChatIntelligence()
+        } else if (type === CustomLLMChatIntelligence.type) {
+            const settings = chatSettings.ChatISettings.settings as CustomLLMServiceChatISettings
+            chatIntelligence = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
+        } else if (type === BabelDuckChatIntelligence.type) {
+            chatIntelligence = new BabelDuckChatIntelligence()
+        } else {
+            throw new Error(`Chat intelligence with type ${type} not found`)
+        }
+    }
+    const inputHandlers = chatSettings !== undefined ?
+        chatSettings.inputHandlers
+            .filter((handler) => handler.display)
+            .map((handler) => handler.handler)
+        : []
 
     useEffect(() => {
         const messageList = loadChatByID(chatID)
         updateMessageListStack([messageList])
 
         const chatSettings: LocalChatSettings = loadChatSettings(chatID)
-        setInputHandlers(chatSettings.inputHandlers.filter((handler) => handler.display).map((handler) => handler.handler))
-        const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
-        // TODO tech-debt: dynamic load from registry
-        if (type === OpenAIChatIntelligence.type) {
-            const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings
-            chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
-        } else if (type === FreeTrialChatIntelligence.type) {
-            chatIntelligenceRef.current = new FreeTrialChatIntelligence()
-        } else if (type === CustomLLMChatIntelligence.type) {
-            const settings = chatSettings.ChatISettings.settings as CustomLLMServiceChatISettings
-            chatIntelligenceRef.current = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
-        } else if (type === BabelDuckChatIntelligence.type) {
-            chatIntelligenceRef.current = new BabelDuckChatIntelligence()
-        } else {
-            throw new Error(`Chat intelligence with type ${type} not found`)
-        }
+        dispatch(setCurrentChatSettings({
+            chatID, chatSettings: {
+                ...chatSettings,
+                inputHandlers: chatSettings.inputHandlers.map((handler) => ({
+                    handler: handler.handler.serialize(),
+                    display: handler.display
+                }))
+            }
+        }))
+
         setMsgListSwitchSignal(prev => ({ type: 'switchChat', key: prev.key + 1 }))
     }, [chatID, loadChatByID, updateMessageListStack])
 
@@ -68,7 +93,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             // only generate assistant message if the last message is from the user
             if (messageList.length === 0 || messageList[messageList.length - 1].role !== SpecialRoles.USER) return
 
-            const newMessages = chatIntelligenceRef.current!.completeChat(messageList)
+            const newMessages = chatIntelligence.completeChat(messageList)
             if (isTopLevel) {
                 // only top level chat need to be persisted
                 AddMesssageInChat(chatID, newMessages)
@@ -161,7 +186,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             </div>
         </div>
 
-        <ChatSettingsContext.Provider value={chatSettings}>
+        <ChatSettingsContext.Provider value={chatSettings ?? null}>
             <div className="w-4/5 h-full relative overflow-auto custom-scrollbar">
                 {/* current message list */}
                 <MessageList key={msgListSwitchSignal.key + 1}
@@ -189,7 +214,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
                 }
             </div>
             <MessageInput addInputHandler={(handler) => {
-                updateInputHandlerInLocalStorage(chatID, inputHandlers.length, handler)
+                updateInputHandlerInLocalStorage(chatID, inputHandlers?.length ?? 0, handler)
             }} className="w-4/5"
                 chatID={chatID}
                 msgListSwitchSignal={msgListSwitchSignal}
@@ -237,3 +262,30 @@ export function MessageList({ messageList, updateMessage, className }: {
         <div ref={messagesEndRef} />
     </div>
 }
+
+// ==================== redux ====================
+
+type ModifiedLocalChatSettings = Omit<LocalChatSettings, 'inputHandlers'> & {
+    // InputHandler is not serializable, so transfer them to string before stored in redux
+    inputHandlers: { handler: string, display: boolean }[];
+}
+const initCurrentChatSettingsState: {
+    currentChatID: string | undefined,
+    currentChatSettings: ModifiedLocalChatSettings | undefined
+} = {
+    currentChatID: undefined,
+    currentChatSettings: undefined
+}
+const currentChatSettingsSlice = createSlice({
+    name: 'currentChatSettings',
+    initialState: initCurrentChatSettingsState,
+    reducers: {
+        setCurrentChatSettings: (state, newState: PayloadAction<{ chatID: string, chatSettings: ModifiedLocalChatSettings }>) => {
+            state.currentChatID = newState.payload.chatID
+            state.currentChatSettings = newState.payload.chatSettings
+        }
+    }
+})
+
+export const { setCurrentChatSettings } = currentChatSettingsSlice.actions
+export const currentChatSettingsReducer = currentChatSettingsSlice.reducer

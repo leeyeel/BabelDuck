@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { chatSelectionListReducer } from './chat/components/chatList'
+import { currentChatSettingsReducer } from './chat/components/chat'
 
 const store = configureStore({
   reducer: {
     chatSelectionList: chatSelectionListReducer,
+    currentChatSettings: currentChatSettingsReducer,
   },
 })
 
