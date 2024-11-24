@@ -5,6 +5,8 @@ import type { CustomLLMServiceChatISettings, OpenAIChatISettings } from "../lib/
 import { getLLMServiceSettingsRecord } from "../lib/llm-service"
 import { OpenAICompatibleAPIServiceSettings, OpenAIServiceSettings } from "./llm-service"
 import { useState } from "react"
+import { IoMdInformationCircleOutline } from "react-icons/io"
+import { useTranslation } from "react-i18next"
 
 export function OpenAIChatISettings(
     { settings: untypedSettings, updateChatISettings }: { settings: object, updateChatISettings: (settings: object) => void }
@@ -85,5 +87,29 @@ export function CustomLLMChatISettings(
         {isLocal &&
             <TransparentButton className="absolute right-0 top-0" onClick={() => { resetToLinkTypeSettings() }}> Reset to Default </TransparentButton>
         }
+    </div>
+}
+
+export function FreeTrialChatISettings(
+    { }: { settings: object, updateChatISettings: (settings: object) => void }
+) {
+    const { t } = useTranslation()
+    return <div>
+        <div className="flex flex-row items-start mt-[-20px] mb-4 text-sm text-gray-500">
+            <IoMdInformationCircleOutline size={15} className="mr-2 mt-1 flex-shrink-0" />
+            <span>{t('freeTrialChatIntelligenceIntroduction')}</span>
+        </div>
+    </div>
+}
+
+export function BabelDuckChatISettings(
+    { }: { settings: object, updateChatISettings: (settings: object) => void }
+) {
+    const { t } = useTranslation()
+    return <div>
+        <div className="flex flex-row items-start mt-[-20px] mb-4 text-sm text-gray-500">
+            <IoMdInformationCircleOutline size={15} className="mr-2 mt-1 flex-shrink-0" />
+            <span>{t('babelDuckChatIntelligenceIntroduction')}</span>
+        </div>
     </div>
 }

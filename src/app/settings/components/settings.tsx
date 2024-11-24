@@ -9,9 +9,9 @@ import { DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
 import { addCustomLLMServiceSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
 import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
-import { getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, CustomLLMChatIntelligence, FreeTrialChatIntelligence, getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { InputHandler } from "@/app/chat/components/input-handlers";
-import { CustomLLMChatISettings, OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
+import { BabelDuckChatISettings, CustomLLMChatISettings, FreeTrialChatISettings, OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
 import Switch from "react-switch";
 import { IconCircleWrapper } from "@/app/chat/components/message";
 import { PiTrashBold } from "react-icons/pi";
@@ -258,15 +258,28 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
                 menuClassName="right-0"
             />
         </div>
+        {/* TODO tech-debt: dynamically load the settings component based on the chatIType */}
         {chatSettingsRO.chatISettings.chatIType === OpenAIChatIntelligence.type &&
             <div className="flex flex-col mb-4">
                 <OpenAIChatISettings settings={chatSettingsRO.chatISettings.settings}
                     updateChatISettings={updateSelectedChatISettings} />
             </div>
         }
-        {chatSettingsRO.chatISettings.chatIType === 'customLLMSvc' &&
+        {chatSettingsRO.chatISettings.chatIType === CustomLLMChatIntelligence.type &&
             <div className="flex flex-col mb-4">
                 <CustomLLMChatISettings key={chatSettingsRO.chatISettings.id} settings={chatSettingsRO.chatISettings.settings}
+                    updateChatISettings={updateSelectedChatISettings} />
+            </div>
+        }
+        {chatSettingsRO.chatISettings.chatIType === FreeTrialChatIntelligence.type &&
+            <div className="flex flex-col mb-4">
+                <FreeTrialChatISettings settings={chatSettingsRO.chatISettings.settings}
+                    updateChatISettings={updateSelectedChatISettings} />
+            </div>
+        }
+        {chatSettingsRO.chatISettings.chatIType === BabelDuckChatIntelligence.type &&
+            <div className="flex flex-col mb-4">
+                <BabelDuckChatISettings settings={chatSettingsRO.chatISettings.settings}
                     updateChatISettings={updateSelectedChatISettings} />
             </div>
         }

@@ -119,7 +119,8 @@ i18n
                     'freeTrialHintMessage': 'The current chat model service is for quick trial only, with limited speed and usage frequency. Go to Settings -> "Chat -> Chat Model Service" to switch to other model services.',
                     'welcomeMessage': 'BabelDuck is an AI-powered conversation practice application for language learners of all proficiency levels',
                     'Please enter the complete URL including the path': 'Please enter the complete URL including the path',
-                    'Blur Text': 'Blur Text',
+                    'freeTrialChatIntelligenceIntroduction': 'This service is for quick trial only, with limited speed and usage frequency. Model selection is not supported. Please switch to other model services if needed.',
+                    'babelDuckChatIntelligenceIntroduction': 'Based on advanced avian neural biomimetic architecture, this revolutionary waterfowl intelligence system employs unique duck cognitive patterns, featuring advanced multilingual processing capabilities with millisecond-level response times.',
                 }
             },
             zh: {
@@ -221,7 +222,8 @@ i18n
                     'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验试用，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
                     'welcomeMessage': 'BabelDuck 是一款面向各水平层次语言学习者的 AI 口语对话练习应用',
                     'Please enter the complete URL including the path': '请输入完整的URL（包含路径）',
-                    'Blur Text': '模糊文本',
+                    'freeTrialChatIntelligenceIntroduction': '仅供新用户快速体验产品功能用，速度和使用频率有一定限制，不支持指定模型，若有需求，可切换为其他模型服务。',
+                    'babelDuckChatIntelligenceIntroduction': '基于先进的禽类神经仿生学架构，这套革命性的水禽智能系统采用独特的鸭子认知模式，具备先进的多语言处理能力，可实现毫秒级响应速度。',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -325,7 +327,8 @@ i18n
                     'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
                     'welcomeMessage': 'BabelDuckは、全ての習熟度レベルの言語学習者のためのAI会話練習アプリケーションです',
                     'Please enter the complete URL including the path': 'パスを含む完全なURLを入力してください',
-                    'Blur Text': 'ぼかしテキスト',
+                    'freeTrialChatIntelligenceIntroduction': '新規ユーザー向けのクイック体験用サービスで、速度と利用頻度に制限があり、モデルの指定はできません。必要な場合は、他のモデルサービスに切り替えてください。',
+                    'babelDuckChatIntelligenceIntroduction': '先進的な鳥類神経生体模倣アーキテクチャに基づき、この革新的な水鳥知能システムは独自のアヒル認知パターンを採用し、高度な多言語処理能力とミリ秒レベルの応答速度を実現します。',
                 }
             }
         }
