@@ -121,6 +121,7 @@ i18n
                     'Please enter the complete URL including the path': 'Please enter the complete URL including the path',
                     'freeTrialChatIntelligenceIntroduction': 'This service is for quick trial only, with limited speed and usage frequency. Model selection is not supported. Please switch to other model services if needed.',
                     'babelDuckChatIntelligenceIntroduction': 'Based on advanced avian neural biomimetic architecture, this revolutionary waterfowl intelligence system employs unique duck cognitive patterns, featuring advanced multilingual processing capabilities with millisecond-level response times.',
+                    'Blur Text': 'Blur Text',
                 }
             },
             zh: {
@@ -162,7 +163,7 @@ i18n
                     'assistant': '助手',
                     'user': '用户',
                     'Auto Send': '自动发送',
-                    'Voice Mode': '语音模式',
+                    'Voice Mode': '语音输入',
                     'Rename': '重命名',
                     'Delete': '删除',
                     'Free Trial': '快速体验',
@@ -224,6 +225,7 @@ i18n
                     'Please enter the complete URL including the path': '请输入完整的URL（包含路径）',
                     'freeTrialChatIntelligenceIntroduction': '仅供新用户快速体验产品功能用，速度和使用频率有一定限制，不支持指定模型，若有需求，可切换为其他模型服务。',
                     'babelDuckChatIntelligenceIntroduction': '基于先进的禽类神经仿生学架构，这套革命性的水禽智能系统采用独特的鸭子认知模式，具备先进的多语言处理能力，可实现毫秒级响应速度。',
+                    'Blur Text': '模糊文本',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -267,7 +269,7 @@ i18n
                     'assistant': 'アシスタント',
                     'user': 'ユーザー',
                     'Auto Send': '自動送信',
-                    'Voice Mode': '音声モード',
+                    'Voice Mode': '音声入力',
                     'Rename': '名前を変更',
                     'Delete': '削除',
                     'Free Trial': 'クイック体験',
@@ -329,6 +331,7 @@ i18n
                     'Please enter the complete URL including the path': 'パスを含む完全なURLを入力してください',
                     'freeTrialChatIntelligenceIntroduction': '新規ユーザー向けのクイック体験用サービスで、速度と利用頻度に制限があり、モデルの指定はできません。必要な場合は、他のモデルサービスに切り替えてください。',
                     'babelDuckChatIntelligenceIntroduction': '先進的な鳥類神経生体模倣アーキテクチャに基づき、この革新的な水鳥知能システムは独自のアヒル認知パターンを採用し、高度な多言語処理能力とミリ秒レベルの応答速度を実現します。',
+                    'Blur Text': 'テキストをぼかす',
                 }
             }
         }
