@@ -220,7 +220,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': '快速体验',
                     'Quack!': '嘎！',
-                    'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验试用，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
+                    'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验功能，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
                     'welcomeMessage': 'BabelDuck 是一款面向各水平层次语言学习者的 AI 口语对话练习应用',
                     'Please enter the complete URL including the path': '请输入完整的URL（包含路径）',
                     'freeTrialChatIntelligenceIntroduction': '仅供新用户快速体验产品功能用，速度和使用频率有一定限制，不支持指定模型，若有需求，可切换为其他模型服务。',

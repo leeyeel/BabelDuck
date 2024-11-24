@@ -21,8 +21,8 @@ const geistMono = localFont({
 const I18nProvider = dynamic(() => import('./i18n/I18nProvider'), { ssr: false });
 
 export const metadata: Metadata = {
-  title: "Babel Duck",
-  description: "A beginner-friendly AI conversation practice application",
+  title: "BabelDuck",
+  description: "A beginner-friendly AI-powered conversation practice application for language learners of all proficiency levels.",
 };
 
 export default function RootLayout({

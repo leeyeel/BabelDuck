@@ -344,7 +344,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
 
 
 // 修改 SpeechSettings 组件，添加状态管理
-function SpeechSettings() {
+export function SpeechSettings({ className = "" }: { className?: string }) {
     const { t } = useTranslation();
 
     const availableSpeechSvcs = [
@@ -385,7 +385,7 @@ function SpeechSettings() {
     }
 
     return (
-        <div>
+        <div className={className}>
             {/* service selector */}
             <div className="flex flex-row items-center justify-between mb-4">
                 <span className="text-gray-700 font-bold">{t('Speech Synthesis Service')}</span>
@@ -488,7 +488,7 @@ export async function getSpeechSvcSettings(svcId: string): Promise<object> {
     return {}
 }
 
-function WebSpeechSettingsPanel({
+export function WebSpeechSettingsPanel({
     unTypedSettings,
     updateSettings
 }: {

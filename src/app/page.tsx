@@ -4,7 +4,7 @@ import { Chat } from "./chat/components/chat";
 import { ChatSelectionList, NewChat } from "./chat/components/chatList";
 import { defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
 import { useAppSelector } from "./hooks";
-import { SettingsEntry } from "./settings/components/settings";
+import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
 import { Overlay } from "./ui-utils/components/overlay";
 import { useState, useEffect } from 'react';
@@ -72,15 +72,19 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     <>
       <Overlay onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl p-8">
+        <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl max-h-screen overflow-y-auto custom-scrollbar p-8">
           <div className="flex flex-col">
+            {/* Beta warning */}
+            <div className="flex flex-row items-start mb-4 p-4 bg-yellow-50 rounded-lg">
+              <IoMdInformationCircleOutline size={20} className="text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+              <span className="text-yellow-700">{t('betaWarning')}</span>
+            </div>
             {/* Welcome message */}
             <div className="flex flex-col items-center">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('Welcome to BabelDuck')}</h2>
               <p className="text-gray-400 mb-12">{t('welcomeMessage')}</p>
               <p className="text-gray-600 self-start mb-4">{t('Please set up your preferences to get started')}</p>
             </div>
-
             {/* Interface language selection */}
             <div className="flex flex-row items-center justify-between relative mb-8">
               <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
@@ -133,11 +137,8 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Beta warning */}
-            <div className="flex flex-row items-start mb-8 p-4 bg-yellow-50 rounded-lg">
-              <IoMdInformationCircleOutline size={20} className="text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
-              <span className="text-yellow-700">{t('betaWarning')}</span>
-            </div>
+            {/* TTS settings */}
+            <SpeechSettings className="mb-8" />
 
             {/* Confirm button */}
             <div className="flex justify-end">
