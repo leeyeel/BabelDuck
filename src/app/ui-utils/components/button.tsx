@@ -1,5 +1,5 @@
 
-// TODO: remove this and TmpTransparentButton
+// TODO tech-debt: remove this and TmpTransparentButton
 export function TmpFilledButton({ children, onClick, className = "" }: { children: React.ReactNode, onClick: () => void, className?: string }) {
     return <button className={`bg-black hover:bg-gray-800 text-white font-bold ${className}`} type="button" onClick={onClick}>
         {children}

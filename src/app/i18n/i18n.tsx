@@ -119,6 +119,7 @@ i18n
                     'freeTrialHintMessage': 'The current chat model service is for quick trial only, with limited speed and usage frequency. Go to Settings -> "Chat -> Chat Model Service" to switch to other model services.',
                     'welcomeMessage': 'BabelDuck is an AI-powered conversation practice application for language learners of all proficiency levels',
                     'Please enter the complete URL including the path': 'Please enter the complete URL including the path',
+                    'Blur Text': 'Blur Text',
                 }
             },
             zh: {
@@ -220,6 +221,7 @@ i18n
                     'freeTrialHintMessage': '当前使用的对话模型服务仅用于快速体验试用，速度和使用频率有一定限制，前往设置页面「对话 -> 对话模型服务」可切换其他模型服务。',
                     'welcomeMessage': 'BabelDuck 是一款面向各水平层次语言学习者的 AI 口语对话练习应用',
                     'Please enter the complete URL including the path': '请输入完整的URL（包含路径）',
+                    'Blur Text': '模糊文本',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -323,6 +325,7 @@ i18n
                     'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
                     'welcomeMessage': 'BabelDuckは、全ての習熟度レベルの言語学習者のためのAI会話練習アプリケーションです',
                     'Please enter the complete URL including the path': 'パスを含む完全なURLを入力してください',
+                    'Blur Text': 'ぼかしテキスト',
                 }
             }
         }

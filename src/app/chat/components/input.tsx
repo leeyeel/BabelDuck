@@ -407,14 +407,14 @@ export function MessageInput({
         </div>
         {/* revision DiffView pop-up */}
         {
-            // TODO 1. more appropriate max-width 2. line wrapping for content
-            waitingForApproval && <DiffView className={`absolute w-fit min-w-[700px] max-w-[1000px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
+            // TODO bug: line wrapping for content
+            waitingForApproval && <DiffView className={`absolute w-fit min-w-[700px] max-w-[1300px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
                 originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
                 approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
                 startFollowUpDiscussion={(messageToRevise: Message, revisedText: Message) => {
                     if (!waitingForApproval) return
                     setCompState({ type: 'normal', message: new TextMessage(compState.message.role, ''), fromRevision: false });
-                    // TODO
+                    // TODO feat: focus on the text area after the follow up discussion is started
                     // textAreaRef.current?.focus();
                     startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
                 }} />}
@@ -710,10 +710,10 @@ function TextInput(
                         className="mr-2" width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000" />
                 </label>
                 <Tooltip
-                    anchorSelect="#voice-mode-label" 
-                    delayShow={100} 
-                    delayHide={0} 
-                    place="top" 
+                    anchorSelect="#voice-mode-label"
+                    delayShow={100}
+                    delayHide={0}
+                    place="top"
                     style={{ borderRadius: '0.75rem' }}
                 >{t('voiceModeTips')}</Tooltip>
                 <button
@@ -751,12 +751,18 @@ export function DiffView(
     }
 ) {
     const { t } = useTranslation();
-    const [showDiff, setShowDiff] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
+
     const [editedText, setEditedText] = useState((revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content);
+    const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
+
+    const changes = diffChars(originalText, editedText);
+    const hasOnlyAdditions = changes.every(change => !change.removed);
+    const [showDiff, setShowDiff] = useState(!hasOnlyAdditions);
+
+    const [isEditing, setIsEditing] = useState(false);
     const [tempEditText, setTempEditText] = useState(editedText);
 
-    const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
+    const [blurText, setBlurText] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -776,8 +782,6 @@ export function DiffView(
         setEditedText(tempEditText);
         setIsEditing(false);
     };
-
-    const changes = diffChars(originalText, editedText);
 
     return (
         <div className={`p-4 pb-2 rounded-lg border-2 shadow-md focus:outline-none ${className}`} style={style}
@@ -801,34 +805,37 @@ export function DiffView(
             }}>
             {changes.length > 0 && (
                 <div className="flex flex-col relative">
-                    {/* diff text */}
-                    <div className="flex flex-wrap mb-4">
+                    {/* 文本显示区域 */}
+                    <div className="mb-4">
                         {isEditing ? (
                             <textarea
-                                className="w-full whitespace-pre-wrap break-words min-h-[100px] p-2 rounded bg-[#F6F5F5] focus:outline-none resize-none"
+                                className="w-full min-h-[100px] p-2 rounded bg-[#F6F5F5] focus:outline-none resize-none"
                                 value={tempEditText}
                                 onChange={(e) => setTempEditText(e.target.value)}
                                 autoFocus
                             />
                         ) : (
-                            showDiff ? (
-                                changes.map((change, index) => (
-                                    <div key={index} className={`inline-block whitespace-pre-wrap break-words ${change.added ? 'bg-green-200' : change.removed ? 'bg-red-200 line-through text-gray-500' : ''}`}>
-                                        {change.value}
+                            <div className={`${blurText ? 'blur-sm' : ''}`}>
+                                {showDiff ? (
+                                    changes.map((change, index) => (
+                                        <span key={index} className={`${change.added ? 'bg-green-200' : change.removed ? 'bg-red-200 line-through text-gray-500' : ''}`}>
+                                            {change.value}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <div className="whitespace-pre-wrap break-words">
+                                        {editedText}
                                     </div>
-                                ))
-                            ) : (
-                                <div className="whitespace-pre-wrap break-words">
-                                    {editedText}
-                                </div>
-                            )
+                                )}
+                            </div>
                         )}
                     </div>
-                    {/* buttons */}
+                    {/* 按钮和其他控件 */}
                     <div className="flex flex-row justify-between items-center">
-                        {/* left side controls */}
+                        {/* 左侧控制项 */}
                         <div className="flex flex-row items-center">
-                            <span className="mr-2 text-sm text-gray-600">{t('Show Diff')}</span>
+                            {/* show diff */}
+                            <span className="mr-1 text-sm text-gray-600">{t('Show Diff')}</span>
                             <Switch
                                 checked={showDiff}
                                 onChange={setShowDiff}
@@ -837,16 +844,29 @@ export function DiffView(
                                 uncheckedIcon={false}
                                 checkedIcon={false}
                                 disabled={isEditing}
-                                className="mr-4"
+                                className="mr-2"
                                 onColor="#000000"
                             />
+                            {/* blur text */}
+                            <>
+                                <span className="mr-1 text-sm text-gray-600">{t('Blur Text')}</span>
+                                <Switch
+                                    checked={blurText}
+                                    onChange={setBlurText}
+                                    width={28}
+                                    height={17}
+                                    uncheckedIcon={false}
+                                    checkedIcon={false}
+                                    className="mr-2"
+                                    onColor="#000000"
+                                />
+                            </>
+                            {/* 编辑按钮 */}
                             {isEditing ? (
                                 <TmpFilledButton
                                     className="py-0 px-2 rounded-md text-[13px]"
                                     onClick={handleSave}
-                                >
-                                    {t('Save')}
-                                </TmpFilledButton>
+                                > {t('Save')}</TmpFilledButton>
                             ) : (
                                 <>
                                     <div id="edit-button" className="flex flex-row items-center">
@@ -871,7 +891,7 @@ export function DiffView(
                                 </>
                             )}
                         </div>
-                        {/* action buttons on the right */}
+                        {/* 右侧操作按钮 */}
                         <div className="flex flex-row">
                             <TmpFilledButton
                                 className="py-0 px-2 mr-2 rounded-md text-[13px]"

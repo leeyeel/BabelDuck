@@ -35,7 +35,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     const [inputHandlers, setInputHandlers] = useState<InputHandler[]>([])
     const chatIntelligenceRef = useRef<ChatIntelligence>()
 
-    const chatSettings: LocalChatSettings = loadChatSettings(chatID) // TODO remove duplicate load
+    const chatSettings: LocalChatSettings = loadChatSettings(chatID) // TODO tech-debt: remove duplicate load
 
     useEffect(() => {
         const messageList = loadChatByID(chatID)
@@ -44,6 +44,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         const chatSettings: LocalChatSettings = loadChatSettings(chatID)
         setInputHandlers(chatSettings.inputHandlers.filter((handler) => handler.display).map((handler) => handler.handler))
         const { type } = getChatIntelligenceSettingsByID(chatSettings.ChatISettings.id)
+        // TODO tech-debt: dynamic load from registry
         if (type === OpenAIChatIntelligence.type) {
             const settings = chatSettings.ChatISettings.settings as OpenAIChatISettings
             chatIntelligenceRef.current = new OpenAIChatIntelligence(settings.settingsType, settings.localSettings)
