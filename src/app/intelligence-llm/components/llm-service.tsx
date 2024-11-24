@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/Dropd
 import { useState } from "react";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton } from "@/app/ui-utils/components/button";
+import { IoMdInformationCircleOutline } from "react-icons/io";
 
 
 export interface LLMSettingsProps<T> {
@@ -39,12 +40,12 @@ export function OpenAICompatibleAPIServiceSettings({ settings: unTypedSettings, 
     const { t } = useTranslation();
 
     const [name, setName] = useState(settings.name);
-    const [baseURL, setBaseURL] = useState(settings.baseURL);
+    const [ChatURL, setChatURL] = useState(settings.URL);
     const [apiKey, setApiKey] = useState(settings.apiKey);
     const [chatCompletionModel, setChatCompletionModel] = useState(settings.chatCompletionModel);
 
     const [lastTimeSavedSettings, setLastTimeSavedSettings] = useState(settings);
-    const settingsChanged: boolean = lastTimeSavedSettings.baseURL !== baseURL
+    const settingsChanged: boolean = lastTimeSavedSettings.URL !== ChatURL
         || lastTimeSavedSettings.apiKey !== apiKey
         || lastTimeSavedSettings.name !== name
         || lastTimeSavedSettings.chatCompletionModel !== chatCompletionModel;
@@ -53,31 +54,35 @@ export function OpenAICompatibleAPIServiceSettings({ settings: unTypedSettings, 
         {/* name */}
         <div className="flex flex-col mb-8">
             <span className="text-gray-700 font-bold mb-2">{t('Name')}</span>
-            <input 
-                type="text" 
+            <input
+                type="text"
                 placeholder="Service Name"
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={name} 
-                onChange={e => setName(e.target.value)} 
+                value={name}
+                onChange={e => setName(e.target.value)}
             />
         </div>
         {/* model */}
         <div className="flex flex-col mb-8">
             <span className="text-gray-700 font-bold mb-2">{t('Model-Single-Form')}</span>
-            <input 
-                type="text" 
+            <input
+                type="text"
                 placeholder="gpt-3.5-turbo"
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={chatCompletionModel} 
-                onChange={e => setChatCompletionModel(e.target.value)} 
+                value={chatCompletionModel}
+                onChange={e => setChatCompletionModel(e.target.value)}
             />
         </div>
         {/* base url */}
         <div className="mb-8 flex flex-col">
-            <span className="text-gray-700 font-bold mb-2">{t('baseURL')}</span>
-            <input type="text" id="base-url" placeholder="https://api.openai.com"
+            <span className="text-gray-700 font-bold mb-2">{'URL'}</span>
+            <div className="flex flex-row items-center mb-2 text-sm text-gray-400">
+                <IoMdInformationCircleOutline size={14} className="mr-1" />
+                <span>{t('Please enter the complete URL including the path')}</span>
+            </div>
+            <input type="text" id="base-url" placeholder="https://api.openai.com/v1/chat/completions"
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={baseURL} onChange={e => setBaseURL(e.target.value)} />
+                value={ChatURL} onChange={e => setChatURL(e.target.value)} />
         </div>
         {/* api key */}
         <div className="mb-8 flex flex-col">
@@ -92,9 +97,9 @@ export function OpenAICompatibleAPIServiceSettings({ settings: unTypedSettings, 
             onClick={() => {
                 const newSettings = {
                     name,
-                    baseURL, 
-                    apiKey, 
-                    chatCompletionModel 
+                    URL: ChatURL,
+                    apiKey,
+                    chatCompletionModel
                 };
                 setLastTimeSavedSettings(newSettings);
                 updateSettings(newSettings)
@@ -108,7 +113,7 @@ export function OpenAIServiceSettings({ settings: unTypedSettings, updateSetting
     const settings = unTypedSettings as OpenAISettings;
     const { t } = useTranslation();
 
-    const [baseURL, setBaseURL] = useState(settings.baseURL);
+    const [chatURL, setChatURL] = useState(settings.URL);
     const [apiKey, setApiKey] = useState(settings.apiKey);
     const [chatCompletionModel, setChatCompletionModel] = useState(settings.chatCompletionModel);
 
@@ -116,7 +121,7 @@ export function OpenAIServiceSettings({ settings: unTypedSettings, updateSetting
     const toggleModelDropdown = () => setShowModelDropdown(!showModelDropdown);
 
     const [lastTimeSavedSettings, setLastTimeSavedSettings] = useState(settings);
-    const settingsChanged: boolean = lastTimeSavedSettings.baseURL !== baseURL
+    const settingsChanged: boolean = lastTimeSavedSettings.URL !== chatURL
         || lastTimeSavedSettings.apiKey !== apiKey
         || lastTimeSavedSettings.chatCompletionModel !== chatCompletionModel;
 
@@ -137,10 +142,14 @@ export function OpenAIServiceSettings({ settings: unTypedSettings, updateSetting
         </div>
         {/* base url */}
         <div className="mb-8 flex flex-col">
-            <span className="text-gray-700 font-bold mb-2">{t('baseURL')}</span>
-            <input type="text" id="base-url" placeholder="https://api.openai.com"
+            <span className="text-gray-700 font-bold mb-2">{'URL'}</span>
+            <div className="flex flex-row items-center mb-2 text-sm text-gray-400">
+                <IoMdInformationCircleOutline size={14} className="mr-1" />
+                <span>{t('Please enter the complete URL including the path')}</span>
+            </div>
+            <input type="text" id="base-url" placeholder="https://api.openai.com/v1/chat/completions"
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={baseURL} onChange={e => setBaseURL(e.target.value)} />
+                value={chatURL} onChange={e => setChatURL(e.target.value)} />
         </div>
         {/* api key */}
         <div className="mb-8 flex flex-col">
@@ -153,8 +162,8 @@ export function OpenAIServiceSettings({ settings: unTypedSettings, updateSetting
         {settingsChanged && <FilledButton
             className="w-fit self-end"
             onClick={() => {
-                setLastTimeSavedSettings({ baseURL, apiKey, chatCompletionModel });
-                updateSettings({ baseURL, apiKey, chatCompletionModel })
+                setLastTimeSavedSettings({ URL: chatURL, apiKey, chatCompletionModel });
+                updateSettings({ URL: chatURL, apiKey, chatCompletionModel })
             }}>
             {t('Save')}
         </FilledButton>}
@@ -165,12 +174,12 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
     const settings = unTypedSettings as OpenAISettings;
     const { t } = useTranslation();
 
-    const [baseURL, setBaseURL] = useState(settings.baseURL);
+    const [chatURL, setChatURL] = useState(settings.URL);
     const [apiKey, setApiKey] = useState(settings.apiKey);
     const [chatCompletionModel, setChatCompletionModel] = useState(settings.chatCompletionModel);
 
     const [lastTimeSavedSettings, setLastTimeSavedSettings] = useState(settings);
-    const settingsChanged: boolean = lastTimeSavedSettings.baseURL !== baseURL
+    const settingsChanged: boolean = lastTimeSavedSettings.URL !== chatURL
         || lastTimeSavedSettings.apiKey !== apiKey
         || lastTimeSavedSettings.chatCompletionModel !== chatCompletionModel;
 
@@ -178,20 +187,24 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
         {/* model */}
         <div className="flex flex-col mb-8">
             <span className="text-gray-700 font-bold mb-2">{t('Model-Single-Form')}</span>
-            <input 
-                type="text" 
+            <input
+                type="text"
                 placeholder="gpt-3.5-turbo"
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={chatCompletionModel} 
-                onChange={e => setChatCompletionModel(e.target.value)} 
+                value={chatCompletionModel}
+                onChange={e => setChatCompletionModel(e.target.value)}
             />
         </div>
         {/* base url */}
         <div className="mb-8 flex flex-col">
-            <span className="text-gray-700 font-bold mb-2">{t('baseURL')}</span>
-            <input type="text" id="base-url" placeholder={SiliconFlowService.defaultHost}
+            <span className="text-gray-700 font-bold mb-2">{'URL'}</span>
+            <div className="flex flex-row items-center mb-2 text-sm text-gray-400">
+                <IoMdInformationCircleOutline size={14} className="mr-1" />
+                <span>{t('Please enter the complete URL including the path')}</span>
+            </div>
+            <input type="text" id="base-url" placeholder={SiliconFlowService.defaultChatCompletionURL}
                 className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={baseURL} onChange={e => setBaseURL(e.target.value)} />
+                value={chatURL} onChange={e => setChatURL(e.target.value)} />
         </div>
         {/* api key */}
         <div className="mb-8 flex flex-col">
@@ -204,8 +217,8 @@ export function SiliconFlowServiceSettings({ settings: unTypedSettings, updateSe
         {settingsChanged && <FilledButton
             className="w-fit self-end"
             onClick={() => {
-                setLastTimeSavedSettings({ baseURL, apiKey, chatCompletionModel });
-                updateSettings({ baseURL, apiKey, chatCompletionModel })
+                setLastTimeSavedSettings({ URL: chatURL, apiKey, chatCompletionModel });
+                updateSettings({ URL: chatURL, apiKey, chatCompletionModel })
             }}>
             {t('Save')}
         </FilledButton>}
