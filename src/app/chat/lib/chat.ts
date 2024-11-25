@@ -59,28 +59,64 @@ export type LocalChatSettings = {
 } & ChatSettings
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// read chat settings, if not found, create from global settings
 export function loadChatSettings(chatID: string): LocalChatSettings {
 
-    const globalSettings = loadGlobalChatSettings()
-    return { usingGlobalSettings: true, ...globalSettings }
-    // // check if the chat is using global settings
-    // const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
-    // if (!chatMetadataJSON) {
-    //     return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
-    // }
-    // // if so, return global settings
-    // const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
-    // if (chatMetadata.usingGlobalSettings) {
-    //     return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
-    // }
-    // // if not, return the chat local settings
-    // const chatSettings = _loadChatSettingsData(`chatSettings_${chatID}`);
-    // if (!chatSettings) {
-    //     // TODO save the missing chat local settings
-    //     return { usingGlobalSettings: false, ...loadGlobalChatSettings() };
-    // }
-    // return { usingGlobalSettings: false, ...chatSettings };
+    // check if the chat is using global settings
+    const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
+    if (!chatMetadataJSON) {
+        return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
+    }
+    // if so, return global settings
+    const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
+    if (chatMetadata.usingGlobalSettings) {
+        return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
+    }
+    // if not, return the chat local settings
+    const rawChatSettings = loadChatSettingsData(`chatSettings_${chatID}`);
+    if (!rawChatSettings) {
+        const globalSettings = loadGlobalChatSettings()
+        localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: globalSettings.inputHandlers.map((handler) => ({
+                payload: handler.handler.serialize(),
+                display: handler.display
+            })),
+            ...globalSettings
+        });
+        return { usingGlobalSettings: false, ...globalSettings };
+    }
+    // TODO tech-dept: ts 类型检查不够严格，rawInputHandlers 被传递到 LocalChatSettings 中也没有报错，看下有什么办法可以解决
+    const { rawInputHandlers, ...rest } = rawChatSettings
+    return {
+        usingGlobalSettings: false,
+        ...rest,
+        inputHandlers: rawInputHandlers.map((rawHandler) => ({
+            handler: InputHandler.deserialize(rawHandler.payload),
+            display: rawHandler.display
+    })) };
+}
+
+export function switchToGlobalChatSettings(chatID: string): void {
+    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: true }));
+}
+
+export function switchToLocalChatSettings(chatID: string): void {
+    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
+}
+
+// mark the chat as using local settings and save the settings
+export function setLocalChatSettings(chatID: string, chatSettings: ChatSettings): void {
+    // TODO tech-debt: move to chat-persistence.ts
+    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
+    const { inputHandlers, ...rest } = chatSettings // exclude unserializable `inputHandlers` from the settings
+    setChatSettingsData(`chatSettings_${chatID}`, {
+        rawInputHandlers: inputHandlers.map((handler) => ({
+            payload: handler.handler.serialize(),
+            display: handler.display
+        })),
+        ...rest
+    });
 }
 
 export const defaultGlobalChatSettings: ChatSettings = {

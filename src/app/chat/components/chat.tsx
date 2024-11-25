@@ -14,6 +14,8 @@ import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { LuSettings } from "react-icons/lu";
+import { LocalChatSettingsComponent } from "@/app/settings/components/settings";
 
 export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
 
@@ -24,6 +26,8 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     className?: string;
 }) {
     const { t } = useTranslation();
+
+    const [showSettings, setShowSettings] = useState(false);
 
     const [messageListStack, updateMessageListStack] = useImmer<Message[][]>([])
     const isTopLevel = messageListStack.length <= 1
@@ -178,12 +182,26 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
     return <div className={`flex flex-col items-center rounded-lg pb-4 ${className}`}>
         {/* top bar */}
-        <div className="flex flex-row self-start justify-start mb-12 mt-6">
+        <div className="flex flex-row self-start justify-start items-center mb-12 mt-6">
             {/* Chat title */}
-            <div className="flex flex-row items-center ml-12">
+            <div className="flex flex-row items-center ml-12 mr-2">
                 <SiTheconversation className="mr-3 relative top-[1.5px]" />
                 <div className={`font-bold text-xl text-[#5f5f5f]`}>{chatTitle}</div>
             </div>
+            {/* Chat Settings entry */}
+            <LuSettings className="cursor-pointer" color="#898989" size={15}
+                onClick={() => setShowSettings(true)} />
+            {showSettings && chatSettings !== undefined &&
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div
+                        className="absolute inset-0 bg-black opacity-50"
+                        onClick={() => setShowSettings(false)}
+                    ></div>
+                    <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl h-[90vh] flex flex-col p-6 pr-8">
+                        <LocalChatSettingsComponent chatID={chatID} chatSettings={chatSettings} />
+                    </div>
+                </div>
+            }
         </div>
 
         <ChatSettingsContext.Provider value={chatSettings ?? null}>

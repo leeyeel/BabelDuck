@@ -17,6 +17,7 @@ BabelDuck is a highly customizable AI conversation practice application designed
 - Integration with multiple LLM AI services with seamless switching
 - Local data storage to ensure user data privacy and security
 - Multilingual interface
+- Support individual preference settings for different chats
 
 ### 🛠️ Deployment
 

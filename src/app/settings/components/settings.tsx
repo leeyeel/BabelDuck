@@ -8,7 +8,7 @@ import i18n, { i18nText, I18nText } from '../../i18n/i18n';
 import { DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
 import { addCustomLLMServiceSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
-import { ChatSettings, loadGlobalChatSettings, setGlobalChatSettings } from "@/app/chat/lib/chat";
+import { ChatSettings, loadChatSettings, loadGlobalChatSettings, LocalChatSettings, setGlobalChatSettings, setLocalChatSettings, switchToGlobalChatSettings, switchToLocalChatSettings } from "@/app/chat/lib/chat";
 import { BabelDuckChatIntelligence, CustomLLMChatIntelligence, FreeTrialChatIntelligence, getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { InputHandler } from "@/app/chat/components/input-handlers";
 import { BabelDuckChatISettings, CustomLLMChatISettings, FreeTrialChatISettings, OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
@@ -172,9 +172,72 @@ function GlobalChatSettings() {
         setChatSettings(newChatSettings)
         setGlobalChatSettings(newChatSettings)
         if (currentChatID !== undefined && currentChatSettings !== undefined) {
-            // TODO feat: local chat settings
+            const localChatSettings = loadChatSettings(currentChatID)
+            // only when the current chat is using global settings, then update redux states
+            if (localChatSettings.usingGlobalSettings) {
+                dispatch(setCurrentChatSettings({
+                    chatID: currentChatID,
+                    chatSettings: {
+                        ...newChatSettings,
+                        usingGlobalSettings: true,
+                        inputHandlers: newChatSettings.inputHandlers.map((handler) => ({
+                            handler: handler.handler.serialize(),
+                            display: handler.display
+                        }))
+                    }
+                }))
+            }
+        }
+    }} />
+}
+
+export function LocalChatSettingsComponent({ chatID, chatSettings }: {
+    chatID: string,
+    chatSettings: LocalChatSettings,
+}) {
+    const { t } = useTranslation();
+    const dispatch = useAppDispatch()
+
+    // if no local chat settings have been set up for this chat before, then create one
+    // otherwise, switch back to the existing local chat settings
+    function createOrSwitchBackToLocalChatSettings() {
+        switchToLocalChatSettings(chatID)
+        const localChatSettings = loadChatSettings(chatID)
+        dispatch(setCurrentChatSettings({
+            chatID: chatID,
+            chatSettings: {
+                ...localChatSettings,
+                usingGlobalSettings: false,
+                inputHandlers: localChatSettings.inputHandlers.map((handler) => ({
+                    handler: handler.handler.serialize(),
+                    display: handler.display
+                })),
+            }
+        }))
+    }
+
+    function _switchToGlobalChatSettings() {
+        switchToGlobalChatSettings(chatID)
+        const globalChatSettings = loadGlobalChatSettings()
+        dispatch(setCurrentChatSettings({
+            chatID: chatID,
+            chatSettings: {
+                usingGlobalSettings: true,
+                ...globalChatSettings,
+                inputHandlers: globalChatSettings.inputHandlers.map((handler) => ({
+                    handler: handler.handler.serialize(),
+                    display: handler.display
+                })),
+            }
+        }))
+    }
+
+    function updateChatSettings(newChatSettings: ChatSettings) {
+        if (chatSettings.usingGlobalSettings) {
+            // if using global settings, then update the global settings
+            setGlobalChatSettings(newChatSettings)
             dispatch(setCurrentChatSettings({
-                chatID: currentChatID,
+                chatID: chatID,
                 chatSettings: {
                     ...newChatSettings,
                     usingGlobalSettings: true,
@@ -184,8 +247,48 @@ function GlobalChatSettings() {
                     }))
                 }
             }))
+        } else {
+            // if using local settings, then update the local settings
+            setLocalChatSettings(chatID, newChatSettings)
+            dispatch(setCurrentChatSettings({
+                chatID: chatID,
+                chatSettings: {
+                    ...newChatSettings,
+                    usingGlobalSettings: false,
+                    inputHandlers: newChatSettings.inputHandlers.map((handler) => ({
+                        handler: handler.handler.serialize(),
+                        display: handler.display
+                    })),
+                }
+            }))
         }
-    }} />
+    }
+
+    return <div className="flex flex-col">
+        <div className="flex flex-col mb-8">
+            {/* switch for setting whether to use global settings */}
+            <div className="flex flex-row items-center justify-between mb-2">
+                <span className="text-gray-700 font-bold">{t('useGlobalSettings')}</span>
+                <Switch className={`mr-3`} width={28} height={17} uncheckedIcon={false} checkedIcon={false} onColor="#000000"
+                    checked={chatSettings.usingGlobalSettings} onChange={(checked) => {
+                        if (checked) {
+                            _switchToGlobalChatSettings()
+                        } else {
+                            createOrSwitchBackToLocalChatSettings()
+                        }
+                    }} />
+            </div>
+            {/* description */}
+            <div className="flex flex-row items-start">
+                <IoMdInformationCircleOutline size={16} className="text-gray-400 mr-1 mt-1" />
+                {chatSettings.usingGlobalSettings ?
+                    <span className="text-gray-400 text-sm">{t('globalSettingsDescription.enabled')}</span> :
+                    <span className="text-gray-400 text-sm">{t('globalSettingsDescription.disabled')}</span>
+                }
+            </div>
+        </div>
+        <CommonChatSettings chatSettings={chatSettings} updateChatSettings={updateChatSettings} />
+    </div>
 }
 
 // TODO documentation for naming abbreviations
