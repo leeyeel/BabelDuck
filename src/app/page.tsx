@@ -1,9 +1,9 @@
 "use client"
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
-import { ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
-import { useAppSelector } from "./hooks";
+import { addNewChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
+import { AddNewChat, defaultGlobalChatSettings, getNextChatCounter, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
+import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
 import { Overlay } from "./ui-utils/components/overlay";
@@ -16,6 +16,8 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { GrammarCheckingHandler, RespGenerationHandler, TranslationHandler } from "./chat/components/input-handlers";
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
+import { SystemMessage } from "./chat/components/message";
+import { FreeTrialChatIntelligence } from "./intelligence-llm/lib/intelligence";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -96,6 +98,7 @@ function AboutLink() {
 
 function InitializationPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [selectedPracticeLanguage, setSelectedPracticeLanguage] = useState('en');
@@ -122,18 +125,39 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     setShowPracticeDropdown(false);
   };
 
+  const handlers = [
+    new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]),
+    new RespGenerationHandler(),
+    new GrammarCheckingHandler()
+  ]
+
   const handleConfirm = () => {
     i18n.changeLanguage(selectedLanguage);
     localStorage.setItem('languageSetup', 'true');
     localStorage.setItem('selectedLanguage', selectedLanguage);
     setGlobalChatSettings({
       ...defaultGlobalChatSettings,
-      inputHandlers: [
-        { handler: new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]), display: true },
-        { handler: new RespGenerationHandler(), display: true },
-        { handler: new GrammarCheckingHandler(), display: true }
-      ]
+      inputHandlers: handlers.map((handler) => ({ handler, display: true }))
     });
+    const counter = getNextChatCounter();
+    const newChatSelection = AddNewChat(
+      t('Chat {{number}}', { number: counter }),
+      [new SystemMessage("You're a helpful assistant.")],
+      {
+        usingGlobalSettings: false,
+        inputHandlers: handlers.map((handler) => ({ handler, display: true })),
+        autoPlayAudio: false,
+        inputComponent: {
+          type: 'textInput',
+          payload: {}
+        },
+        ChatISettings: {
+          id: FreeTrialChatIntelligence.id, // TODO tech-debt: need to deal with the situation where the counterpart chatI doesn't exist
+          settings: {}
+        }
+      }
+    );
+    dispatch(addNewChat(newChatSelection.chatSelection));
     onClose();
   };
 
@@ -239,13 +263,13 @@ export default function Home() {
     }
   }, []);
 
-  const closeInitializationPanel = () => {
+  const finishInitialization = () => {
     setShowInitializationPanel(false);
   };
 
   return (
     <div className="flex flex-row h-full w-full">
-      {showInitializationPanel && <InitializationPanel onClose={closeInitializationPanel} />}
+      {showInitializationPanel && <InitializationPanel onClose={finishInitialization} />}
       {/* sidebar */}
       <div className="flex px-2 pb-12 pt-4 flex-col w-[250px] bg-[#F9F9F9]">
         {/* logo */}

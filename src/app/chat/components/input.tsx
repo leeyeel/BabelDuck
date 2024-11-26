@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useContext } from "react";
 import { FaBackspace, FaMicrophone } from "react-icons/fa";
 import { LuSettings, LuUserCog2 } from "react-icons/lu";
 import { Audio, Oval } from "react-loader-spinner";
-import { messageAddedCallbackOptions } from "./chat";
+import { ChatSettingsContext, messageAddedCallbackOptions } from "./chat";
 import { IconCircleWrapper, SpecialRoles, TextMessage } from "./message";
 import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
@@ -225,7 +225,7 @@ export function MessageInput({
     msgListSwitchSignal: MsgListSwitchSignal,
     className?: string;
 }) {
-
+    const { t } = useTranslation();
     const [compState, setCompState] = useState<MessageInputState>({ type: 'init' });
 
     const isNormal = compState.type === 'normal';
@@ -337,9 +337,8 @@ export function MessageInput({
         // }
         return 170; // by default
     }
-
-    const { t } = useTranslation();
-
+    const chatSettings = useContext(ChatSettingsContext)
+    const inputComponentType = chatSettings?.inputComponent.type
     return <div className={`flex flex-col relative border rounded-2xl py-2 px-2 ${className}`}
         onKeyDown={(e) => {
             inputHandlers.forEach((handler, i) => {
@@ -419,13 +418,15 @@ export function MessageInput({
                     startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
                 }} />}
         {/* message input area */}
-        <TextInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
+        {inputComponentType === 'textInput' && <TextInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
             addMessage={addMesssage} updateMessage={updateMessage}
-            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />
+            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
     </div>;
 }
 
 let enableVoiceModeShortcutTimer: NodeJS.Timeout
+
+export const inputComponentType = 'textInput'
 
 function TextInput(
     { allowEdit, msgListSwitchSignal, addMessage, updateMessage, revisionMessage }: {

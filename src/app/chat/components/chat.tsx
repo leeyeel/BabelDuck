@@ -231,6 +231,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
                 }
             </div>
+            {/* input */}
             <MessageInput addInputHandler={(handler) => {
                 updateInputHandlerInLocalStorage(chatID, inputHandlers?.length ?? 0, handler)
             }} className="w-4/5"

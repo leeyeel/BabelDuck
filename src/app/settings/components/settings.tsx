@@ -354,6 +354,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             },
             inputHandlers: chatSettings.inputHandlers,
             autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent,
         })
     }
     function updateSelectedChatISettings(newChatIsettings: object) {
@@ -364,6 +365,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             },
             inputHandlers: chatSettings.inputHandlers,
             autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent,
         })
     }
 

@@ -4,6 +4,10 @@ export type ChatSettingsStoreRecord = {
     ChatISettings: {
         id: string
         settings: object
+    },
+    inputComponent: {
+        type: string,
+        payload: object
     }
 }
 
