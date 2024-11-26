@@ -23,6 +23,9 @@ const I18nProvider = dynamic(() => import('./i18n/I18nProvider'), { ssr: false }
 export const metadata: Metadata = {
   title: "BabelDuck",
   description: "A beginner-friendly AI-powered conversation practice application for language learners of all proficiency levels.",
+  icons: {
+    icon: '/images/favicon.png'
+  }
 };
 
 export default function RootLayout({

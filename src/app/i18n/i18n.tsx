@@ -125,6 +125,8 @@ i18n
                     'useGlobalSettings': 'Use Global Chat Settings',
                     'globalSettingsDescription.enabled': 'Current chat settings will be synchronized with global settings. Changes made here will affect all chats using global settings.',
                     'globalSettingsDescription.disabled': 'Global settings are disabled. Changes made here will only affect the current chat.',
+                    'logoAttribution': 'Duck icons designed by Freepik - Flaticon',
+                    'viewOnGitHub': 'View on GitHub',
                 }
             },
             zh: {
@@ -232,6 +234,8 @@ i18n
                     'useGlobalSettings': '使用全局对话设置',
                     'globalSettingsDescription.enabled': '当前对话的设置将与全局设置保持一致，对当前设置的修改会同步到全局对话设置中，其他使用全局设置的对话也会应用这些修改',
                     'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设置的修改仅对当前对话生效',
+                    'logoAttribution': 'Duck 图标由 Freepik - Flaticon 设计',
+                    'viewOnGitHub': '在 GitHub 上查看',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -341,6 +345,8 @@ i18n
                     'useGlobalSettings': 'グローバル設定を使用',
                     'globalSettingsDescription.enabled': '現在のチャット設定はグローバル設定と同期されます。ここでの変更は、グローバル設定を使用する全てのチャットに影響します。',
                     'globalSettingsDescription.disabled': 'グローバル設定は無効になっています。ここでの変更は現在のチャットにのみ影響します。',
+                    'logoAttribution': 'Duck アイコンは Freepik - Flaticon によってデザインされました',
+                    'viewOnGitHub': 'GitHub で見る',
                 }
             }
         }

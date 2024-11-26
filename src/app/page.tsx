@@ -14,14 +14,83 @@ import { DropdownMenu, DropdownMenuEntry } from "./ui-utils/components/DropdownM
 import { TransparentOverlay } from "./ui-utils/components/overlay";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { GrammarCheckingHandler, RespGenerationHandler, TranslationHandler } from "./chat/components/input-handlers";
+import Image from 'next/image';
+import { FaGithub } from "react-icons/fa";
+
+function AboutPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        {/* semi-transparent mask */}
+        <div className="absolute inset-0 bg-black opacity-50"
+          onClick={onClose}
+        ></div>
+        {/* about panel */}
+        <div className="bg-white rounded-2xl z-10 w-[500px] p-6">
+          <div className="flex flex-col items-center">
+            {/* Logo and Title */}
+            <div className="flex flex-row items-center mb-1">
+              <Image
+                src="/images/babel-duck-logo.png"
+                alt="BabelDuck Logo"
+                width={48}
+                height={48}
+                className="mr-4"
+              />
+              <span className="text-2xl font-bold text-gray-800">BabelDuck</span>
+            </div>
+            {/* Logo Attribution */}
+            <div className="text-sm text-gray-400 mb-6">
+              <a
+                href="https://www.flaticon.com/free-icon/duck_1635803?related_id=1635905"
+                title="duck icons"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-500"
+              >
+                {t('logoAttribution')}
+              </a>
+            </div>
+
+            {/* GitHub Link */}
+            <a
+              href="https://github.com/Orenoid/BabelDuck"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="no-underline"
+            >
+              <FilledButton className="flex items-center space-x-2"
+                onClick={() => { }}>
+                <FaGithub size={20} />
+                <span>{t('viewOnGitHub')}</span>
+              </FilledButton>
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 function AboutLink() {
   const { t } = useTranslation();
+  const [showAboutPanel, setShowAboutPanel] = useState(false);
+
   return (
-    <a href="https://github.com/Orenoid/BabelDuck" target="_blank" rel="noopener noreferrer" className="flex flex-row py-2 pl-3 items-center cursor-pointer rounded-md hover:bg-gray-200">
-      <LuInfo className="mr-3" />
-      <span>{t('About')}</span>
-    </a>
+    <>
+      <div
+        onClick={() => setShowAboutPanel(true)}
+        className="flex flex-row py-2 pl-3 items-center cursor-pointer rounded-md hover:bg-gray-200"
+      >
+        <LuInfo className="mr-3" />
+        <span>{t('About')}</span>
+      </div>
+      {showAboutPanel && (
+        <AboutPanel onClose={() => { setShowAboutPanel(false); console.log('close about panel') }} />
+      )}
+    </>
   );
 }
 
@@ -178,10 +247,20 @@ export default function Home() {
     <div className="flex flex-row h-full w-full">
       {showInitializationPanel && <InitializationPanel onClose={closeInitializationPanel} />}
       {/* sidebar */}
-      <div className="flex px-2 pb-12 flex-col w-[250px] bg-[#F9F9F9]">
-        <ChatSelectionList className="mt-12 flex-1 overflow-y-auto w-[250px]"
+      <div className="flex px-2 pb-12 pt-4 flex-col w-[250px] bg-[#F9F9F9]">
+        {/* logo */}
+        <div className="flex flex-row pl-4 items-center justify-start">
+          <Image
+            src="/images/babel-duck-logo.png" alt="BabelDuck Logo"
+            width={36} height={36} className="mr-3"
+          />
+          <span className="text-gray-600 text-2xl">BabelDuck</span>
+        </div>
+        {/* chat  */}
+        <ChatSelectionList className="mt-8 flex-1 overflow-y-auto w-[250px]"
           chatSelectionListLoader={loadChatSelectionList} />
         <div className="border-t border-gray-300 my-5 mx-3"></div>
+        {/* settings, odds and ends */}
         <div className="flex flex-col">
           <NewChat className="mb-1" />
           <SettingsEntry />
