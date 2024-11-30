@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "@/app/ui-utils/components/DropdownMenu";
 import { TbPencil } from "react-icons/tb";
 import { PiTrashBold } from "react-icons/pi";
+import { TutorialMessage1 } from "./tutorial-message";
 
 
 export function ChatSelectionList({ chatSelectionListLoader, className = "" }: {
@@ -57,7 +58,8 @@ export function NewChat({ className = "" }: {
         const counter = getNextChatCounter();
         const chatTitle = t('Chat {{number}}', { number: counter });
         const chatSelection = AddNewChat(chatTitle, [
-            new SystemMessage("You're a helpful assistant.")
+            new SystemMessage("You're a helpful assistant."),
+            // new TutorialMessage() // TODO remove
         ]);
         dispatch(addNewChat(chatSelection.chatSelection));
     };

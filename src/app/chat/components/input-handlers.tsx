@@ -4,7 +4,7 @@ import { FaSpellCheck } from "react-icons/fa";
 import { useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Tooltip } from "react-tooltip";
-import { Overlay } from "@/app/ui-utils/components/overlay";
+import { SemiTransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton, TransparentButton } from "@/app/ui-utils/components/button";
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
@@ -74,8 +74,8 @@ type InputHandlerSettingsPanel = ({ }: {
 export class TranslationHandler extends InputHandler {
     targetLanguage: string;
 
-    constructor(targetLanguage: string) {
-        super('translation', InputHandlerTypes.Revision, false);
+    constructor(targetLanguage: string, implType: string = 'translation', deletable: boolean = false) {
+        super(implType, InputHandlerTypes.Revision, deletable);
         this.targetLanguage = targetLanguage;
         this.iconNode = <MdGTranslate size={20} />;
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'k' && (e.metaKey || e.ctrlKey);
@@ -89,7 +89,7 @@ export class TranslationHandler extends InputHandler {
         return `Translate it into ${this.targetLanguage} to express the same meaning.`;
     }
 
-    settingsPanel(): InputHandlerSettingsPanel {
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
             const { t } = useTranslation();
 
@@ -127,6 +127,22 @@ export class TranslationHandler extends InputHandler {
     static deserialize(serialized: string): TranslationHandler {
         const { targetLanguage } = JSON.parse(serialized);
         return new TranslationHandler(targetLanguage);
+    }
+}
+
+export class TutorialTranslationHandler extends TranslationHandler {
+    constructor(targetLanguage: string) {
+        super(targetLanguage, 'tutorialTranslation', false);
+    }
+    instruction(): string {
+        return `Whatever the input is, just convert it into: "That's a lot of information. I'll summarize it later.". This is for testing, just give this output. [magic-hack-code: 7m1WTDpAuhttWRPfF5LPV0Tgktw7]`;
+    }
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
+        return undefined;
+    }
+    static deserialize(serialized: string): TutorialTranslationHandler {
+        const { targetLanguage } = JSON.parse(serialized);
+        return new TutorialTranslationHandler(targetLanguage);
     }
 }
 
@@ -413,6 +429,7 @@ inputHandlerHub.registerHandler('respGeneration', RespGenerationHandler.deserial
 inputHandlerHub.registerHandler('grammarChecking', GrammarCheckingHandler.deserialize);
 inputHandlerHub.registerHandler('commonGeneration', CommonGenerationHandler.deserialize);
 inputHandlerHub.registerHandler('commonRevision', CommonRevisionHandler.deserialize);
+inputHandlerHub.registerHandler('tutorialTranslation', TutorialTranslationHandler.deserialize);
 
 export function CustomInputHandlerCreator({
     cancelCallback,
@@ -435,7 +452,7 @@ export function CustomInputHandlerCreator({
 
     return (
         <>
-            <Overlay onClick={cancelCallback} />
+            <SemiTransparentOverlay onClick={cancelCallback} />
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 w-[600px] h-auto">
                 <h2 className="text-2xl font-bold mb-8">{t('customInstruction')}</h2>
                 <div className="mb-4">

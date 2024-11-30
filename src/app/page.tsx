@@ -6,7 +6,7 @@ import { AddNewChat, defaultGlobalChatSettings, getNextChatCounter, loadChatMess
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
-import { Overlay } from "./ui-utils/components/overlay";
+import { SemiTransparentOverlay } from "./ui-utils/components/overlay";
 import { useState, useEffect } from 'react';
 import i18n from './i18n/i18n';
 import { FilledButton } from "./ui-utils/components/button";
@@ -17,7 +17,9 @@ import { GrammarCheckingHandler, RespGenerationHandler, TranslationHandler } fro
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
 import { SystemMessage } from "./chat/components/message";
-import { FreeTrialChatIntelligence } from "./intelligence-llm/lib/intelligence";
+import { FreeTrialChatIntelligence, TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
+import { NextStepTutorialMessage, TutorialMessage1 } from "./chat/components/tutorial-message";
+import { TutorialStateIDs } from "./chat/components/tutorial-input";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -127,8 +129,8 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
 
   const handlers = [
     new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]),
+    new GrammarCheckingHandler(),
     new RespGenerationHandler(),
-    new GrammarCheckingHandler()
   ]
 
   const handleConfirm = () => {
@@ -140,19 +142,22 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
       inputHandlers: handlers.map((handler) => ({ handler, display: true }))
     });
     const counter = getNextChatCounter();
+    // add the tutorial chat
     const newChatSelection = AddNewChat(
-      t('Chat {{number}}', { number: counter }),
-      [new SystemMessage("You're a helpful assistant.")],
+      t('Tutorial'),
+      [new NextStepTutorialMessage(TutorialStateIDs.introduction, TutorialStateIDs.introduceQuickTranslationInstructions)],
       {
         usingGlobalSettings: false,
-        inputHandlers: handlers.map((handler) => ({ handler, display: true })),
+        inputHandlers: [],
         autoPlayAudio: false,
         inputComponent: {
-          type: 'textInput',
-          payload: {}
+          type: 'tutorialInput',
+          payload: {
+            stateID: TutorialStateIDs.introduction
+          }
         },
         ChatISettings: {
-          id: FreeTrialChatIntelligence.id, // TODO tech-debt: need to deal with the situation where the counterpart chatI doesn't exist
+          id: TutorialChatIntelligence.id, // TODO tech-debt: need to deal with the situation where the counterpart chatI doesn't exist
           settings: {}
         }
       }
@@ -163,7 +168,7 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <Overlay onClick={onClose} />
+      <SemiTransparentOverlay onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl max-h-screen overflow-y-auto custom-scrollbar p-8">
           <div className="flex flex-col">
@@ -174,30 +179,46 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
             </div>
             {/* Welcome message */}
             <div className="flex flex-col items-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('Welcome to BabelDuck')}</h2>
+              {/* Logo and Title */}
+              <div className="flex flex-row items-center mb-2">
+                <Image
+                  src="/images/babel-duck-logo.png"
+                  alt="BabelDuck Logo"
+                  width={36}
+                  height={36}
+                  className="mr-3"
+                />
+                <h2 className="text-2xl font-bold text-gray-800">{t('Welcome to BabelDuck')}</h2>
+              </div>
               <p className="text-gray-400 mb-12">{t('welcomeMessage')}</p>
               <p className="text-gray-600 self-start mb-4">{t('Please set up your preferences to get started')}</p>
             </div>
             {/* Interface language selection */}
-            <div className="flex flex-row items-center justify-between relative mb-8">
-              <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
-              <div className="relative">
-                <DropdownMenuEntry
-                  label={nativeLanguageNames[selectedLanguage as keyof typeof nativeLanguageNames]}
-                  onClick={() => setShowLanguageDropdown(true)}
-                />
-                {showLanguageDropdown && (
-                  <>
-                    <DropdownMenu
-                      className="absolute right-0 top-full"
-                      menuItems={supportedLanguages.map(lang => ({
-                        label: nativeLanguageNames[lang as keyof typeof nativeLanguageNames],
-                        onClick: () => handleLanguageChange(lang)
-                      }))}
-                    />
-                    <TransparentOverlay onClick={() => setShowLanguageDropdown(false)} />
-                  </>
-                )}
+            <div className="flex flex-col mb-8">
+              <div className="flex flex-row items-center justify-between relative">
+                <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
+                <div className="relative">
+                  <DropdownMenuEntry
+                    label={nativeLanguageNames[selectedLanguage as keyof typeof nativeLanguageNames]}
+                    onClick={() => setShowLanguageDropdown(true)}
+                  />
+                  {showLanguageDropdown && (
+                    <>
+                      <DropdownMenu
+                        className="absolute right-0 top-full"
+                        menuItems={supportedLanguages.map(lang => ({
+                          label: nativeLanguageNames[lang as keyof typeof nativeLanguageNames],
+                          onClick: () => handleLanguageChange(lang)
+                        }))}
+                      />
+                      <TransparentOverlay onClick={() => setShowLanguageDropdown(false)} />
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-row items-center">
+                <IoMdInformationCircleOutline size={14} className="text-gray-400 mr-1" />
+                <span className="text-gray-400 text-sm">{t('interfaceLanguageHint')}</span>
               </div>
             </div>
 

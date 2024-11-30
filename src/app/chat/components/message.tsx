@@ -14,6 +14,36 @@ import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { WebSpeechTTS } from '../lib/tts-service';
 import { getSelectedSpeechSvcID, getSpeechSvcSettings } from "@/app/settings/components/settings";
 import { useTranslation } from "react-i18next";
+import { GoDependabot } from "react-icons/go";
+import { Tooltip } from "react-tooltip";
+import { FaGraduationCap } from "react-icons/fa6";
+import { GrSystem } from "react-icons/gr";
+
+export function RoleV2({ name, className }: { name: string, className?: string }) {
+    const tooltipId = `role-tooltip-${Math.random().toString(36).substring(2, 11)}`;
+
+    return (
+        <>
+            <div
+                id={tooltipId}
+                className={`rounded-full w-8 h-8 mt-1 border-gray-200 flex items-center justify-center text-gray-600 transition-colors ${className}`}
+            >
+                {name === SpecialRoles.TUTORIAL ? (
+                    <FaGraduationCap size={20} />
+                ) : name === SpecialRoles.ASSISTANT ? (
+                    <GoDependabot size={20} />
+                ) : name === SpecialRoles.SYSTEM ? (
+                    <GrSystem size={17} />
+                ) : (
+                    <span className="text-sm">{name.charAt(0).toUpperCase()}</span>
+                )}
+            </div>
+            {name !== SpecialRoles.TUTORIAL && <Tooltip
+                anchorSelect={`#${tooltipId}`} content={name} delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
+            />}
+        </>
+    );
+}
 
 export const MessageTypes = {
     SYSTEM: 'systemMessage',
@@ -27,7 +57,8 @@ export const SpecialRoles = {
     SYSTEM: 'system',
     USER: 'user',
     ASSISTANT: 'assistant',
-    FREE_TRIAL: 'freeTrial'
+    FREE_TRIAL: 'freeTrial',
+    TUTORIAL: 'tutorial'
 };
 
 
@@ -81,37 +112,38 @@ export class SystemMessage extends Message {
                 setCompState({ type: 'normal', showMore: false, content: compState.originalContent })
             }
 
-            return <div className={`flex flex-col ${className}`}
-                onMouseEnter={toggleShowMore} onMouseLeave={toggleShowMore}>
-                <Role className="mb-2" name={this.role} />
-                {!isEditing && <MessageContent content={compState.content} />}
-                {isEditing &&
-                    <div className="bg-[#F6F5F5] rounded-lg max-w-[80%] p-4">
-                        <textarea className="w-full bg-[#F6F5F5] h-32 resize-none focus:outline-none"
-                            value={compState.editingContent} onChange={(e) => { setCompState({ type: 'editing', editingContent: e.target.value, originalContent: compState.originalContent }) }
-                            } />
-                        <div className="flex flex-row">
-                            <button className="rounded-2xl border border-gray-300 bg-white p-2 mr-2"
-                                onClick={() => {
-                                    cancelEdit()
-                                }}>
-                                Cancel
-                            </button>
-                            <button className="rounded-2xl bg-black text-white p-2"
-                                onClick={() => {
-                                    this._systemPrompt = compState.editingContent
-                                    updateMessage(messageID, this) // TODO error handling
-                                    saveEdit()
-                                }}>Save</button>
+            return <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
+                <RoleV2 className="mr-2" name={this.role} />
+                <div className={`flex flex-col w-fit`} onMouseEnter={toggleShowMore} onMouseLeave={toggleShowMore}>
+                    {!isEditing && <MessageContent content={compState.content} />}
+                    {isEditing &&
+                        <div className="bg-[#F6F5F5] rounded-lg p-4 w-fit">
+                            <textarea className="w-full min-w-[600px] bg-[#F6F5F5] h-32 resize-none focus:outline-none"
+                                value={compState.editingContent} onChange={(e) => { setCompState({ type: 'editing', editingContent: e.target.value, originalContent: compState.originalContent }) }
+                                } />
+                            <div className="flex flex-row">
+                                <button className="rounded-2xl border border-gray-300 bg-white p-2 mr-2"
+                                    onClick={() => {
+                                        cancelEdit()
+                                    }}>
+                                    Cancel
+                                </button>
+                                <button className="rounded-2xl bg-black text-white p-2"
+                                    onClick={() => {
+                                        this._systemPrompt = compState.editingContent
+                                        updateMessage(messageID, this) // TODO error handling
+                                        saveEdit()
+                                    }}>Save</button>
 
-                        </div>
+                            </div>
 
-                    </div>}
-                <div className={`flex flex-row mt-1 pl-1 ${showMore ? 'visible' : 'invisible'}`}>
-                    <TbPencil className="cursor-pointer" size={20}
-                        onClick={() => {
-                            toEditingState()
-                        }} />
+                        </div>}
+                    <div className={`flex flex-row mt-1 pl-1 ${showMore ? 'visible' : 'invisible'}`}>
+                        <TbPencil className="cursor-pointer" size={20}
+                            onClick={() => {
+                                toEditingState()
+                            }} />
+                    </div>
                 </div>
             </div>
         }
@@ -324,44 +356,46 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         setCompState({ type: 'normal', showMore: true, content: compState.content });
     }
 
-    return <div className={`flex flex-col ${className}`}
-        onMouseEnter={() => { setShowMore(true) }} onMouseLeave={() => { setShowMore(false) }}>
-        <Role className="mb-2" name={messageIns.role} />
-        {!isEditing && <MessageContent content={compState.content} />}
-        {isEditing &&
-            <div className="bg-[#F6F5F5] rounded-lg max-w-[80%] p-4">
-                <textarea className="w-full bg-[#F6F5F5] h-32 resize-none focus:outline-none"
-                    value={compState.editingContent} onChange={(e) => { setCompState({ type: 'editing', editingContent: e.target.value, originalContent: compState.originalContent }) }
-                    } />
-                <div className="flex flex-row">
-                    <button className="rounded-2xl border border-gray-300 bg-white p-2 mr-2"
-                        onClick={() => {
-                            cancelEdit()
-                        }}>
-                        Cancel
-                    </button>
-                    <button className="rounded-2xl bg-black text-white p-2"
-                        onClick={() => {
-                            updateMessage(messageID, messageIns.updateContent(compState.editingContent)) // TODO error handling
-                            saveEdit()
-                        }}>Save</button>
+    return <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
+        <RoleV2 className="mr-2" name={messageIns.role} />
+        <div className={`flex flex-col w-fit`} onMouseEnter={() => { setShowMore(true) }} onMouseLeave={() => { setShowMore(false) }}>
+            {!isEditing && <MessageContent content={compState.content} />}
+            {isEditing &&
+                <div className="bg-[#F6F5F5] rounded-lg p-4 w-fit">
+                    <textarea className="w-full min-w-[600px] bg-[#F6F5F5] h-32 resize-none focus:outline-none"
+                        value={compState.editingContent} onChange={(e) => { setCompState({ type: 'editing', editingContent: e.target.value, originalContent: compState.originalContent }) }
+                        } />
+                    <div className="flex flex-row">
+                        <button className="rounded-2xl border border-gray-300 bg-white p-2 mr-2"
+                            onClick={() => {
+                                cancelEdit()
+                            }}>
+                            Cancel
+                        </button>
+                        <button className="rounded-2xl bg-black text-white p-2"
+                            onClick={() => {
+                                updateMessage(messageID, messageIns.updateContent(compState.editingContent)) // TODO error handling
+                                saveEdit()
+                            }}>Save</button>
+                    </div>
                 </div>
+            }
+            {/* options */}
+            <div className={`flex flex-row pt-1 pl-1 ${showMore ? 'visible' : 'invisible'}`}>
+                {/* edit message */}
+                <IconSquareWrapper width={24} height={24} className="mr-1">
+                    <TbPencil size={20} className="cursor-pointer" onClick={() => { toEditingState() }} />
+                </IconSquareWrapper>
+                {/* audio playing control */}
+                <IconSquareWrapper width={24} height={24} className="mr-1">
+                    <div className="cursor-pointer" onClick={!isPlaying ? startPlaying : stopPlaying}>
+                        {isPlaying ? <IoStopCircleOutline size={20} /> : <PiSpeakerHighBold size={18} />}
+                    </div>
+                </IconSquareWrapper>
             </div>
-        }
-        {/* options */}
-        <div className={`flex flex-row pt-1 pl-1 ${showMore ? 'visible' : 'invisible'}`}>
-            {/* edit message */}
-            <IconSquareWrapper width={24} height={24} className="mr-1">
-                <TbPencil size={20} className="cursor-pointer" onClick={() => { toEditingState() }} />
-            </IconSquareWrapper>
-            {/* audio playing control */}
-            <IconSquareWrapper width={24} height={24} className="mr-1">
-                <div className="cursor-pointer" onClick={!isPlaying ? startPlaying : stopPlaying}>
-                    {isPlaying ? <IoStopCircleOutline size={20} /> : <PiSpeakerHighBold size={18} />}
-                </div>
-            </IconSquareWrapper>
         </div>
     </div>
+
 }
 
 export function IconSquareWrapper({ children, width = 24, height = 24, className = "" }:
@@ -770,27 +804,28 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
         <>
             {/* if not finished, render as streaming message */}
             {!finished &&
-                <div className={`flex flex-col ${className}`}>
-                    {/* message content */}
-
-                    <Role className="mb-2" name={message.role} />
-                    <div className={`bg-[#F6F5F5] rounded-lg w-fit max-w-[80%] p-2`}>
-                        {msgState.type === 'init' &&
-                            <ThreeDots color="#959595" height={15} width={15} />
-                        }
-                        {msgState.type === 'streaming' &&
-                            <MessageContent content={msgState.streamingContent} />
-                        }
+                <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
+                    <RoleV2 className="mr-2" name={message.role} />
+                    <div className={`flex flex-col w-fit ${className}`}>
+                        {/* message content */}
+                        <div className={`bg-[#F6F5F5] rounded-lg w-fit p-2`}>
+                            {msgState.type === 'init' &&
+                                <ThreeDots color="#959595" height={15} width={15} />
+                            }
+                            {msgState.type === 'streaming' &&
+                                <MessageContent content={msgState.streamingContent} />
+                            }
+                        </div>
+                        {/* control buttons */}
+                        <div className={`flex flex-row pt-2 pl-1 ${isPlaying ? 'visible' : 'invisible'}`}>
+                            {isPlaying &&
+                                <IconSquareWrapper width={24} height={24} className="mr-1">
+                                    <IoStopCircleOutline onClick={stopPlaying} color="#898989" size={20} />
+                                </IconSquareWrapper>
+                            }
+                        </div>
+                        <div ref={containerRef} /> {/* scroll to the bottom of the container when the message state changes */}
                     </div>
-                    {/* control buttons */}
-                    <div className={`flex flex-row pt-2 pl-1 ${isPlaying ? 'visible' : 'invisible'}`}>
-                        {isPlaying &&
-                            <IconSquareWrapper width={24} height={24} className="mr-1">
-                                <IoStopCircleOutline onClick={stopPlaying} color="#898989" size={20} />
-                            </IconSquareWrapper>
-                        }
-                    </div>
-                    <div ref={containerRef} /> {/* scroll to the bottom of the container when the message state changes */}
                 </div>
             }
             {/* if finished, render as normal text message */}
@@ -812,19 +847,21 @@ export class RecommendedRespMessage extends Message {
 
     component() {
         const Root = ({ className }: { className?: string }) => {
-            return <div className={`flex flex-col ${className}`}>
-                <Role className="mb-2" name={this.role} />
-                <div className={`bg-[#F6F5F5] rounded-lg w-fit max-w-[80%] p-2 ${className}`}>
-                    <I18nText i18nText={{ key: 'The recommended response is as follows' }} />
-                    <div className="flex flex-col p-3 m-4 ml-0 bg-white shadow-sm border-2 rounded-md">
+            return <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
+                <RoleV2 className="mr-2" name={this.role} />
+                <div className={`flex flex-col w-fit ${className}`}>
+                    <div className={`bg-[#F6F5F5] rounded-lg w-fit p-2 ${className}`}>
+                        <I18nText i18nText={{ key: 'The recommended response is as follows' }} />
+                        <div className="flex flex-col p-3 m-4 ml-0 bg-white shadow-sm border-2 rounded-md">
                         <div dangerouslySetInnerHTML={{ __html: this.recommendedContent.replace(/\n/g, '<br />') }} />
                         {/* <div className="flex flex-row self-end">
                             <button className="mr-2 py-0 px-2 bg-gray-800 rounded-md text-[15px] text-white" >
                                 <CgChevronDoubleDown className="inline-block mr-1" color="white" /> Apply
                             </button>
                         </div> */}
+                        </div>
+                        <I18nText i18nText={{ key: 'If you have any more questions or requests, feel free to reach out to me' }} />
                     </div>
-                    <I18nText i18nText={{ key: 'If you have any more questions or requests, feel free to reach out to me' }} />
                 </div>
             </div>
         }
@@ -851,24 +888,12 @@ export class RecommendedRespMessage extends Message {
     }
 }
 
-export function Role({ name, className }: {
-    name: string;
-    className?: string;
-    avatarUrl?: string;
-}) {
-    return (
-        <div className={`flex items-center p-1 ${className}`}>
-            <span className="font-semibold">{name}</span>
-        </div>
-    );
-}
-
 export function MessageContent({ content, className = "" }: {
     content: string;
     className?: string;
 }) {
     return (
-        <div className={`bg-[#F6F5F5] rounded-xl w-fit max-w-[80%] p-4 ${className}`}>
+        <div className={`bg-[#F6F5F5] rounded-xl w-fit p-4 ${className}`}>
             <div dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
         </div>
     );
