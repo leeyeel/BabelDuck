@@ -170,7 +170,6 @@ export class SystemMessage extends Message {
     }
 }
 
-
 // make it reusable for other message components
 export function ControlledTextMessageComponent({ messageIns, compState, setCompState, messageID, updateMessage, className }: {
     compState: textMessageState,
@@ -185,6 +184,9 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
     const isEditing = (compState.type === 'editing')
     const isPlaying = compState.type === 'playingAudio'
 
+    const alignRight = messageIns.role === SpecialRoles.USER
+    const showRole = messageIns.role !== SpecialRoles.USER
+    
     // const { serviceId, settings } = getSpeechServiceSettings();
     const ttsService = useRef<WebSpeechTTS | null>(null);
     const playerRef = useRef<sdk.SpeakerAudioDestination | null>(null);
@@ -356,8 +358,8 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
         setCompState({ type: 'normal', showMore: true, content: compState.content });
     }
 
-    return <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
-        <RoleV2 className="mr-2" name={messageIns.role} />
+    return <div className={`flex flex-row w-fit max-w-[80%] ${alignRight ? 'self-end' : ''} ${className}`}>
+        {showRole && <RoleV2 className="mr-2" name={messageIns.role} />}
         <div className={`flex flex-col w-fit`} onMouseEnter={() => { setShowMore(true) }} onMouseLeave={() => { setShowMore(false) }}>
             {!isEditing && <MessageContent content={compState.content} />}
             {isEditing &&
@@ -536,7 +538,10 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
     const finished = msgState.type === 'finished'
     const isPlaying = msgState.type === 'streaming' && msgState.playing
 
-    const [textMsgState, setTextMsgState] = useState<textMessageState>({ type: 'normal', showMore: false, content: '' }) // TODO maybe useRef?
+    const alignRight = message.role === SpecialRoles.USER
+    const showRole = message.role !== SpecialRoles.USER
+    
+    const [textMsgState, setTextMsgState] = useState<textMessageState>({ type: 'normal', showMore: false, content: '' }) // TODO performance: maybe useRef?
     const chatSettings = useContext(ChatSettingsContext)
 
     // state convertors
@@ -804,8 +809,8 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
         <>
             {/* if not finished, render as streaming message */}
             {!finished &&
-                <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
-                    <RoleV2 className="mr-2" name={message.role} />
+                <div className={`flex flex-row w-fit max-w-[80%] ${alignRight ? 'self-end' : ''} ${className}`}>
+                    {showRole && <RoleV2 className="mr-2" name={message.role} />}
                     <div className={`flex flex-col w-fit ${className}`}>
                         {/* message content */}
                         <div className={`bg-[#F6F5F5] rounded-lg w-fit p-2`}>
