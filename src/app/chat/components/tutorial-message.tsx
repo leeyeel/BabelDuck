@@ -113,7 +113,7 @@ export class NextStepTutorialMessage extends TutorialMessageBase {
     }
     contentNode(): React.ReactNode {
         if (this.currentStateID === TutorialStateIDs.introduction) {
-            const content = "BabelDuck 是一个 XX ，旨在降低语言练习门槛的 AI 对话应用。除了普通的 AI 对话聊天能力外，我们还提供了一系列为口语练习场景而设计的工具，本教程将为你简单介绍如何使用它们。若你更倾向于自行摸索，可以点击左下角「新建对话」，即可开始体验，之后你依然随时可以回来继续该教程。"
+            const content = "BabelDuck 是一款面向各水平层次语言学习者的 AI 口语对话练习应用。除了普通的 AI 对话聊天能力外，我们还提供了一系列为口语练习场景而设计的工具，本教程将为你简单介绍如何使用它们。若你更倾向于自行摸索，可以点击左下角「新建对话」，即可开始体验，之后你依然随时可以回来继续该教程。"
             return <div className="mb-2" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
         }
         if (this.currentStateID === TutorialStateIDs.introduceQuickTranslationInstructions) {
@@ -126,18 +126,27 @@ export class NextStepTutorialMessage extends TutorialMessageBase {
             return <div className="mb-2" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
         }
         if (this.currentStateID === TutorialStateIDs.clickNextToIllustrateGrammarCheck) {
-            const paragraph1 = "以上便是 BabelDuck 中对于其中一个快捷指令的基本使用流程，除此之外，我们还提供了其他一系列快捷指令。"
+            const paragraph1 = "以上便是 BabelDuck 中其中一个快捷指令的基本使用流程，除此之外，我们还提供了其他一系列快捷指令。"
             return <div className="mb-2" dangerouslySetInnerHTML={{ __html: paragraph1.replace(/\n/g, '<br />') }} />
         }
         if (this.currentStateID === TutorialStateIDs.illustrateGrammarCheck) {
-            const paragraph1 = "比如常见的语法纠正需求，我们也内置了快捷指令，效果如下。\n\n"
-            const paragraph2 = "更重要的是，我们还支持你根据自身需求自定义快捷指令。"
-            return <div className="mb-2" dangerouslySetInnerHTML={{ __html: (paragraph1 + paragraph2).replace(/\n/g, '<br />') }} />
+            const paragraph1 = "比如常见的语法纠正需求，也有对应的内置指令，效果如下：\n"
+            const paragraph2 = "\n除此之外，除了内置的快捷指令，你还可以根据自身需求自定义指令。"
+            return <>
+                <div className="mb-2" dangerouslySetInnerHTML={{ __html: paragraph1.replace(/\n/g, '<br />') }} />
+                <Image src="/images/tutorial-grammar-check-example.png" alt="tutorial-grammar-check-example" width={600} height={400} className="rounded-xl border border-gray-200" />
+                <div className="mb-2" dangerouslySetInnerHTML={{ __html: paragraph2.replace(/\n/g, '<br />') }} />
+            </>
+
         }
         if (this.currentStateID === TutorialStateIDs.illustrateCustomInstructions) {
-            const paragraph1 = "比如当你的口语已经达到了一定的流畅度，但偶尔你会遇到一些\n\n"
-            const paragraph2 = "更重要的是，我们还支持你根据自身需求自定义快捷指令。"
-            return <div className="mb-2" dangerouslySetInnerHTML={{ __html: (paragraph1 + paragraph2).replace(/\n/g, '<br />') }} />
+            const paragraph1 = "比如说你的口语水平已经达到了一定的流畅度，只是偶尔有些词汇的表达方式不够地道，那么你可以自定义一个快捷指令：\n"
+            const paragraph2 = "\n鉴于自定义指令的使用流程与内置指令类似，我们就不再详细演示整个流程了。"
+            return <>
+                <div className="mb-2" dangerouslySetInnerHTML={{ __html: paragraph1.replace(/\n/g, '<br />') }} />
+                <Image src="/images/tutorial-custom-instructions-example.png" alt="tutorial-custom-instructions-example" width={600} height={300} className="rounded-xl border border-gray-200" />
+                <div className="mb-2" dangerouslySetInnerHTML={{ __html: paragraph2.replace(/\n/g, '<br />') }} />
+            </>
         }
         return <div></div>
     }
@@ -162,7 +171,6 @@ function NextStepTutorialMessageComponent({ message: unTypedMsg, className }: { 
     const message = unTypedMsg as NextStepTutorialMessage
 
     function handleNextStep() {
-        // dispatch(setTutorialState({ stateID: TutorialStateIDs.cueingClickTranslation }))
         dispatch(setTutorialState({ stateID: message.nextStateID }))
     }
 
@@ -224,16 +232,16 @@ export class TutorialMessage1 extends TutorialMessageBase {
 
 }
 
-// message for cueing users to click on Translation icon
+// message for indicating users to click on Translation icon
 function QueClickOnTranslationMsgComponent({ className }: { className?: string }) {
     // const { t } = useTranslation()
     // const dispatch = useAppDispatch();
     // const tutorialState = useAppSelector(state => state.tutorialState);
     // TODO i18n
-    const tutorialMsg1 = "假设你现在正在模拟一场线上会议，对方问了你一个问题："
-    const aiMsg = "XXX"
-    const content3 = "假设你现在想回复 \"东西有点多，我晚点提炼一下\"，但不知道如何表达，那么就可以通过快捷指令求助 AI\n"
-    const content3_2 = "现在点一下这个图标试试" // 后面附上截图
+    const tutorialMsg1 = "假设你正在练习线上会议中的常用表达，这时 AI 问了你一个问题："
+    const aiMsg = "What do you think about these suggestions?"
+    const content3 = "假设你想回复 \"东西有点多，我晚点提炼一下\"，但不知道如何表达，那么就可以通过快捷指令求助另一个 AI\n"
+    const content3_2 = "现在点一下这个图标试试" // with a screenshot following
 
     return <div className="flex flex-col">
         {/* tutorial message 2-1*/}
@@ -251,13 +259,13 @@ function QueClickOnTranslationMsgComponent({ className }: { className?: string }
             </div>
         </div>
         {/* tutorial message 2-2 */}
-        <div className="flex flex-row">
+        <div className="flex flex-row mb-8">
             <RoleV2 className="mr-3" name={SpecialRoles.TUTORIAL} />
             <div className={`bg-[#F6F5F5] rounded-xl w-fit max-w-[80%] p-4 flex flex-col ${className}`}>
                 <div className="mb-2" dangerouslySetInnerHTML={{ __html: content3.replace(/\n/g, '<br />') }} />
                 <div className="flex flex-row items-end">
                     <div className="mb-2 mr-2" dangerouslySetInnerHTML={{ __html: content3_2.replace(/\n/g, '<br />') }} />
-                    <Image src="/images/tutorial-state2.png" alt="tutorial-2-2" width={200} height={300} />
+                    <Image src="/images/tutorial-state2.png" alt="tutorial-2-2" width={200} height={300} className="rounded-xl border border-gray-200" />
                 </div>
             </div>
         </div>

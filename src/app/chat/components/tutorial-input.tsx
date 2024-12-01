@@ -102,7 +102,6 @@ export function TutorialInput(
             addMessage(new TextMessage(SpecialRoles.USER, '可以用 distill 或 extract 吗?'), { generateAssistantMsg: false })
             addMessage(new TextMessage(SpecialRoles.ASSISTANT, '可以的，在会议这个语境下，distill 和 extract 都可以表达提炼的意思。'), { generateAssistantMsg: false })
             addMessage(new NonInteractiveTutorialMessage('就像上面这样，并且在子对话中的讨论不会影响上一层对话。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。'), { generateAssistantMsg: false })
-            // addMessage(new NonInteractiveTutorialMessage('在子对话中，你可以像上面这样，基于当前上下文进一步讨论你的想法或者问题，并且上一层对话不会受到影响。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。'), { generateAssistantMsg: false })
         }
         if (currentTutorialState.stateID === TutorialStateIDs.clickNextToIllustrateGrammarCheck) {
             if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.clickNextToIllustrateGrammarCheck) {
@@ -113,6 +112,24 @@ export function TutorialInput(
             if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.illustrateGrammarCheck) {
                 updateInputSettingsPayload({ stateID: TutorialStateIDs.illustrateGrammarCheck })
                 addMessage(new NextStepTutorialMessage(TutorialStateIDs.illustrateGrammarCheck, TutorialStateIDs.illustrateCustomInstructions), { generateAssistantMsg: false })
+            }
+        }
+        if (currentTutorialState.stateID === TutorialStateIDs.illustrateCustomInstructions) {
+            if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.illustrateCustomInstructions) {
+                updateInputSettingsPayload({ stateID: TutorialStateIDs.illustrateCustomInstructions })
+                addMessage(new NextStepTutorialMessage(TutorialStateIDs.illustrateCustomInstructions, TutorialStateIDs.endingSummary), { generateAssistantMsg: false })
+            }
+        }
+        if (currentTutorialState.stateID === TutorialStateIDs.endingSummary) {
+            if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.endingSummary) {
+                updateInputSettingsPayload({ stateID: TutorialStateIDs.endingSummary })
+                addMessage(new NonInteractiveTutorialMessage('有了自定义快捷指令，你便可以根据自身需求，打造一套属于自己的工具链：\n\n'
+                    + '- 比如在模拟面试中让 AI 协助回答不会的问题，无需切换到其他窗口查询资料；\n'
+                    + '- 或者让 AI 提炼句子中的短语，并提供一些同义词，扩充自己的词汇量；\n'
+                    + '- 甚至在未来的更新中，你还将能够通过快捷指令与外部系统进行联动，例如自动将词汇添加到生词本，等等。\n\n'
+                    + '至此，我们便完成了对快捷指令功能的基本介绍，另外为了简化教程，我们在教程中还省略了语音输入、消息编辑、对话配置等功能的介绍，你现在可以尝试新建一个普通的对话，来体验这些功能了。\n\n'
+                    + '本教程到此便结束了，希望你能有所收获，并期待你的反馈！'
+                ), { generateAssistantMsg: false })
             }
         }
     }, [defaultRole, currentTutorialState.stateID])
@@ -202,6 +219,7 @@ export enum TutorialStateIDs {
     clickNextToIllustrateGrammarCheck = 'clickNextToIllustrateGrammarCheck', // click next to illustrate grammar check
     illustrateGrammarCheck = 'illustrateGrammarCheck',
     illustrateCustomInstructions = 'illustrateCustomInstructions',
+    endingSummary = 'endingSummary',
 }
 
 const initTutorialState: {
@@ -293,7 +311,7 @@ export function TutorialDiffView(
                         </div>
                         <Tooltip className="z-50" anchorSelect="#tutorial-diff-view-text" isOpen={tutorialPhase === 'text-introduction'} clickable delayShow={500} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}>
                             <div className="flex flex-col items-start">
-                                <span>{'与普通网页翻译工具不同的是，快捷指令会结合对话上下文，给出更符合当前语境的建议。'}</span>
+                                <span>{'弹窗中即 AI 提供的翻译结果，与普通网页翻译工具不同的是，快捷指令会结合对话上下文，给出更符合当前语境的建议。'}</span>
                                 <span className="mb-2">{'例如在这个场景下，你不需要担心 AI 会以为你说的是什么化学物质的提炼，而是根据“会议”这个上下文来翻译。'}</span>
                                 <TmpFilledButton className="self-end py-0 px-2 mr-2 rounded-md text-[13px] border border-white"
                                     onClick={() => setTutorialPhase('approve-reject-introduction')}
