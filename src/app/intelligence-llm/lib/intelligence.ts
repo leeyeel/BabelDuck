@@ -3,6 +3,8 @@ import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
 import { BabelDuckMessage, FreeTrialMessage, SpecialRoles } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
+import { IdentifiedTextMessage, NextStepTutorialMessage } from "@/app/chat/components/tutorial-message"
+import { TutorialStateIDs } from "@/app/chat/components/tutorial-input"
 
 // ============================= business logic =============================
 
@@ -25,9 +27,15 @@ export function getChatIntelligenceSettingsByID(id: string): chatIntelligenceSet
     return intelligenceSettings
 }
 
-// the settings of these reocrds are more like default settings, they are not actually stored
-export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
+// the settings of these records are more like default settings, they are not actually stored
+// selectable means the user can choose to use them in the UI
+export function getSelectableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
     return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings()).concat([babelDuckSettings])
+}
+
+// available intelligence settings includes all the selectable, and some other built-in ones that can't be seen by users
+export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
+    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings()).concat([{ id: TutorialChatIntelligence.id, ...TutorialChatIntelligence.settings }])
 }
 
 export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
@@ -93,16 +101,6 @@ export abstract class ChatIntelligenceBase implements ChatIntelligence {
     abstract completeChat(messageList: Message[]): Message[];
 
     abstract serialize(): string;
-
-    static deserialize(serialized: string): ChatIntelligenceBase {
-        const { type } = JSON.parse(serialized);
-        const deserializer = intelligenceRegistry.getChatIntelligenceSerializer(type);
-        if (deserializer) {
-            return deserializer(serialized);
-        } else {
-            throw new Error(`Deserialization method for type ${type} is not implemented`);
-        }
-    }
 }
 
 export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
@@ -120,12 +118,13 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ messageList: messageList
+                body: JSON.stringify({
+                    messageList: messageList
 
-                    .filter((msg) => msg.includedInChatCompletion)
-                    .filter((msg) => isOpenAILikeMessage(msg))
-                    .map((msg) => (msg.toOpenAIMessage()))
-                 }),
+                        .filter((msg) => msg.includedInChatCompletion)
+                        .filter((msg) => isOpenAILikeMessage(msg))
+                        .map((msg) => (msg.toOpenAIMessage()))
+                }),
             });
 
             if (!response.body) {
@@ -134,7 +133,7 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -142,7 +141,7 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
             }
         }
         const gen = genFunc()
-        return hasFreeTrialMessage 
+        return hasFreeTrialMessage
             ? [new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
             : [new FreeTrialMessage(), new StreamingTextMessage(SpecialRoles.ASSISTANT, gen)]
     }
@@ -313,9 +312,48 @@ export class BabelDuckChatIntelligence extends ChatIntelligenceBase {
     }
 }
 
+export class TutorialChatIntelligence extends ChatIntelligenceBase {
+    static readonly id = 'tutorial'
+    static readonly type = 'tutorial'
+    static readonly _name: i18nText = { key: 'Tutorial Model' }
+
+    static readonly settings: chatIntelligenceSettings = {
+        name: TutorialChatIntelligence._name,
+        type: TutorialChatIntelligence.type,
+        settings: {}
+    }
+
+    constructor() {
+        super(TutorialChatIntelligence.type, TutorialChatIntelligence._name)
+    }
+
+    completeChat(messageList: Message[]): Message[] {
+        if (messageList.length === 0) {
+            return []
+        }
+        const lastMessage = messageList[messageList.length - 1]
+        if (lastMessage instanceof IdentifiedTextMessage && lastMessage.id === 'users-translated-msg') {
+            return [
+                new IdentifiedTextMessage('ai-resp-on-users-translated-msg', SpecialRoles.ASSISTANT, 'Sure, take your time! There\'s no rush.'),
+                new NextStepTutorialMessage(TutorialStateIDs.clickNextToIllustrateGrammarCheck, TutorialStateIDs.illustrateGrammarCheck)
+            ]
+        }
+        return []
+    }
+
+    serialize(): string {
+        return JSON.stringify({ type: this.type })
+    }
+
+    static deserialize(): TutorialChatIntelligence {
+        return new TutorialChatIntelligence()
+    }
+}
+
 intelligenceRegistry.registerChatIntelligenceSerializer(FreeTrialChatIntelligence.type, FreeTrialChatIntelligence.deserialize);
 intelligenceRegistry.registerChatIntelligenceSerializer(OpenAIChatIntelligence.type, OpenAIChatIntelligence.deserialize);
 intelligenceRegistry.registerChatIntelligenceSerializer(BabelDuckChatIntelligence.type, BabelDuckChatIntelligence.deserialize);
+intelligenceRegistry.registerChatIntelligenceSerializer(TutorialChatIntelligence.type, TutorialChatIntelligence.deserialize);
 
 export const builtinIntelligenceSettings: Record<string, chatIntelligenceSettings> = {
     [FreeTrialChatIntelligence.id]: { name: { key: 'Free Trial' }, type: FreeTrialChatIntelligence.type, settings: {} },

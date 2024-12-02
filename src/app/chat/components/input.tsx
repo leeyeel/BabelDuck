@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useContext } from "react";
 import { FaBackspace, FaMicrophone } from "react-icons/fa";
 import { LuSettings, LuUserCog2 } from "react-icons/lu";
 import { Audio, Oval } from "react-loader-spinner";
 import { messageAddedCallbackOptions } from "./chat";
+import { ChatSettingsContext } from "./chat-settings";
 import { IconCircleWrapper, SpecialRoles, TextMessage } from "./message";
 import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
@@ -14,17 +15,17 @@ import Switch from "react-switch";
 import { IMediaRecorder } from "extendable-media-recorder";
 import { Tooltip } from "react-tooltip";
 import { FiPlus } from "react-icons/fi";
-import { updateInputHandlerInLocalStorage } from "../lib/chat";
+import { updateInputHandlerInLocalStorage, updateInputSettingsPayloadInLocalStorage } from "../lib/chat";
 import {
     InputHandler,
-    InputHandlerTypes,
     CustomInputHandlerCreator
 } from "./input-handlers";
-import { Overlay } from "@/app/ui-utils/components/overlay";
+import { SemiTransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { useTranslation } from "react-i18next";
 import { I18nText } from "@/app/i18n/i18n";
 import { TmpFilledButton, TmpTransparentButton } from "@/app/ui-utils/components/button";
 import { TbPencil } from "react-icons/tb";
+import { TutorialDiffView, TutorialInput } from "./tutorial-input";
 
 export async function reviseMessage(
     messageToRevise: string,
@@ -32,6 +33,12 @@ export async function reviseMessage(
     historyMessages: Message[],
     includeHistory: boolean = true,
     historyMessageCount: number | undefined = undefined) {
+
+    // TODO tech-dept: to make sure the tutorial 100% works, temporarily hardcode the response to avoid unreliable network issues
+    if (userInstruction.includes("7m1WTDpAuhttWRPfF5LPV0Tgktw7")) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return "That's a lot of information. I'll summarize it later."
+    }
 
     const historyContext = includeHistory ?
         historyMessages.slice(-(historyMessageCount ?? historyMessages.length)).
@@ -95,6 +102,7 @@ ${userInstruction}
         { role: 'assistant', content: fewShotMessages[1] },
         { role: 'user', content: userMessage }
     ]
+    
 
     const response = await fetch('/api/chat', {
         method: 'POST',
@@ -219,13 +227,14 @@ export function MessageInput({
     allowFollowUpDiscussion: boolean;
     // callback functions
     addMesssage: (message: Message, callbackOpts?: messageAddedCallbackOptions) => void;
+    // TODO tech-debt: 新增 inputHandler 应该通过更新 chatSettings 来实现
     addInputHandler: (handler: InputHandler) => void;
     startFollowUpDiscussion: (userInstruction: string, messageToRevise: Message, revisedText: Message) => void;
     // signals
     msgListSwitchSignal: MsgListSwitchSignal,
     className?: string;
 }) {
-
+    const { t } = useTranslation();
     const [compState, setCompState] = useState<MessageInputState>({ type: 'init' });
 
     const isNormal = compState.type === 'normal';
@@ -244,11 +253,9 @@ export function MessageInput({
             return;
         }
         const handler = inputHandlers[triggeredIndex]
-        if (handler.type === InputHandlerTypes.Generation && !compState.message.isEmpty()) {
-            return // TODO raise error
-        }
-        if (handler.type === InputHandlerTypes.Revision && compState.message.isEmpty()) {
-            return
+        if (!handler.isCompatibleWith(compState.message)) {
+            console.error(`Input handler ${handler.type} is not compatible with message ${compState.message.type}`)
+            return; // TODO raise error
         }
         setCompState({ type: 'revising', revisingIndex: triggeredIndex, message: compState.message });
         const userInstruction = handler.instruction();
@@ -323,6 +330,10 @@ export function MessageInput({
         inputHandlers[compState.handlerIndex] = handler;
         setCompState(compState.previousState);
     }
+    function updateInputSettingsPayload(payload: object) {
+        updateInputSettingsPayloadInLocalStorage(chatID, payload);
+    }
+
     useEffect(() => {
         if (msgListSwitchSignal.type === 'backFromFollowUpDiscussion') {
             setCompState({ type: 'waitingApproval', message: msgListSwitchSignal.message, revisedMsg: msgListSwitchSignal.handledMsg, revisionInstruction: msgListSwitchSignal.handlerInstruction });
@@ -337,9 +348,8 @@ export function MessageInput({
         // }
         return 170; // by default
     }
-
-    const { t } = useTranslation();
-
+    const chatSettings = useContext(ChatSettingsContext)
+    const inputComponentType = chatSettings?.inputComponent.type
     return <div className={`flex flex-col relative border rounded-2xl py-2 px-2 ${className}`}
         onKeyDown={(e) => {
             inputHandlers.forEach((handler, i) => {
@@ -353,7 +363,7 @@ export function MessageInput({
         }}>
         {/* top bar */}
         <div className="flex flex-row px-2 mb-1">
-            {/* top bar - revision entry icons */}
+            {/* top bar - input handler icons */}
             <div className="flex flex-row">
                 {inputHandlers.map((h, index) => {
                     // loading effect while handling input
@@ -376,6 +386,7 @@ export function MessageInput({
                                     const ii = index;
                                     startHandler(ii);
                                 }}
+                                allowClick={compState.type === 'normal' && h.isCompatibleWith(compState.message)}
                             >
                                 {h.iconNode}
                             </IconCircleWrapper>
@@ -388,7 +399,7 @@ export function MessageInput({
                         </Tooltip>
                         {compState.type === 'settingsPanel' && compState.handlerIndex === index && configurable &&
                             <>
-                                <Overlay onClick={cancelUpdatingInputHandler} />
+                                <SemiTransparentOverlay onClick={cancelUpdatingInputHandler} />
                                 <SettingsPanel updateHandler={updateInputHandler} />
                             </>
                         }
@@ -408,24 +419,38 @@ export function MessageInput({
         {/* revision DiffView pop-up */}
         {
             // TODO bug: line wrapping for content
-            waitingForApproval && <DiffView className={`absolute w-fit min-w-[700px] max-w-[1300px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
-                originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
-                approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
-                startFollowUpDiscussion={(messageToRevise: Message, revisedText: Message) => {
-                    if (!waitingForApproval) return
-                    setCompState({ type: 'normal', message: new TextMessage(compState.message.role, ''), fromRevision: false });
-                    // TODO feat: focus on the text area after the follow up discussion is started
-                    // textAreaRef.current?.focus();
-                    startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
-                }} />}
+            waitingForApproval &&  ( inputComponentType === 'textInput' ?
+                <DiffView className={`absolute w-fit min-w-[700px] max-w-[1300px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
+                    originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
+                    approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
+                    startFollowUpDiscussion={(messageToRevise: Message, revisedText: Message) => {
+                        if (!waitingForApproval) return
+                        setCompState({ type: 'normal', message: new TextMessage(compState.message.role, ''), fromRevision: false });
+                        // TODO feat: focus on the text area after the follow up discussion is started
+                        // textAreaRef.current?.focus();
+                        startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
+                    }} /> : <TutorialDiffView className={`absolute w-fit min-w-[700px] max-w-[1300px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
+                        originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
+                        approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
+                        startFollowUpDiscussion={(messageToRevise: Message, revisedText: Message) => {
+                            if (!waitingForApproval) return
+                            setCompState({ type: 'normal', message: new TextMessage(compState.message.role, ''), fromRevision: false });
+                            startFollowUpDiscussion(compState.revisionInstruction, messageToRevise, revisedText);
+                        }} />)
+        }
         {/* message input area */}
-        <TextInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
+        {inputComponentType === 'textInput' && <TextInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
             addMessage={addMesssage} updateMessage={updateMessage}
-            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />
+            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
+        {inputComponentType === 'tutorialInput' && <TutorialInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
+            addMessage={addMesssage} updateMessage={updateMessage} updateInputSettingsPayload={updateInputSettingsPayload}
+            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
     </div>;
 }
 
 let enableVoiceModeShortcutTimer: NodeJS.Timeout
+
+export const inputComponentType = 'textInput'
 
 function TextInput(
     { allowEdit, msgListSwitchSignal, addMessage, updateMessage, revisionMessage }: {

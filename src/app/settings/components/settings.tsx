@@ -9,7 +9,7 @@ import { DropDownMenuV2 } from "@/app/ui-utils/components/DropdownMenu";
 import { addCustomLLMServiceSettings, getLLMServiceSettings, LLMServiceSettingsRecord, OpenAICompatibleAPIService, updateLLMServiceSettings } from "@/app/intelligence-llm/lib/llm-service";
 import { getLLMSettingsComponent } from "@/app/intelligence-llm/components/llm-service";
 import { ChatSettings, loadChatSettings, loadGlobalChatSettings, LocalChatSettings, setGlobalChatSettings, setLocalChatSettings, switchToGlobalChatSettings, switchToLocalChatSettings } from "@/app/chat/lib/chat";
-import { BabelDuckChatIntelligence, CustomLLMChatIntelligence, FreeTrialChatIntelligence, getAvailableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, CustomLLMChatIntelligence, FreeTrialChatIntelligence, getSelectableChatIntelligenceSettings, getChatIntelligenceSettingsByID, OpenAIChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { InputHandler } from "@/app/chat/components/input-handlers";
 import { BabelDuckChatISettings, CustomLLMChatISettings, FreeTrialChatISettings, OpenAIChatISettings } from "@/app/intelligence-llm/components/intelligence";
 import Switch from "react-switch";
@@ -307,7 +307,7 @@ type ChatSettingsRO = {
 }
 
 function assembleChatSettingsRO(chatSettings: ChatSettings): ChatSettingsRO {
-    const availableChatIs = getAvailableChatIntelligenceSettings()
+    const availableChatIs = getSelectableChatIntelligenceSettings()
     const chatIID = chatSettings.ChatISettings.id
     const rawChatISettings = chatSettings.ChatISettings.settings
     const currentChatISettingsRecord = getChatIntelligenceSettingsByID(chatIID)
@@ -354,6 +354,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             },
             inputHandlers: chatSettings.inputHandlers,
             autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent,
         })
     }
     function updateSelectedChatISettings(newChatIsettings: object) {
@@ -364,6 +365,7 @@ function CommonChatSettings({ chatSettings, updateChatSettings, className = "" }
             },
             inputHandlers: chatSettings.inputHandlers,
             autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent,
         })
     }
 

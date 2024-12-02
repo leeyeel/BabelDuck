@@ -127,6 +127,12 @@ i18n
                     'globalSettingsDescription.disabled': 'Global settings are disabled. Changes made here will only affect the current chat.',
                     'logoAttribution': 'Duck icons designed by Freepik - Flaticon',
                     'viewOnGitHub': 'View on GitHub',
+                    'interfaceLanguageHint': 'Recommended to match your native language',
+                    'Next Step': 'Next Step',
+                    'Tutorial': 'Tutorial',
+                    'Tutorial Model': 'Tutorial Model',
+                    'Press Enter to send your message': 'Press Enter to send your message',
+                    'Free input is temporarily not supported in this tutorial': 'Free input is temporarily not supported in this tutorial',
                 }
             },
             zh: {
@@ -181,7 +187,7 @@ i18n
                     'generateResponseTooltip': '让 AI 帮忙回复当前消息',
                     'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
                     'The recommended response is as follows': '根据你的要求调整后的消息如下',
-                    'If you have any more questions or requests, feel free to reach out to me': '如果你还有什么疑问或要求，欢迎进一步找我讨论',
+                    'If you have any more questions or requests, feel free to reach out to me': '如果你还有什么疑问或要求，欢迎进一步讨论',
                     'chat.backToPreviousLevel': '返回上一层对话',
                     'addCustomInstruction': '添加自定义指令',
                     'Auto Play Audio': '自动播放语音',
@@ -197,7 +203,7 @@ i18n
                     'betaWarning': '该应用目前尚处于 beta 测试阶段，请勿将重要数据保存于应用中。',
                     'Approve': '采纳',
                     'Reject': '取消',
-                    'Follow-up discussions': '讨论｜追问',
+                    'Follow-up discussions': '追问｜讨论',
                     'Show Diff': '显示差异',
                     'Edit': '编辑',
                     'Save': '保存',
@@ -236,6 +242,12 @@ i18n
                     'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设置的修改仅对当前对话生效',
                     'logoAttribution': 'Duck 图标由 Freepik - Flaticon 设计',
                     'viewOnGitHub': '在 GitHub 上查看',
+                    'interfaceLanguageHint': '建议与母语保持一致',
+                    'Next Step': '下一步',
+                    'Tutorial': '教程',
+                    'Tutorial Model': '教学模型',
+                    'Press Enter to send your message': '按 Enter 键发送消息',
+                    'Free input is temporarily not supported in this tutorial': '教程模式暂不支持自由输入',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -347,6 +359,12 @@ i18n
                     'globalSettingsDescription.disabled': 'グローバル設定は無効になっています。ここでの変更は現在のチャットにのみ影響します。',
                     'logoAttribution': 'Duck アイコンは Freepik - Flaticon によってデザインされました',
                     'viewOnGitHub': 'GitHub で見る',
+                    'interfaceLanguageHint': '母国語と一致させることをお勧めします',
+                    'Next Step': '次のステップ',
+                    'Tutorial': 'チュートリアル',
+                    'Tutorial Model': 'チュートリアルモデル',
+                    'Press Enter to send your message': 'Enter キーを押してメッセージを送信',
+                    'Free input is temporarily not supported in this tutorial': 'チュートリアルモードでは自由入力は一時的に無効になっています',
                 }
             }
         }

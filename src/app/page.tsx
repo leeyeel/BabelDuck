@@ -1,21 +1,24 @@
 "use client"
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
-import { ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
-import { useAppSelector } from "./hooks";
+import { addNewChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
+import { AddNewChat, defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
+import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
-import { Overlay } from "./ui-utils/components/overlay";
+import { SemiTransparentOverlay } from "./ui-utils/components/overlay";
 import { useState, useEffect } from 'react';
 import i18n from './i18n/i18n';
 import { FilledButton } from "./ui-utils/components/button";
 import { DropdownMenu, DropdownMenuEntry } from "./ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "./ui-utils/components/overlay";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { GrammarCheckingHandler, RespGenerationHandler, TranslationHandler } from "./chat/components/input-handlers";
+import { DisableHandlerDecorator, GrammarCheckingHandler, RespGenerationHandler, TranslationHandler, TutorialTranslationHandler } from "./chat/components/input-handlers";
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
+import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
+import { NextStepTutorialMessage } from "./chat/components/tutorial-message";
+import { TutorialStateIDs } from "./chat/components/tutorial-input";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -88,7 +91,7 @@ function AboutLink() {
         <span>{t('About')}</span>
       </div>
       {showAboutPanel && (
-        <AboutPanel onClose={() => { setShowAboutPanel(false); console.log('close about panel') }} />
+        <AboutPanel onClose={() => { setShowAboutPanel(false) }} />
       )}
     </>
   );
@@ -96,6 +99,7 @@ function AboutLink() {
 
 function InitializationPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [selectedPracticeLanguage, setSelectedPracticeLanguage] = useState('en');
@@ -122,24 +126,51 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     setShowPracticeDropdown(false);
   };
 
+  const handlers = [
+    new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]),
+    new GrammarCheckingHandler(),
+    new RespGenerationHandler(),
+  ]
+
   const handleConfirm = () => {
     i18n.changeLanguage(selectedLanguage);
     localStorage.setItem('languageSetup', 'true');
     localStorage.setItem('selectedLanguage', selectedLanguage);
     setGlobalChatSettings({
       ...defaultGlobalChatSettings,
-      inputHandlers: [
-        { handler: new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]), display: true },
-        { handler: new RespGenerationHandler(), display: true },
-        { handler: new GrammarCheckingHandler(), display: true }
-      ]
+      inputHandlers: handlers.map((handler) => ({ handler, display: true }))
     });
+    // add the tutorial chat
+    const newChatSelection = AddNewChat(
+      t('Tutorial'),
+      [new NextStepTutorialMessage(TutorialStateIDs.introduction, TutorialStateIDs.introduceQuickTranslationInstructions)],
+      {
+        usingGlobalSettings: false,
+        inputHandlers: [
+          { handler: new TutorialTranslationHandler('English'), display: true },
+          { handler: new DisableHandlerDecorator(new GrammarCheckingHandler()), display: true },
+          { handler: new DisableHandlerDecorator(new RespGenerationHandler()), display: true },
+        ],
+        autoPlayAudio: false,
+        inputComponent: {
+          type: 'tutorialInput',
+          payload: {
+            stateID: TutorialStateIDs.introduction
+          }
+        },
+        ChatISettings: {
+          id: TutorialChatIntelligence.id, // TODO tech-debt: need to deal with the situation where the counterpart chatI doesn't exist
+          settings: {}
+        }
+      }
+    );
+    dispatch(addNewChat(newChatSelection.chatSelection));
     onClose();
   };
 
   return (
     <>
-      <Overlay onClick={onClose} />
+      <SemiTransparentOverlay onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl z-10 w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl max-h-screen overflow-y-auto custom-scrollbar p-8">
           <div className="flex flex-col">
@@ -150,30 +181,46 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
             </div>
             {/* Welcome message */}
             <div className="flex flex-col items-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('Welcome to BabelDuck')}</h2>
+              {/* Logo and Title */}
+              <div className="flex flex-row items-center mb-2">
+                <Image
+                  src="/images/babel-duck-logo.png"
+                  alt="BabelDuck Logo"
+                  width={36}
+                  height={36}
+                  className="mr-3"
+                />
+                <h2 className="text-2xl font-bold text-gray-800">{t('Welcome to BabelDuck')}</h2>
+              </div>
               <p className="text-gray-400 mb-12">{t('welcomeMessage')}</p>
               <p className="text-gray-600 self-start mb-4">{t('Please set up your preferences to get started')}</p>
             </div>
             {/* Interface language selection */}
-            <div className="flex flex-row items-center justify-between relative mb-8">
-              <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
-              <div className="relative">
-                <DropdownMenuEntry
-                  label={nativeLanguageNames[selectedLanguage as keyof typeof nativeLanguageNames]}
-                  onClick={() => setShowLanguageDropdown(true)}
-                />
-                {showLanguageDropdown && (
-                  <>
-                    <DropdownMenu
-                      className="absolute right-0 top-full"
-                      menuItems={supportedLanguages.map(lang => ({
-                        label: nativeLanguageNames[lang as keyof typeof nativeLanguageNames],
-                        onClick: () => handleLanguageChange(lang)
-                      }))}
-                    />
-                    <TransparentOverlay onClick={() => setShowLanguageDropdown(false)} />
-                  </>
-                )}
+            <div className="flex flex-col mb-8">
+              <div className="flex flex-row items-center justify-between relative">
+                <span className="text-gray-700 font-bold">{t('Select Your Language')}</span>
+                <div className="relative">
+                  <DropdownMenuEntry
+                    label={nativeLanguageNames[selectedLanguage as keyof typeof nativeLanguageNames]}
+                    onClick={() => setShowLanguageDropdown(true)}
+                  />
+                  {showLanguageDropdown && (
+                    <>
+                      <DropdownMenu
+                        className="absolute right-0 top-full"
+                        menuItems={supportedLanguages.map(lang => ({
+                          label: nativeLanguageNames[lang as keyof typeof nativeLanguageNames],
+                          onClick: () => handleLanguageChange(lang)
+                        }))}
+                      />
+                      <TransparentOverlay onClick={() => setShowLanguageDropdown(false)} />
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-row items-center">
+                <IoMdInformationCircleOutline size={14} className="text-gray-400 mr-1" />
+                <span className="text-gray-400 text-sm">{t('interfaceLanguageHint')}</span>
               </div>
             </div>
 
@@ -239,13 +286,13 @@ export default function Home() {
     }
   }, []);
 
-  const closeInitializationPanel = () => {
+  const finishInitialization = () => {
     setShowInitializationPanel(false);
   };
 
   return (
     <div className="flex flex-row h-full w-full">
-      {showInitializationPanel && <InitializationPanel onClose={closeInitializationPanel} />}
+      {showInitializationPanel && <InitializationPanel onClose={finishInitialization} />}
       {/* sidebar */}
       <div className="flex px-2 pb-12 pt-4 flex-col w-[250px] bg-[#F9F9F9]">
         {/* logo */}

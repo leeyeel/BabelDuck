@@ -4,12 +4,14 @@ import { FaSpellCheck } from "react-icons/fa";
 import { useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Tooltip } from "react-tooltip";
-import { Overlay } from "@/app/ui-utils/components/overlay";
+import { SemiTransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { FilledButton, TransparentButton } from "@/app/ui-utils/components/button";
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { i18nText } from "@/app/i18n/i18n";
+import { Message } from "../lib/message";
+import { IdentifiedTextMessage } from "./tutorial-message";
 
 // Define InputHandlerTypes enum
 export enum InputHandlerTypes {
@@ -63,6 +65,16 @@ export abstract class InputHandler {
             throw new Error(`Deserialization method for implType ${implType} is not implemented`);
         }
     }
+
+    // telling if this input handler can handle with the given message
+    isCompatibleWith(message: Message): boolean {
+        if (this.type === InputHandlerTypes.Generation) {
+            return message.isEmpty()
+        } else if (this.type === InputHandlerTypes.Revision) {
+            return !message.isEmpty()
+        }
+        return false;
+    }
 }
 
 type InputHandlerSettingsPanel = ({ }: {
@@ -74,8 +86,8 @@ type InputHandlerSettingsPanel = ({ }: {
 export class TranslationHandler extends InputHandler {
     targetLanguage: string;
 
-    constructor(targetLanguage: string) {
-        super('translation', InputHandlerTypes.Revision, false);
+    constructor(targetLanguage: string, implType: string = 'translation', deletable: boolean = false) {
+        super(implType, InputHandlerTypes.Revision, deletable);
         this.targetLanguage = targetLanguage;
         this.iconNode = <MdGTranslate size={20} />;
         this.shortcutKeyCallback = (e: React.KeyboardEvent) => e.key === 'k' && (e.metaKey || e.ctrlKey);
@@ -89,7 +101,7 @@ export class TranslationHandler extends InputHandler {
         return `Translate it into ${this.targetLanguage} to express the same meaning.`;
     }
 
-    settingsPanel(): InputHandlerSettingsPanel {
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
         const Root = ({ updateHandler, className }: { updateHandler: (handler: InputHandler) => void, className?: string }) => {
             const { t } = useTranslation();
 
@@ -127,6 +139,63 @@ export class TranslationHandler extends InputHandler {
     static deserialize(serialized: string): TranslationHandler {
         const { targetLanguage } = JSON.parse(serialized);
         return new TranslationHandler(targetLanguage);
+    }
+}
+
+export class TutorialTranslationHandler extends TranslationHandler {
+    constructor(targetLanguage: string) {
+        super(targetLanguage, 'tutorialTranslation', false);
+    }
+    instruction(): string {
+        return `Whatever the input is, just convert it into: "That's a lot of information. I'll summarize it later.". [magic-hack-code: 7m1WTDpAuhttWRPfF5LPV0Tgktw7]`;
+    }
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
+        return undefined;
+    }
+    static deserialize(serialized: string): TutorialTranslationHandler {
+        const { targetLanguage } = JSON.parse(serialized);
+        return new TutorialTranslationHandler(targetLanguage);
+    }
+    isCompatibleWith(message: Message): boolean {
+        if (message instanceof IdentifiedTextMessage && message.id === 'tutorial-input-msg') {
+            return true;
+        }
+        return false;
+    }
+}
+
+// A decorator to disable a handler, make it only for display, not clickable
+export class DisableHandlerDecorator extends InputHandler {
+    static readonly implType = 'disableHandlerDecorator';
+    originalHandler: InputHandler;
+    constructor(handler: InputHandler) {
+        super(DisableHandlerDecorator.implType, handler.type, handler.deletable);
+        this.originalHandler = handler;
+        this.iconNode = this.originalHandler.iconNode;
+    }
+    tooltip(): i18nText {
+        return this.originalHandler.tooltip();
+    }
+    instruction(): string {
+        return this.originalHandler.instruction();
+    }
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
+        return this.originalHandler.settingsPanel();
+    }
+    serialize(): string {
+        return JSON.stringify({
+            implType: this.implType,
+            type: this.type,
+            handler: this.originalHandler.serialize()
+        });
+    }
+    static deserialize(serialized: string): DisableHandlerDecorator {
+        const { handler } = JSON.parse(serialized);
+        const originalHandler = InputHandler.deserialize(handler);
+        return new DisableHandlerDecorator(originalHandler);
+    }
+    isCompatibleWith(): boolean {
+        return false;
     }
 }
 
@@ -413,6 +482,8 @@ inputHandlerHub.registerHandler('respGeneration', RespGenerationHandler.deserial
 inputHandlerHub.registerHandler('grammarChecking', GrammarCheckingHandler.deserialize);
 inputHandlerHub.registerHandler('commonGeneration', CommonGenerationHandler.deserialize);
 inputHandlerHub.registerHandler('commonRevision', CommonRevisionHandler.deserialize);
+inputHandlerHub.registerHandler('tutorialTranslation', TutorialTranslationHandler.deserialize);
+inputHandlerHub.registerHandler('disableHandlerDecorator', DisableHandlerDecorator.deserialize);
 
 export function CustomInputHandlerCreator({
     cancelCallback,
@@ -435,7 +506,7 @@ export function CustomInputHandlerCreator({
 
     return (
         <>
-            <Overlay onClick={cancelCallback} />
+            <SemiTransparentOverlay onClick={cancelCallback} />
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 w-[600px] h-auto">
                 <h2 className="text-2xl font-bold mb-8">{t('customInstruction')}</h2>
                 <div className="mb-4">

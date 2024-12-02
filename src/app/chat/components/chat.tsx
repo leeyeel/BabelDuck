@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
@@ -8,7 +8,7 @@ import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } fro
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings, TutorialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
@@ -16,8 +16,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { LuSettings } from "react-icons/lu";
 import { LocalChatSettingsComponent } from "@/app/settings/components/settings";
+import { ChatSettingsContext } from "./chat-settings";
 
-export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
+// export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -62,6 +63,8 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             chatIntelligence = new CustomLLMChatIntelligence(settings.settingsType, settings.svcID, settings.localSettings)
         } else if (type === BabelDuckChatIntelligence.type) {
             chatIntelligence = new BabelDuckChatIntelligence()
+        } else if (type === TutorialChatIntelligence.type) {
+            chatIntelligence = new TutorialChatIntelligence()
         } else {
             throw new Error(`Chat intelligence with type ${type} not found`)
         }
@@ -159,15 +162,15 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
         """
         Please provide a recommended response based on my request, considering the context of the ongoing conversation, and preserving the line breaks and formatting if any.`
         const nextLevelMessages: Message[] = [
-            // 1. revise prompt with chat history, included in chat completion, but not displaying to users
+            // 1. revise prompt with chat history, included in chat completion, but not displayed to users
             new TextMessage('user', handlerPrompt, false, true),
-            // 2. ai's json response, included in chat completion but not displaying
+            // 2. json response from ai, included in chat completion but not displayed to users
             new TextMessage('assistant', `The recommended response is as follows:
             """
             ${suggestedTextMsg}
             """
             if you have any more questions or requests, feel free to reach out to me.`, false, true),
-            // 3. the revised text, displaying but not included in chat completion
+            // 3. the revised text, displayed but not included in chat completion
             new RecommendedRespMessage('assistant', suggestedTextMsg, true, false)
         ]
         updateMessageListStack(draft => { draft.push(nextLevelMessages) })
@@ -231,6 +234,7 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
 
                 }
             </div>
+            {/* input */}
             <MessageInput addInputHandler={(handler) => {
                 updateInputHandlerInLocalStorage(chatID, inputHandlers?.length ?? 0, handler)
             }} className="w-4/5"
@@ -298,6 +302,10 @@ const currentChatSettingsSlice = createSlice({
     name: 'currentChatSettings',
     initialState: initCurrentChatSettingsState,
     reducers: {
+        unsetCurrentChatSettings: (state) => {
+            state.currentChatID = undefined
+            state.currentChatSettings = undefined
+        },
         setCurrentChatSettings: (state, newState: PayloadAction<{ chatID: string, chatSettings: ModifiedLocalChatSettings }>) => {
             state.currentChatID = newState.payload.chatID
             state.currentChatSettings = newState.payload.chatSettings
@@ -305,5 +313,5 @@ const currentChatSettingsSlice = createSlice({
     }
 })
 
-export const { setCurrentChatSettings } = currentChatSettingsSlice.actions
+export const { setCurrentChatSettings, unsetCurrentChatSettings } = currentChatSettingsSlice.actions
 export const currentChatSettingsReducer = currentChatSettingsSlice.reducer

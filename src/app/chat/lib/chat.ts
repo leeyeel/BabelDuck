@@ -5,6 +5,8 @@ import { BabelDuckMessage, FreeTrialMessage, StreamingTextMessage, SystemMessage
 import { Message } from "./message";
 import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
 import { generateUUID } from "@/app/lib/uuid";
+import { inputComponentType } from "../components/input";
+import { QueClickOnTranslationMsg, NonInteractiveTutorialMessage, IdentifiedTextMessage, NextStepTutorialMessage } from "../components/tutorial-message";
 
 // ============================= business logic =============================
 
@@ -35,6 +37,14 @@ export function loadChatMessages(chatID: string): Message[] {
                 return BabelDuckMessage.deserialize(JSON.stringify(rest));
             case FreeTrialMessage.type:
                 return FreeTrialMessage.deserialize();
+            case QueClickOnTranslationMsg._type:
+                return QueClickOnTranslationMsg.deserialize();
+            case NonInteractiveTutorialMessage._type:
+                return NonInteractiveTutorialMessage.deserialize(JSON.stringify(rest));
+            case IdentifiedTextMessage._type:
+                return IdentifiedTextMessage.deserialize(JSON.stringify(rest));
+            case NextStepTutorialMessage._type:
+                return NextStepTutorialMessage.deserialize(JSON.stringify(rest));
             default:
                 throw new Error(`Unknown message type: ${type}`);
         }
@@ -51,6 +61,10 @@ export type ChatSettings = {
         settings: object
     }
     inputHandlers: { handler: InputHandler, display: boolean }[];
+    inputComponent: {
+        type: string,
+        payload: object
+    }
     autoPlayAudio: boolean;
 }
 
@@ -86,7 +100,7 @@ export function loadChatSettings(chatID: string): LocalChatSettings {
         });
         return { usingGlobalSettings: false, ...globalSettings };
     }
-    // TODO tech-dept: ts 类型检查不够严格，rawInputHandlers 被传递到 LocalChatSettings 中也没有报错，看下有什么办法可以解决
+    // TODO tech-dept: ts 类型检查不够严格，之前 rawInputHandlers 字段被传递到 LocalChatSettings 中也没有报错，导致了 BUG，看下有什么办法可以编译时检查出来
     const { rawInputHandlers, ...rest } = rawChatSettings
     return {
         usingGlobalSettings: false,
@@ -129,7 +143,11 @@ export const defaultGlobalChatSettings: ChatSettings = {
         { handler: new TranslationHandler("English"), display: true },
         { handler: new RespGenerationHandler(), display: true },
         { handler: new GrammarCheckingHandler(), display: true }
-    ]
+    ],
+    inputComponent: {
+        type: inputComponentType,
+        payload: {}
+    }
 }
 
 export const GlobalDefaultChatSettingID = 'global_default_chat_settings'
@@ -147,7 +165,8 @@ export function loadGlobalChatSettings(): ChatSettings {
     return {
         autoPlayAudio: chatSettingsData.autoPlayAudio,
         ChatISettings: chatSettingsData.ChatISettings,
-        inputHandlers: inputHandlers
+        inputHandlers: inputHandlers,
+        inputComponent: chatSettingsData.inputComponent
     };
 }
 
@@ -158,7 +177,8 @@ export function setGlobalChatSettings(settings: ChatSettings): void {
             display: handler.display
         })),
         ChatISettings: settings.ChatISettings,
-        autoPlayAudio: settings.autoPlayAudio
+        autoPlayAudio: settings.autoPlayAudio,
+        inputComponent: settings.inputComponent
     });
 }
 
@@ -185,7 +205,8 @@ export function addInputHandlersInChat(chatID: string, handlers: InputHandler[])
                 display: handler.display
             })),
             ChatISettings: chatSettings.ChatISettings,
-            autoPlayAudio: chatSettings.autoPlayAudio
+            autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent
         });
     }
 }
@@ -202,7 +223,8 @@ export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: n
                 display: handler.display
             })),
             ChatISettings: globalSettings.ChatISettings,
-            autoPlayAudio: globalSettings.autoPlayAudio
+            autoPlayAudio: globalSettings.autoPlayAudio,
+            inputComponent: globalSettings.inputComponent
         });
     } else {
         // update the chat local settings
@@ -213,11 +235,29 @@ export function updateInputHandlerInLocalStorage(chatID: string, handlerIndex: n
                 display: handler.display
             })),
             ChatISettings: chatSettings.ChatISettings,
-            autoPlayAudio: chatSettings.autoPlayAudio
+            autoPlayAudio: chatSettings.autoPlayAudio,
+            inputComponent: chatSettings.inputComponent
         });
     }
 }
 
+export function updateInputSettingsPayloadInLocalStorage(chatID: string, payload: object): void {
+    const chatSettings = loadChatSettings(chatID);
+    if (chatSettings.usingGlobalSettings) {
+        const globalSettings = loadGlobalChatSettings();
+        globalSettings.inputComponent.payload = payload;
+        setGlobalChatSettings(globalSettings);
+    } else {
+        chatSettings.inputComponent.payload = payload;
+        setChatSettingsData(`chatSettings_${chatID}`, {
+            rawInputHandlers: chatSettings.inputHandlers.map((handler) => ({
+                payload: handler.handler.serialize(),
+                display: handler.display
+            })),
+            ...chatSettings
+        });
+    }
+}
 
 export function loadChatSelectionList(): {
     chatSelectionList: ChatSelection[], currentSelectedChatID?: string
@@ -269,7 +309,8 @@ export function getNextChatCounter(): number {
 
 export function AddNewChat(
     chatTitle: string,
-    initialMessageList: Message[] = []
+    initialMessageList: Message[] = [],
+    chatSettings?: LocalChatSettings, // TODO tech-debt: LocalChatSettings is for rendering, shouldn't be used as a parameter of modification actions
 ): {
     chatSelection: ChatSelection,
 } {
@@ -291,6 +332,14 @@ export function AddNewChat(
 
     // 将初始消息列表保存到 localStorage 中
     localStorage.setItem(`chat_${newChatID}`, JSON.stringify(initialMessageList.map((msg) => msg.serialize())));
+
+    if (chatSettings) {
+        if (chatSettings.usingGlobalSettings) {
+            switchToLocalChatSettings(newChatID);
+        } else {
+            setLocalChatSettings(newChatID, chatSettings);
+        }
+    }
 
     return {
         chatSelection: newChatSelection
