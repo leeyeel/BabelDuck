@@ -91,7 +91,7 @@ function AboutLink() {
         <span>{t('About')}</span>
       </div>
       {showAboutPanel && (
-        <AboutPanel onClose={() => { setShowAboutPanel(false); console.log('close about panel') }} />
+        <AboutPanel onClose={() => { setShowAboutPanel(false) }} />
       )}
     </>
   );

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Message, OpenAILikeMessage } from "../lib/message"
-import { ChatSettingsContext, messageAddedCallbackOptions } from "./chat"
+import { messageAddedCallbackOptions } from "./chat"
+import { ChatSettingsContext } from "./chat-settings"
 import { MsgListSwitchSignal } from "./input"
 import { useContext, useEffect, useRef, useState } from "react"
 import { SpecialRoles, TextMessage } from "./message"
@@ -32,6 +33,9 @@ export function TutorialInput(
     const dispatch = useAppDispatch();
     const { t } = useTranslation();
 
+    // TODO bug: Occasional issue - ReferenceError: Cannot access 'ChatSettingsContext' before initialization
+    // Steps to reproduce: After updating the code, it seems to trigger when switching conversations and then switching back to the tutorial
+    // Sometimes by simply clicking "Confirm" in the initializaiton panel, the issue will show up
     const chatSettings = useContext(ChatSettingsContext)
     const storedTutorialStateID = (chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID
 

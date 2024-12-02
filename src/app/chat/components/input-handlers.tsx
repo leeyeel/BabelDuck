@@ -192,7 +192,6 @@ export class DisableHandlerDecorator extends InputHandler {
     static deserialize(serialized: string): DisableHandlerDecorator {
         const { handler } = JSON.parse(serialized);
         const originalHandler = InputHandler.deserialize(handler);
-        console.log('originalHandler', originalHandler);
         return new DisableHandlerDecorator(originalHandler);
     }
     isCompatibleWith(): boolean {

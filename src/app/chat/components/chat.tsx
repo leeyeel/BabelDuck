@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
@@ -16,8 +16,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { LuSettings } from "react-icons/lu";
 import { LocalChatSettingsComponent } from "@/app/settings/components/settings";
+import { ChatSettingsContext } from "./chat-settings";
 
-export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
+// export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -301,6 +302,10 @@ const currentChatSettingsSlice = createSlice({
     name: 'currentChatSettings',
     initialState: initCurrentChatSettingsState,
     reducers: {
+        unsetCurrentChatSettings: (state) => {
+            state.currentChatID = undefined
+            state.currentChatSettings = undefined
+        },
         setCurrentChatSettings: (state, newState: PayloadAction<{ chatID: string, chatSettings: ModifiedLocalChatSettings }>) => {
             state.currentChatID = newState.payload.chatID
             state.currentChatSettings = newState.payload.chatSettings
@@ -308,5 +313,5 @@ const currentChatSettingsSlice = createSlice({
     }
 })
 
-export const { setCurrentChatSettings } = currentChatSettingsSlice.actions
+export const { setCurrentChatSettings, unsetCurrentChatSettings } = currentChatSettingsSlice.actions
 export const currentChatSettingsReducer = currentChatSettingsSlice.reducer

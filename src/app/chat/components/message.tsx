@@ -9,7 +9,7 @@ import { ThreeDots } from "react-loader-spinner";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
 import { I18nText } from "@/app/i18n/i18n";
-import { ChatSettingsContext } from "./chat";
+import { ChatSettingsContext } from "./chat-settings";
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { WebSpeechTTS } from '../lib/tts-service';
 import { getSelectedSpeechSvcID, getSpeechSvcSettings } from "@/app/settings/components/settings";
