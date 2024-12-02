@@ -133,6 +133,8 @@ i18n
                     'Tutorial Model': 'Tutorial Model',
                     'Press Enter to send your message': 'Press Enter to send your message',
                     'Free input is temporarily not supported in this tutorial': 'Free input is temporarily not supported in this tutorial',
+                    'Expand': 'Expand',
+                    'Collapse': 'Collapse',
                 }
             },
             zh: {
@@ -248,6 +250,8 @@ i18n
                     'Tutorial Model': '教学模型',
                     'Press Enter to send your message': '按 Enter 键发送消息',
                     'Free input is temporarily not supported in this tutorial': '教程模式暂不支持自由输入',
+                    'Expand': '展开',
+                    'Collapse': '折叠',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -348,7 +352,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'クイック体験',
                     'Quack!': 'ガー！',
-                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があるクイック体験用です。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
+                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があるクイック体験用で���。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
                     'welcomeMessage': 'BabelDuckは、全ての習熟度レベルの言語学習者のためのAI会話練習アプリケーションです',
                     'Please enter the complete URL including the path': 'パスを含む完全なURLを入力してください',
                     'freeTrialChatIntelligenceIntroduction': '新規ユーザー向けのクイック体験用サービスで、速度と利用頻度に制限があり、モデルの指定はできません。必要な場合は、他のモデルサービスに切り替えてください。',
@@ -365,6 +369,8 @@ i18n
                     'Tutorial Model': 'チュートリアルモデル',
                     'Press Enter to send your message': 'Enter キーを押してメッセージを送信',
                     'Free input is temporarily not supported in this tutorial': 'チュートリアルモードでは自由入力は一時的に無効になっています',
+                    'Expand': '展開',
+                    'Collapse': '折りたたむ',
                 }
             }
         }

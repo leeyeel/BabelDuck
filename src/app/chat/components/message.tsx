@@ -82,7 +82,22 @@ export class SystemMessage extends Message {
 
     component() {
         const Root = ({ messageID, updateMessage, className }: { messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) => {
-            const [compState, setCompState] = useState<systemMessgeState>({ type: 'normal', showMore: false, content: this._systemPrompt })
+            const { t } = useTranslation();
+            const [compState, setCompState] = useState<systemMessgeState>(
+                { type: 'normal', showMore: false, content: this._systemPrompt }
+            )
+
+            const isContentLong = this._systemPrompt.length > 100 // 判断文本是否过长（这里以字符数为判断标准，可根据需求调整）
+
+            const [isFolded, setIsFolded] = useState(isContentLong) // 初始状态根据内容长度决定是否折叠
+
+            const toggleFold = () => {
+                if (compState.type === 'editing') {
+                    return
+                }
+                setIsFolded(!isFolded)
+            }
+
             const showMore = (compState.type !== 'editing' && compState.showMore)
             const isEditing = (compState.type === 'editing')
 
@@ -115,7 +130,25 @@ export class SystemMessage extends Message {
             return <div className={`flex flex-row w-fit max-w-[80%] ${className}`}>
                 <RoleV2 className="mr-2" name={this.role} />
                 <div className={`flex flex-col w-fit`} onMouseEnter={toggleShowMore} onMouseLeave={toggleShowMore}>
-                    {!isEditing && <MessageContent content={compState.content} />}
+                    {!isEditing &&
+                        <div className="bg-[#F6F5F5] rounded-xl w-fit p-4 flex flex-col">
+                            <div
+                                className={`whitespace-pre-wrap ${isFolded ? 'line-clamp-1' : ''}`}
+                                style={isFolded ? {
+                                    overflow: 'hidden',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 1,
+                                    WebkitBoxOrient: 'vertical',
+                                } : {}}
+                                dangerouslySetInnerHTML={{ __html: compState.content.replace(/\n/g, '<br />') }}
+                            />
+                            {isContentLong && (
+                                <button onClick={toggleFold} className="text-blue-500 underline mt-1 self-end">
+                                    {isFolded ? t('Expand') : t('Collapse')}
+                                </button>
+                            )}
+                        </div>
+                    }
                     {isEditing &&
                         <div className="bg-[#F6F5F5] rounded-lg p-4 w-fit">
                             <textarea className="w-full min-w-[600px] bg-[#F6F5F5] h-32 resize-none focus:outline-none"
