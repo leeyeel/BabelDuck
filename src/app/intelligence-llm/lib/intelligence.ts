@@ -3,7 +3,7 @@ import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
 import { BabelDuckMessage, FreeTrialMessage, SpecialRoles } from "@/app/chat/components/message"
 import { StreamingTextMessage } from "@/app/chat/components/message"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
-import { IdentifiedTextMessage, NextStepTutorialMessage, TutorialMessage1 } from "@/app/chat/components/tutorial-message"
+import { IdentifiedTextMessage, NextStepTutorialMessage } from "@/app/chat/components/tutorial-message"
 import { TutorialStateIDs } from "@/app/chat/components/tutorial-input"
 
 // ============================= business logic =============================

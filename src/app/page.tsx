@@ -2,7 +2,7 @@
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
 import { addNewChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { AddNewChat, defaultGlobalChatSettings, getNextChatCounter, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
+import { AddNewChat, defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
@@ -13,12 +13,11 @@ import { FilledButton } from "./ui-utils/components/button";
 import { DropdownMenu, DropdownMenuEntry } from "./ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "./ui-utils/components/overlay";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { GrammarCheckingHandler, RespGenerationHandler, TranslationHandler } from "./chat/components/input-handlers";
+import { DisableHandlerDecorator, GrammarCheckingHandler, RespGenerationHandler, TranslationHandler, TutorialTranslationHandler } from "./chat/components/input-handlers";
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
-import { SystemMessage } from "./chat/components/message";
-import { FreeTrialChatIntelligence, TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
-import { NextStepTutorialMessage, TutorialMessage1 } from "./chat/components/tutorial-message";
+import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
+import { NextStepTutorialMessage } from "./chat/components/tutorial-message";
 import { TutorialStateIDs } from "./chat/components/tutorial-input";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
@@ -141,14 +140,17 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
       ...defaultGlobalChatSettings,
       inputHandlers: handlers.map((handler) => ({ handler, display: true }))
     });
-    const counter = getNextChatCounter();
     // add the tutorial chat
     const newChatSelection = AddNewChat(
       t('Tutorial'),
       [new NextStepTutorialMessage(TutorialStateIDs.introduction, TutorialStateIDs.introduceQuickTranslationInstructions)],
       {
         usingGlobalSettings: false,
-        inputHandlers: [],
+        inputHandlers: [
+          { handler: new TutorialTranslationHandler('English'), display: true },
+          { handler: new DisableHandlerDecorator(new GrammarCheckingHandler()), display: true },
+          { handler: new DisableHandlerDecorator(new RespGenerationHandler()), display: true },
+        ],
         autoPlayAudio: false,
         inputComponent: {
           type: 'tutorialInput',

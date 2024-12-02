@@ -11,22 +11,20 @@ import { Tooltip } from "react-tooltip"
 import { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "@reduxjs/toolkit"
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
-import { NonInteractiveTutorialMessage, IdentifiedTextMessage, TutorialMessage1, QueClickOnTranslationMsg, NextStepTutorialMessage } from "./tutorial-message"
-import { InputHandler, TutorialTranslationHandler } from "./input-handlers"
+import { NonInteractiveTutorialMessage, IdentifiedTextMessage, QueClickOnTranslationMsg as IndicateUsersToClickTranslationMsg, NextStepTutorialMessage } from "./tutorial-message"
 import { diffChars } from "diff"
-import { PiKeyReturnBold } from "react-icons/pi"
 import { TmpFilledButton, TmpTransparentButton } from "@/app/ui-utils/components/button"
 import { LiaComments } from "react-icons/lia"
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay"
+import { PiKeyReturnBold } from "react-icons/pi"
 
 export function TutorialInput(
-    { msgListSwitchSignal, addMessage, updateMessage, updateInputSettingsPayload, addInputHandler, revisionMessage }: {
+    { msgListSwitchSignal, addMessage, updateMessage, updateInputSettingsPayload, revisionMessage }: {
         allowEdit: boolean
         msgListSwitchSignal: MsgListSwitchSignal
         updateMessage: (message: Message) => void
         addMessage: (message: Message, opts: messageAddedCallbackOptions) => void
         updateInputSettingsPayload: (payload: object) => void
-        addInputHandler: (handler: InputHandler) => void
         revisionMessage: [Message, boolean] | undefined // Updated when a revision is provided, initialized as undefined
         rejectionSignal: number, // Signal to indicate rejection of a revision
     }
@@ -90,13 +88,12 @@ export function TutorialInput(
             if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.indicateUsersToClickTranslation) {
                 updateInputSettingsPayload({ stateID: TutorialStateIDs.indicateUsersToClickTranslation })
                 addMessage(
-                    new QueClickOnTranslationMsg(),
+                    new IndicateUsersToClickTranslationMsg(),
                     { generateAssistantMsg: false }
                 )
-                addInputHandler(new TutorialTranslationHandler('English'))
             }
             // setMsg 属于幂等操作，且 msg 未持久化，需固定触发
-            setMsg(new TextMessage(defaultRole, '东西有点多，我晚点提炼一下'))
+            setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, '东西有点多，我晚点提炼一下'))
         }
         if (currentTutorialState.stateID === TutorialStateIDs.indicateUsersToGoBack) {
             addMessage(new TextMessage(SpecialRoles.USER, '可以用 distill 或 extract 吗?'), { generateAssistantMsg: false })
@@ -163,7 +160,7 @@ export function TutorialInput(
             className={`flex-1 p-4 resize-none focus:outline-none cursor-default`}
             ref={textAreaRef}
             placeholder={t('Free input is temporarily not supported in this tutorial')}
-            value={msg.content} onChange={(e) => setMsg(msg.updateContent(e.target.value))}
+            value={msg.content}
             readOnly={true} rows={2} />
         <Tooltip anchorSelect="#tutorial-input-textarea" isOpen={currentTutorialState.stateID === TutorialStateIDs.indicateToSendMsg} delayShow={100} delayHide={0} place="left" style={{ borderRadius: '0.75rem' }}>
             {t('Press Enter to send your message')}
@@ -255,10 +252,10 @@ export function TutorialDiffView(
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
-    const [editedText, setEditedText] = useState((revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content);
+    const newText = (revisedMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
     const originalText = (originalMsg as unknown as OpenAILikeMessage).toOpenAIMessage().content
 
-    const changes = diffChars(originalText, editedText);
+    const changes = diffChars(originalText, newText);
     const hasOnlyAdditions = changes.every(change => !change.removed);
     const [showDiff, setShowDiff] = useState(!hasOnlyAdditions);
 
@@ -304,7 +301,7 @@ export function TutorialDiffView(
                                     ))
                                 ) : (
                                     <div className="whitespace-pre-wrap break-words">
-                                        {editedText}
+                                        {newText}
                                     </div>
                                 )}
                             </div>
@@ -352,13 +349,13 @@ export function TutorialDiffView(
                             </div>
                             {/* 右侧操作按钮 */}
                             <div className="flex flex-row">
-                                <div className={`flex flex-row border p-1 rounded-lg ${tutorialPhase === 'approve-reject-introduction' && 'border border-gray-200'}`} id='approve-and-reject-buttons'>
+                                <div className={`flex flex-row p-1 rounded-lg ${tutorialPhase === 'approve-reject-introduction' && 'border border-gray-200'}`} id='approve-and-reject-buttons'>
                                     {/* 采纳按钮 */}
                                     <div id='approve-button' className={`${tutorialPhase === 'approve-introduction' && 'z-50'}`}>
                                         <TmpFilledButton
                                             className={`py-0 px-2 mr-2 rounded-md text-[13px]`}
                                             onClick={() => {
-                                                approveRevisionCallback(editedText);
+                                                approveRevisionCallback(newText);
                                                 dispatch(setTutorialState({ stateID: TutorialStateIDs.indicateToSendMsg }));
                                             }}
                                         >
@@ -392,7 +389,7 @@ export function TutorialDiffView(
                                             className={`mr-2 py-0 px-1 rounded-lg text-[15px] text-gray-500 ${tutorialPhase === 'follow-up-discussion-introduction' && 'z-50'}`}
                                             onClick={() => {
                                                 dispatch(setTutorialState({ stateID: TutorialStateIDs.startFollowUpDiscussion }));
-                                                startFollowUpDiscussion(originalMsg, new TextMessage(revisedMsg.role, editedText));
+                                                startFollowUpDiscussion(originalMsg, new TextMessage(revisedMsg.role, newText));
                                             }}
                                         >
                                             <LiaComments className="inline-block mr-1" color="6b7280" /> {t('Follow-up discussions')}

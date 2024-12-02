@@ -6,7 +6,7 @@ import { Message } from "./message";
 import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
 import { generateUUID } from "@/app/lib/uuid";
 import { inputComponentType } from "../components/input";
-import { TutorialMessage1, QueClickOnTranslationMsg, NonInteractiveTutorialMessage, IdentifiedTextMessage, NextStepTutorialMessage } from "../components/tutorial-message";
+import { QueClickOnTranslationMsg, NonInteractiveTutorialMessage, IdentifiedTextMessage, NextStepTutorialMessage } from "../components/tutorial-message";
 
 // ============================= business logic =============================
 
@@ -37,8 +37,6 @@ export function loadChatMessages(chatID: string): Message[] {
                 return BabelDuckMessage.deserialize(JSON.stringify(rest));
             case FreeTrialMessage.type:
                 return FreeTrialMessage.deserialize();
-            case TutorialMessage1._type:
-                return TutorialMessage1.deserialize();
             case QueClickOnTranslationMsg._type:
                 return QueClickOnTranslationMsg.deserialize();
             case NonInteractiveTutorialMessage._type:

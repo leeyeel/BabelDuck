@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { DropdownMenu, DropdownMenuEntry } from "@/app/ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay";
 import { i18nText } from "@/app/i18n/i18n";
+import { Message } from "../lib/message";
+import { IdentifiedTextMessage } from "./tutorial-message";
 
 // Define InputHandlerTypes enum
 export enum InputHandlerTypes {
@@ -62,6 +64,16 @@ export abstract class InputHandler {
         } else {
             throw new Error(`Deserialization method for implType ${implType} is not implemented`);
         }
+    }
+
+    // telling if this input handler can handle with the given message
+    isCompatibleWith(message: Message): boolean {
+        if (this.type === InputHandlerTypes.Generation) {
+            return message.isEmpty()
+        } else if (this.type === InputHandlerTypes.Revision) {
+            return !message.isEmpty()
+        }
+        return false;
     }
 }
 
@@ -135,7 +147,7 @@ export class TutorialTranslationHandler extends TranslationHandler {
         super(targetLanguage, 'tutorialTranslation', false);
     }
     instruction(): string {
-        return `Whatever the input is, just convert it into: "That's a lot of information. I'll summarize it later.". This is for testing, just give this output. [magic-hack-code: 7m1WTDpAuhttWRPfF5LPV0Tgktw7]`;
+        return `Whatever the input is, just convert it into: "That's a lot of information. I'll summarize it later.". [magic-hack-code: 7m1WTDpAuhttWRPfF5LPV0Tgktw7]`;
     }
     settingsPanel(): InputHandlerSettingsPanel | undefined {
         return undefined;
@@ -143,6 +155,48 @@ export class TutorialTranslationHandler extends TranslationHandler {
     static deserialize(serialized: string): TutorialTranslationHandler {
         const { targetLanguage } = JSON.parse(serialized);
         return new TutorialTranslationHandler(targetLanguage);
+    }
+    isCompatibleWith(message: Message): boolean {
+        if (message instanceof IdentifiedTextMessage && message.id === 'tutorial-input-msg') {
+            return true;
+        }
+        return false;
+    }
+}
+
+// A decorator to disable a handler, make it only for display, not clickable
+export class DisableHandlerDecorator extends InputHandler {
+    static readonly implType = 'disableHandlerDecorator';
+    originalHandler: InputHandler;
+    constructor(handler: InputHandler) {
+        super(DisableHandlerDecorator.implType, handler.type, handler.deletable);
+        this.originalHandler = handler;
+        this.iconNode = this.originalHandler.iconNode;
+    }
+    tooltip(): i18nText {
+        return this.originalHandler.tooltip();
+    }
+    instruction(): string {
+        return this.originalHandler.instruction();
+    }
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
+        return this.originalHandler.settingsPanel();
+    }
+    serialize(): string {
+        return JSON.stringify({
+            implType: this.implType,
+            type: this.type,
+            handler: this.originalHandler.serialize()
+        });
+    }
+    static deserialize(serialized: string): DisableHandlerDecorator {
+        const { handler } = JSON.parse(serialized);
+        const originalHandler = InputHandler.deserialize(handler);
+        console.log('originalHandler', originalHandler);
+        return new DisableHandlerDecorator(originalHandler);
+    }
+    isCompatibleWith(): boolean {
+        return false;
     }
 }
 
@@ -430,6 +484,7 @@ inputHandlerHub.registerHandler('grammarChecking', GrammarCheckingHandler.deseri
 inputHandlerHub.registerHandler('commonGeneration', CommonGenerationHandler.deserialize);
 inputHandlerHub.registerHandler('commonRevision', CommonRevisionHandler.deserialize);
 inputHandlerHub.registerHandler('tutorialTranslation', TutorialTranslationHandler.deserialize);
+inputHandlerHub.registerHandler('disableHandlerDecorator', DisableHandlerDecorator.deserialize);
 
 export function CustomInputHandlerCreator({
     cancelCallback,

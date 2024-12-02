@@ -2,17 +2,11 @@ import { useTranslation } from "react-i18next";
 import { Message } from "../lib/message";
 import { RoleV2, SpecialRoles, TextMessage } from "./message";
 // import { PiStudentFill } from "react-icons/pi";
-import { FaGraduationCap } from "react-icons/fa6";
-import { Tooltip } from "react-tooltip";
 import { TmpFilledButton } from "@/app/ui-utils/components/button";
 import { useAppSelector } from "@/app/hooks";
 import { useAppDispatch } from "@/app/hooks";
 import { TutorialStateIDs } from "./tutorial-input";
 import { setTutorialState } from "./tutorial-input";
-import { GoDependabot } from "react-icons/go";
-import { GrSystem } from "react-icons/gr";
-import { useContext } from "react";
-import { ChatSettingsContext } from "./chat";
 import Image from "next/image";
 
 // // export function RoleV2({ name, className }: { name: string, className?: string }) {
@@ -84,7 +78,6 @@ export class NonInteractiveTutorialMessage extends TutorialMessageBase {
 }
 
 function NonInteractiveTutorialMessageComponent({ message: unTypedMsg, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) {
-    const { t } = useTranslation()
     const message = unTypedMsg as NonInteractiveTutorialMessage
     // const dispatch = useAppDispatch();
     // const tutorialState = useAppSelector(state => state.tutorialState);
@@ -185,51 +178,6 @@ function NextStepTutorialMessageComponent({ message: unTypedMsg, className }: { 
             }
         </div>
     </div>
-}
-
-// ==== tutorial step 1 ====
-
-/** @deprecated */
-function TutorialMessageComponent1({ message, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) {
-    const { t } = useTranslation()
-    const dispatch = useAppDispatch();
-    const tutorialState = useAppSelector(state => state.tutorialState);
-    const chatSettings = useContext(ChatSettingsContext)
-
-    // TODO i18n
-    const content = "BabelDuck 是一个 XX ，旨在降低语言练习门槛的 AI 对话应用。除了普通的 AI 对话聊天能力外，我们还提供了一系列为口语练习场景而设计的工具，本教程将为你简单介绍如何使用它们。若你更倾向于自行摸索，可以点击左下角「新建对话」，即可开始体验，之后依然随时可以回来继续该教程。"
-
-    function handleNextStep() {
-        dispatch(setTutorialState({ stateID: TutorialStateIDs.indicateUsersToClickTranslation }))
-    }
-
-    return <div className={`flex flex-row ${className}`}>
-        <RoleV2 className="mr-3" name={message.role} />
-        <div className={`bg-[#F6F5F5] rounded-xl w-fit max-w-[80%] p-4 flex flex-col ${className}`}>
-            <div className="mb-2" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
-            {tutorialState.stateID === TutorialStateIDs.introduction &&
-                <TmpFilledButton className="px-2 py-1 mr-2 rounded-lg self-end" onClick={handleNextStep}>
-                    {/* TODO i18n */}
-                    <span className="text-sm">{t('Next Step')}</span>
-                </TmpFilledButton>
-            }
-        </div>
-    </div>
-}
-
-/** @deprecated Use NextStepTutorialMessage instead */
-export class TutorialMessage1 extends TutorialMessageBase {
-    static _type = 'tutorial-1'
-    constructor() {
-        super(TutorialMessage1._type)
-    }
-    component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element {
-        return TutorialMessageComponent1
-    }
-    static deserialize(): TutorialMessage1 {
-        return new TutorialMessage1()
-    }
-
 }
 
 // message for indicating users to click on Translation icon

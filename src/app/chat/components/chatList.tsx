@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "@/app/ui-utils/components/DropdownMenu";
 import { TbPencil } from "react-icons/tb";
 import { PiTrashBold } from "react-icons/pi";
-import { TutorialMessage1 } from "./tutorial-message";
 
 
 export function ChatSelectionList({ chatSelectionListLoader, className = "" }: {

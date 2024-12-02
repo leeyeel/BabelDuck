@@ -17,7 +17,6 @@ import { FiPlus } from "react-icons/fi";
 import { updateInputHandlerInLocalStorage, updateInputSettingsPayloadInLocalStorage } from "../lib/chat";
 import {
     InputHandler,
-    InputHandlerTypes,
     CustomInputHandlerCreator
 } from "./input-handlers";
 import { SemiTransparentOverlay } from "@/app/ui-utils/components/overlay";
@@ -253,11 +252,9 @@ export function MessageInput({
             return;
         }
         const handler = inputHandlers[triggeredIndex]
-        if (handler.type === InputHandlerTypes.Generation && !compState.message.isEmpty()) {
-            return // TODO raise error
-        }
-        if (handler.type === InputHandlerTypes.Revision && compState.message.isEmpty()) {
-            return
+        if (!handler.isCompatibleWith(compState.message)) {
+            console.error(`Input handler ${handler.type} is not compatible with message ${compState.message.type}`)
+            return; // TODO raise error
         }
         setCompState({ type: 'revising', revisingIndex: triggeredIndex, message: compState.message });
         const userInstruction = handler.instruction();
@@ -335,11 +332,6 @@ export function MessageInput({
     function updateInputSettingsPayload(payload: object) {
         updateInputSettingsPayloadInLocalStorage(chatID, payload);
     }
-    // TODO tech-debt: 新增 inputHandler 应该通过更新 chatSettings 来实现
-    function directlyAddInputHandler(handler: InputHandler) {
-        pAddInputHandler(handler);
-        inputHandlers.push(handler);
-    }
 
     useEffect(() => {
         if (msgListSwitchSignal.type === 'backFromFollowUpDiscussion') {
@@ -370,7 +362,7 @@ export function MessageInput({
         }}>
         {/* top bar */}
         <div className="flex flex-row px-2 mb-1">
-            {/* top bar - revision entry icons */}
+            {/* top bar - input handler icons */}
             <div className="flex flex-row">
                 {inputHandlers.map((h, index) => {
                     // loading effect while handling input
@@ -393,6 +385,7 @@ export function MessageInput({
                                     const ii = index;
                                     startHandler(ii);
                                 }}
+                                allowClick={compState.type === 'normal' && h.isCompatibleWith(compState.message)}
                             >
                                 {h.iconNode}
                             </IconCircleWrapper>
@@ -450,7 +443,7 @@ export function MessageInput({
             revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
         {inputComponentType === 'tutorialInput' && <TutorialInput msgListSwitchSignal={msgListSwitchSignal} allowEdit={isNormal}
             addMessage={addMesssage} updateMessage={updateMessage} updateInputSettingsPayload={updateInputSettingsPayload}
-            addInputHandler={directlyAddInputHandler} revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
+            revisionMessage={isNormal ? [compState.message, compState.fromRevision] : undefined} rejectionSignal={rejectionSignal} />}
     </div>;
 }
 
