@@ -83,7 +83,6 @@ function NonInteractiveTutorialMessageComponent({ message: unTypedMsg, className
     // const tutorialState = useAppSelector(state => state.tutorialState);
     // const chatSettings = useContext(ChatSettingsContext)
 
-    // TODO i18n
     return <div className={`flex flex-row ${className}`}>
         <RoleV2 className="mr-3" name={message.role} />
         <div className={`bg-[#F6F5F5] rounded-xl w-fit max-w-[80%] p-4 flex flex-col ${className}`}>

@@ -100,8 +100,8 @@ export function TutorialInput(
             setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, '东西有点多，我晚点提炼一下'))
         }
         if (currentTutorialState.stateID === TutorialStateIDs.indicateUsersToGoBack) {
-            addMessage(new TextMessage(SpecialRoles.USER, '可以用 distill 或 extract 吗?'), { generateAssistantMsg: false })
-            addMessage(new TextMessage(SpecialRoles.ASSISTANT, '可以的，在会议这个语境下，distill 和 extract 都可以表达提炼的意思。'), { generateAssistantMsg: false })
+            addMessage(new TextMessage(SpecialRoles.USER, '这里可以用 extract 吗?'), { generateAssistantMsg: false })
+            addMessage(new TextMessage(SpecialRoles.ASSISTANT, 'extract 虽然也有"提取"的意思，但在这个会议场景下不是最佳选择。让我解释一下原因：\n……（略）'), { generateAssistantMsg: false })
             addMessage(new NonInteractiveTutorialMessage('就像上面这样，并且在子对话中的讨论不会影响上一层对话。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。'), { generateAssistantMsg: false })
         }
         if (currentTutorialState.stateID === TutorialStateIDs.clickNextToIllustrateGrammarCheck) {
@@ -189,7 +189,7 @@ export function TutorialInput(
                     delayHide={0}
                     place="top"
                     style={{ borderRadius: '0.75rem' }}
-                >{'Voice mode is temporarily not supported in tutorial mode'}</Tooltip>
+                >{t('voiceModeNotSupportedInTutorial')}</Tooltip>
                 <button
                     id="recording-button"
                     className="rounded-full bg-black hover:bg-gray-700 focus:outline-none cursor-not-allowed"
@@ -201,8 +201,7 @@ export function TutorialInput(
                 </button>
                 <Tooltip
                     anchorSelect="#recording-button" delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
-                // TODO i18n
-                >{'Recording is temporarily not supported in tutorial mode'}</Tooltip>
+                >{t('recordingNotSupportedInTutorial')}</Tooltip>
             </div>
         </div>
     </div>

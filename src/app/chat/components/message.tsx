@@ -523,7 +523,7 @@ export class StreamingTextMessage extends Message {
     finished: boolean = false
 
     constructor(role: string, streamingGenerator: AsyncGenerator<string, void, unknown>) {
-        super(MessageTypes.STREAMING_TEXT, role, true, false)
+        super(MessageTypes.STREAMING_TEXT, role, true, true)
         this.streamingGenerator = streamingGenerator
     }
 

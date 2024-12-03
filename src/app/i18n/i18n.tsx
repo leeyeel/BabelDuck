@@ -131,10 +131,12 @@ i18n
                     'Next Step': 'Next Step',
                     'Tutorial': 'Tutorial',
                     'Tutorial Model': 'Tutorial Model',
-                    'Press Enter to send your message': 'Press Enter to send your message',
+                    'Press Enter to send your message': 'Press Enter to send your message (If Enter key does not work, click the text box and press Enter again)',
                     'Free input is temporarily not supported in this tutorial': 'Free input is temporarily not supported in this tutorial',
                     'Expand': 'Expand',
                     'Collapse': 'Collapse',
+                    'voiceModeNotSupportedInTutorial': 'Voice input is temporarily not supported in tutorial mode',
+                    'recordingNotSupportedInTutorial': 'Voice input is temporarily not supported in tutorial mode',
                 }
             },
             zh: {
@@ -248,10 +250,12 @@ i18n
                     'Next Step': '下一步',
                     'Tutorial': '教程',
                     'Tutorial Model': '教学模型',
-                    'Press Enter to send your message': '按 Enter 键发送消息',
+                    'Press Enter to send your message': '按回车键发送消息（如果按回车键没反应，鼠标点一下文本框后再按一次回车）',
                     'Free input is temporarily not supported in this tutorial': '教程模式暂不支持自由输入',
                     'Expand': '展开',
                     'Collapse': '折叠',
+                    'voiceModeNotSupportedInTutorial': '教程模式暂不支持语音输入',
+                    'recordingNotSupportedInTutorial': '教程模式暂不支持语音输入',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -367,10 +371,12 @@ i18n
                     'Next Step': '次のステップ',
                     'Tutorial': 'チュートリアル',
                     'Tutorial Model': 'チュートリアルモデル',
-                    'Press Enter to send your message': 'Enter キーを押してメッセージを送信',
+                    'Press Enter to send your message': 'Enter キーを押してメッセージを送信（Enter キーが反応しない場合は、テキストボックスをクリックしてから再度 Enter キーを押してください）',
                     'Free input is temporarily not supported in this tutorial': 'チュートリアルモードでは自由入力は一時的に無効になっています',
                     'Expand': '展開',
                     'Collapse': '折りたたむ',
+                    'voiceModeNotSupportedInTutorial': 'チュートリアルモードでは音声モードは一時的に無効になっています',
+                    'recordingNotSupportedInTutorial': 'チュートリアルモードでは録音は一時的に無効になっています',
                 }
             }
         }
