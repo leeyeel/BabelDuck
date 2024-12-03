@@ -5,6 +5,7 @@ import { StreamingTextMessage } from "@/app/chat/components/message"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
 import { IdentifiedTextMessage, NextStepTutorialMessage } from "@/app/chat/components/tutorial-message"
 import { TutorialStateIDs } from "@/app/chat/components/tutorial-input"
+import { CustomError } from "@/app/error/error"
 
 // ============================= business logic =============================
 
@@ -120,15 +121,16 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
                 },
                 body: JSON.stringify({
                     messageList: messageList
-
                         .filter((msg) => msg.includedInChatCompletion)
                         .filter((msg) => isOpenAILikeMessage(msg))
                         .map((msg) => (msg.toOpenAIMessage()))
                 }),
             });
-
+            if (!response.ok) {
+                throw new FreeTrialChatError(`chat completion error: ${response.statusText}, ${await response.text()}`);
+            }
             if (!response.body) {
-                throw new Error('No response body');
+                throw new FreeTrialChatError('No response body');
             }
 
             const reader = response.body.getReader();
@@ -158,6 +160,9 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
         super(FreeTrialChatIntelligence.type, FreeTrialChatIntelligence._name)
     }
 }
+
+export class FreeTrialChatError extends CustomError { }
+export class InvalidModelSettingsError extends CustomError { }
 
 export type OpenAIChatISettings = {
     settingsType: 'link' | 'local'
@@ -200,6 +205,9 @@ export class OpenAIChatIntelligence extends ChatIntelligenceBase {
 
     completeChat(messageList: Message[]): Message[] {
         const openAIService = this.getOpenAIService()
+        if (openAIService.apiKey === '') {
+            throw new InvalidModelSettingsError('OpenAI API key is not set')
+        }
         async function* genFunc() {
             const { textStream } = await openAIService.chatCompletionInStream(
                 messageList.filter((msg) => msg.includedInChatCompletion)
@@ -265,6 +273,9 @@ export class CustomLLMChatIntelligence extends ChatIntelligenceBase {
 
     completeChat(messageList: Message[]): Message[] {
         const customLLMService = this.getOpenAICompatibleService()
+        if (customLLMService.apiKey === '') {
+            throw new InvalidModelSettingsError('API key is not set')
+        }
         async function* genFunc() {
             const { textStream } = await customLLMService.chatCompletionInStream(
                 messageList.filter((msg) => msg.includedInChatCompletion)

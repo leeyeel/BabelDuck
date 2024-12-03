@@ -8,17 +8,18 @@ export async function POST(request: NextRequest) {
     const { messageList } = await request.json();
 
     if (!process.env.SILICONFLOW_API_KEY) {
-        return NextResponse.json({ error: 'SILICONFLOW_API_KEY is not defined' }, { status: 500 });
+        console.error('SILICONFLOW_API_KEY is not defined')
+        return NextResponse.json({ error: 'quick trial chat service is offline' }, { status: 403 });
     }
 
-    const siliconFlowService = new SiliconFlowService(process.env.SILICONFLOW_API_KEY, 'deepseek-ai/DeepSeek-V2.5');
-    const stream = siliconFlowService.chatCompletionInStream(messageList);
+    try {
+        const siliconFlowService = new SiliconFlowService(process.env.SILICONFLOW_API_KEY, 'deepseek-ai/DeepSeek-V2.5');
+        const stream = siliconFlowService.chatCompletionInStream(messageList);
 
-    return (await stream).toTextStreamResponse()
-    return new Response((await stream).toDataStream(), {
-        headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache, no-transform',
-        }
-    })
+        return (await stream).toTextStreamResponse()
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({ error: 'quick trial chat service is temporarily unavailable' }, { status: 500 });
+    }
 }
+

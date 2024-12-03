@@ -19,6 +19,7 @@ import { FaGithub } from "react-icons/fa";
 import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
 import { NextStepTutorialMessage } from "./chat/components/tutorial-message";
 import { TutorialStateIDs } from "./chat/components/tutorial-input";
+import { Toaster } from "react-hot-toast";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -291,37 +292,41 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-row h-full w-full">
-      {showInitializationPanel && <InitializationPanel onClose={finishInitialization} />}
-      {/* sidebar */}
-      <div className="flex px-2 pb-12 pt-4 flex-col w-[250px] bg-[#F9F9F9]">
-        {/* logo */}
-        <div className="flex flex-row pl-4 items-center justify-start">
-          <Image
-            src="/images/babel-duck-logo.png" alt="BabelDuck Logo"
-            width={36} height={36} className="mr-3"
-          />
-          <span className="text-gray-600 text-2xl">BabelDuck</span>
+    <>
+
+      <div className="flex flex-row h-full w-full">
+        {showInitializationPanel && <InitializationPanel onClose={finishInitialization} />}
+        {/* sidebar */}
+        <div className="flex px-2 pb-12 pt-4 flex-col w-[250px] bg-[#F9F9F9]">
+          {/* logo */}
+          <div className="flex flex-row pl-4 items-center justify-start">
+            <Image
+              src="/images/babel-duck-logo.png" alt="BabelDuck Logo"
+              width={36} height={36} className="mr-3"
+            />
+            <span className="text-gray-600 text-2xl">BabelDuck</span>
+          </div>
+          {/* chat  */}
+          <ChatSelectionList className="mt-8 flex-1 overflow-y-auto w-[250px]"
+            chatSelectionListLoader={loadChatSelectionList} />
+          <div className="border-t border-gray-300 my-5 mx-3"></div>
+          {/* settings, odds and ends */}
+          <div className="flex flex-col">
+            <NewChat className="mb-1" />
+            <SettingsEntry />
+            <AboutLink />
+          </div>
         </div>
-        {/* chat  */}
-        <ChatSelectionList className="mt-8 flex-1 overflow-y-auto w-[250px]"
-          chatSelectionListLoader={loadChatSelectionList} />
-        <div className="border-t border-gray-300 my-5 mx-3"></div>
-        {/* settings, odds and ends */}
-        <div className="flex flex-col">
-          <NewChat className="mb-1" />
-          <SettingsEntry />
-          <AboutLink />
+        {/* content */}
+        <div className="w-full">
+          {chatSelected && <Chat className="h-full w-full"
+            chatID={chatSelectionList.currentChatID as string}
+            chatTitle={chatSelectionList.selectionList.find(chat => chat.id === chatSelectionList.currentChatID)?.title as string}
+            key={chatSelectionList.currentChatID as string}
+            loadChatByID={loadChatMessages} />}
         </div>
       </div>
-      {/* content */}
-      <div className="w-full">
-        {chatSelected && <Chat className="h-full w-full"
-          chatID={chatSelectionList.currentChatID as string}
-          chatTitle={chatSelectionList.selectionList.find(chat => chat.id === chatSelectionList.currentChatID)?.title as string}
-          key={chatSelectionList.currentChatID as string}
-          loadChatByID={loadChatMessages} />}
-      </div>
-    </div>
+      <Toaster />
+    </>
   );
 }

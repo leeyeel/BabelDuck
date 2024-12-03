@@ -18,6 +18,8 @@ import { GoDependabot } from "react-icons/go";
 import { Tooltip } from "react-tooltip";
 import { FaGraduationCap } from "react-icons/fa6";
 import { GrSystem } from "react-icons/gr";
+import { FreeTrialChatError, InvalidModelSettingsError } from "@/app/intelligence-llm/lib/intelligence";
+import toast from "react-hot-toast";
 
 export function RoleV2({ name, className }: { name: string, className?: string }) {
     const tooltipId = `role-tooltip-${Math.random().toString(36).substring(2, 11)}`;
@@ -212,6 +214,8 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
     updateMessage: (messageID: number, message: Message) => void,
     className?: string
 }) {
+    const { t } = useTranslation();
+
     const showMore = (compState.type === 'normal' && compState.showMore)
         || compState.type === 'playingAudio' // you will want to keep the buttons showing while playing the audio
     const isEditing = (compState.type === 'editing')
@@ -219,7 +223,7 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
 
     const alignRight = messageIns.role === SpecialRoles.USER
     const showRole = messageIns.role !== SpecialRoles.USER
-    
+
     // const { serviceId, settings } = getSpeechServiceSettings();
     const ttsService = useRef<WebSpeechTTS | null>(null);
     const playerRef = useRef<sdk.SpeakerAudioDestination | null>(null);
@@ -329,9 +333,7 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
                 //    When the peak time is over, move the free trial feature to backend (or simply remove it).
                 // Anyway, it's up to you whether to provide the free trial tts feature. So long as you don't set these two variables, the free trial feature will be disabled.
                 if (!subscriptionKey || !region) {
-                    console.error('Azure Speech subscription key or region not found');
-                    setCompState({ type: 'normal', content: compState.content, showMore: true });
-                    return;
+                    throw new Error('Azure Speech subscription key or region not found');
                 }
 
                 const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
@@ -366,7 +368,8 @@ export function ControlledTextMessageComponent({ messageIns, compState, setCompS
                 );
                 setCompState({ ...compState, type: 'playingAudio' });
             } catch (error) {
-                console.error('Failed to initialize speech synthesis:', error);
+                console.error('free trial TTS error:', error);
+                toast.error(t('trialTTSUnavailable'))
                 setCompState({ type: 'normal', content: compState.content, showMore: true });
             }
         }
@@ -561,7 +564,7 @@ export class StreamingTextMessage extends Message {
 }
 
 const StreamingTextMessageComponent = ({ message: _message, messageID, updateMessage: persistMessage, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) => {
-
+    const { t } = useTranslation()
     const message = _message as StreamingTextMessage
     const containerRef = useRef<HTMLDivElement>(null); // Ref for the container
     type MessageState =
@@ -575,7 +578,7 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
 
     const alignRight = message.role === SpecialRoles.USER
     const showRole = message.role !== SpecialRoles.USER
-    
+
     const [textMsgState, setTextMsgState] = useState<textMessageState>({ type: 'normal', showMore: false, content: '' }) // TODO performance: maybe useRef?
     const chatSettings = useContext(ChatSettingsContext)
 
@@ -609,35 +612,47 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
 
             // split the streaming content into sentences for tts
             const processChunk = async () => {
-                for await (const value of iterator) {
-                    if (unmounted) {
-                        return
+                try {
+                    for await (const value of iterator) {
+                        if (unmounted) {
+                            return
+                        }
+                        message.consumedChunks.push(value);
+                        persistMessage(messageID, message);
+                        if (stateRef.current.type === 'init') {
+                            setMsgState({ 'type': 'streaming', streamingContent: value, playing: false })
+                            stateRef.current = { 'type': 'streaming', streamingContent: value, playing: false }
+                        } else if (stateRef.current.type === 'streaming') {
+                            setMsgState({ 'type': 'streaming', streamingContent: stateRef.current.streamingContent + value, playing: stateRef.current.playing })
+                            stateRef.current = { 'type': 'streaming', streamingContent: stateRef.current.streamingContent + value, playing: stateRef.current.playing }
+                        }
+                        if (autoPlay) {
+                            buffer.push(value)
+                            // 目前尝试对流按句子截断，但是效果并不好，第一句之后会有很长的停顿，所以暂时不使用
+                            // try to split the first sentence from buffer, if so, send it to splited channel
+                            // const sentenceEndings = /([.!?。！？,，;；:：\n])/g;
+                            // const sentences = buffer.join('').split(sentenceEndings);
+                            // if (sentences.length > 1) {
+                            //     const firstSentence = sentences[0] + sentences[1];
+                            //     if (firstSentence !== '') {
+                            //         splited.push(firstSentence)
+                            //         buffer.length = 0
+                            //         buffer.push(sentences.slice(2).join(''))
+                            //     }
+                            // }
+                        }
                     }
-                    message.consumedChunks.push(value);
-                    persistMessage(messageID, message);
-                    if (stateRef.current.type === 'init') {
-                        setMsgState({ 'type': 'streaming', streamingContent: value, playing: false })
-                        stateRef.current = { 'type': 'streaming', streamingContent: value, playing: false }
-                    } else if (stateRef.current.type === 'streaming') {
-                        setMsgState({ 'type': 'streaming', streamingContent: stateRef.current.streamingContent + value, playing: stateRef.current.playing })
-                        stateRef.current = { 'type': 'streaming', streamingContent: stateRef.current.streamingContent + value, playing: stateRef.current.playing }
-                    }
-                    if (autoPlay) {
-                        buffer.push(value)
-                        // 目前尝试对流按句子截断，但是效果并不好，第一句之后会有很长的停顿，所以暂时不使用
-                        // try to split the first sentence from buffer, if so, send it to splited channel
-                        // const sentenceEndings = /([.!?。！？,，;；:：\n])/g;
-                        // const sentences = buffer.join('').split(sentenceEndings);
-                        // if (sentences.length > 1) {
-                        //     const firstSentence = sentences[0] + sentences[1];
-                        //     if (firstSentence !== '') {
-                        //         splited.push(firstSentence)
-                        //         buffer.length = 0
-                        //         buffer.push(sentences.slice(2).join(''))
-                        //     }
-                        // }
+                } catch (error) {
+                    console.error(error)
+                    if (error instanceof FreeTrialChatError) {
+                        toast.error(t('trialChatUnavailable'))
+                    } else if (error instanceof InvalidModelSettingsError) {
+                        toast.error(t('modelSettingsInvalid', { message: error.message }))
+                    } else {
+                        toast.error(t('chatUnavailable'))
                     }
                 }
+
                 if (autoPlay && buffer.length > 0) {
                     splited.push(buffer.join(''))
                     buffer.length = 0
@@ -758,9 +773,7 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                             const subscriptionKey = process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY;
                             const region = process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION;
                             if (!subscriptionKey || !region) {
-                                console.error('Azure Speech subscription key or region not found');
-                                setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: false });
-                                return;
+                                throw new Error('Azure Speech subscription key or region not found');
                             }
                             const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
                             speechConfig.speechRecognitionLanguage = 'en-US';
@@ -806,8 +819,9 @@ const StreamingTextMessageComponent = ({ message: _message, messageID, updateMes
                                 }
                             });
                         } catch (error) {
-                            console.error('Azure Speech error:', error);
+                            console.error('Free trial Azure TTS error:', error);
                             setMsgState({ ...stateRef.current as { type: 'streaming', streamingContent: string, playing: boolean }, playing: false });
+                            toast.error(t('trialTTSUnavailable'))
                             return;
                         }
                     }
@@ -893,8 +907,8 @@ export class RecommendedRespMessage extends Message {
                     <div className={`bg-[#F6F5F5] rounded-lg w-fit p-2 ${className}`}>
                         <I18nText i18nText={{ key: 'The recommended response is as follows' }} />
                         <div className="flex flex-col p-3 m-4 ml-0 bg-white shadow-sm border-2 rounded-md">
-                        <div dangerouslySetInnerHTML={{ __html: this.recommendedContent.replace(/\n/g, '<br />') }} />
-                        {/* <div className="flex flex-row self-end">
+                            <div dangerouslySetInnerHTML={{ __html: this.recommendedContent.replace(/\n/g, '<br />') }} />
+                            {/* <div className="flex flex-row self-end">
                             <button className="mr-2 py-0 px-2 bg-gray-800 rounded-md text-[15px] text-white" >
                                 <CgChevronDoubleDown className="inline-block mr-1" color="white" /> Apply
                             </button>

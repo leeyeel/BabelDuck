@@ -8,7 +8,7 @@ import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } fro
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings, TutorialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatError, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, InvalidModelSettingsError, OpenAIChatIntelligence, OpenAIChatISettings, TutorialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { LuSettings } from "react-icons/lu";
 import { LocalChatSettingsComponent } from "@/app/settings/components/settings";
 import { ChatSettingsContext } from "./chat-settings";
-
-// export const ChatSettingsContext = createContext<LocalChatSettings | null>(null)
+import { toast } from "react-hot-toast";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -100,14 +99,26 @@ export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
             // only generate assistant message if the last message is from the user
             if (messageList.length === 0 || messageList[messageList.length - 1].role !== SpecialRoles.USER) return
 
-            const newMessages = chatIntelligence.completeChat(messageList)
-            if (isTopLevel) {
-                // only top level chat need to be persisted
-                AddMesssageInChat(chatID, newMessages)
+            try {
+                const newMessages = chatIntelligence.completeChat(messageList)
+                if (isTopLevel) {
+                    // only top level chat need to be persisted
+                    AddMesssageInChat(chatID, newMessages)
+                }
+                updateMessageListStack(draft => {
+                    draft[draft.length - 1].push(...newMessages)
+                })
+            } catch (error) {
+                // TODO tech-debt: 错误处理分散
+                console.error(error)
+                if (error instanceof FreeTrialChatError) {
+                    toast.error(t('trialChatUnavailable'))
+                } else if (error instanceof InvalidModelSettingsError) {
+                    toast.error(t('modelSettingsInvalid', { message: error.message }))
+                } else {
+                    toast.error(t('chatUnavailable'))
+                }
             }
-            updateMessageListStack(draft => {
-                draft[draft.length - 1].push(...newMessages)
-            })
         }
         // TODO rename chat based on messages while the number of messages is greater than 1
 

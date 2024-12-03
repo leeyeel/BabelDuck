@@ -137,6 +137,10 @@ i18n
                     'Collapse': 'Collapse',
                     'voiceModeNotSupportedInTutorial': 'Voice input is temporarily not supported in tutorial mode',
                     'recordingNotSupportedInTutorial': 'Voice input is temporarily not supported in tutorial mode',
+                    'trialChatUnavailable': 'The trial chat service is temporarily unavailable, possibly due to high traffic. Please try again later or switch to another chat model service in settings',
+                    'chatUnavailable': 'Chat model service is temporarily unavailable, please try again later',
+                    'modelSettingsInvalid': 'Invalid model settings: {{message}}',
+                    'trialTTSUnavailable': 'The trial TTS service is temporarily unavailable. Please try again later or switch to another speech synthesis service in settings',
                 }
             },
             zh: {
@@ -256,6 +260,10 @@ i18n
                     'Collapse': '折叠',
                     'voiceModeNotSupportedInTutorial': '教程模式暂不支持语音输入',
                     'recordingNotSupportedInTutorial': '教程模式暂不支持语音输入',
+                    'trialChatUnavailable': '体验版模型服务暂不可用，可能是当前使用人数过多，请稍后重试或在设置中切换其他聊天模型服务',
+                    'chatUnavailable': '聊天模型服务暂时不可用，请稍后重试',
+                    'modelSettingsInvalid': '模型设置无效：{{message}}',
+                    'trialTTSUnavailable': '体验版语音服务暂不可用，请稍后重试，或在前往「设置 -> 语音」中切换至其他服务',
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -377,6 +385,10 @@ i18n
                     'Collapse': '折りたたむ',
                     'voiceModeNotSupportedInTutorial': 'チュートリアルモードでは音声モードは一時的に無効になっています',
                     'recordingNotSupportedInTutorial': 'チュートリアルモードでは録音は一時的に無効になっています',
+                    'trialChatUnavailable': '体験版チャットサービスは一時的に利用できません。トラフィックが多い可能性があります。後でもう一度お試しいただくか、設定で他のチャットモデルサービスに切り替えてください',
+                    'chatUnavailable': 'チャットモデルサービスは一時的に利用できません。後でもう一度お試しください',
+                    'modelSettingsInvalid': 'モデル設定が無効です：{{message}}',
+                    'trialTTSUnavailable': '体験版音声サービスは一時的に利用できません。後でもう一度お試しいただくか、設定で他の音声合成サービスに切り替えてください',
                 }
             }
         }
