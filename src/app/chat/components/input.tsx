@@ -102,7 +102,7 @@ ${userInstruction}
         { role: 'assistant', content: fewShotMessages[1] },
         { role: 'user', content: userMessage }
     ]
-    
+
 
     const response = await fetch('/api/chat', {
         method: 'POST',
@@ -419,7 +419,7 @@ export function MessageInput({
         {/* revision DiffView pop-up */}
         {
             // TODO bug: line wrapping for content
-            waitingForApproval &&  ( inputComponentType === 'textInput' ?
+            waitingForApproval && (inputComponentType === 'textInput' ?
                 <DiffView className={`absolute w-fit min-w-[700px] max-w-[1300px] bg-white`} style={{ bottom: `${calculateTextAreaHeight()}px` }}
                     originalMsg={compState.message} revisedMsg={compState.revisedMsg} allowFollowUpDiscussion={allowFollowUpDiscussion}
                     approveRevisionCallback={approveHandlerResult} rejectRevisionCallback={rejectHandlerResult}
@@ -501,6 +501,7 @@ function TextInput(
     const isTyping = inputState.type === 'typing'
     const isVoiceMode = inputState.type === 'voiceMode'
     const isRecording = inputState.type === 'recording'
+    const isTranscribing = inputState.type === 'transcribing'
 
     const defaultRole = 'user'
     const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -749,10 +750,15 @@ function TextInput(
                     {isRecording ?
                         <div className="flex items-center justify-center w-16 h-8">
                             <Audio height={17} width={34} color="white" wrapperClass="p-2" />
-                        </div> :
-                        <div className="flex items-center justify-center w-16 h-8">
-                            <FaMicrophone size={17} color="white" />
-                        </div>
+                        </div> : (
+                            isTranscribing ?
+                                <div className="flex items-center justify-center w-16 h-8">
+                                    <Oval height={17} width={17} color="#959595" secondaryColor="#959595" strokeWidth={4} strokeWidthSecondary={4} />
+                                </div> :
+                                <div className="flex items-center justify-center w-16 h-8">
+                                    <FaMicrophone size={17} color="white" />
+                                </div>
+                        )
                     }
                 </button>
                 <Tooltip
