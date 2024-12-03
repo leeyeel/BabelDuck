@@ -141,6 +141,9 @@ i18n
                     'chatUnavailable': 'Chat model service is temporarily unavailable, please try again later',
                     'modelSettingsInvalid': 'Invalid model settings: {{message}}',
                     'trialTTSUnavailable': 'The trial TTS service is temporarily unavailable. Please try again later or switch to another speech synthesis service in settings',
+                    'IELTS Speaking Practice': 'IELTS Speaking Practice',
+                    'Mock Interview': 'Mock Interview',
+                    'fillPositionAndResumeHint': 'Before you start, remember to fill in the position and your resume.'
                 }
             },
             zh: {
@@ -247,7 +250,7 @@ i18n
                     'Blur Text': '模糊文本',
                     'useGlobalSettings': '使用全局对话设置',
                     'globalSettingsDescription.enabled': '当前对话的设置将与全局设置保持一致，对当前设置的修改会同步到全局对话设置中，其他使用全局设置的对话也会应用这些修改',
-                    'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设置的修改仅对当前对话生效',
+                    'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设��的修改仅对当前对话生效',
                     'logoAttribution': 'Duck 图标由 Freepik - Flaticon 设计',
                     'viewOnGitHub': '在 GitHub 上查看',
                     'interfaceLanguageHint': '建议与母语保持一致',
@@ -264,6 +267,9 @@ i18n
                     'chatUnavailable': '聊天模型服务暂时不可用，请稍后重试',
                     'modelSettingsInvalid': '模型设置无效：{{message}}',
                     'trialTTSUnavailable': '体验版语音服务暂不可用，请稍后重试，或在前往「设置 -> 语音」中切换至其他服务',
+                    'IELTS Speaking Practice': '雅思口语练习',
+                    'Mock Interview': '模拟面试',
+                    'fillPositionAndResumeHint': '开始前，请记得填写应聘职位和简历信息。'
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -364,7 +370,7 @@ i18n
                     'speechSvc.azure': 'Azure TTS',
                     'speechSvc.freeTrial': 'クイック体験',
                     'Quack!': 'ガー！',
-                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があるクイック体験用で���。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
+                    'freeTrialHintMessage': '現在のチャットモデルサービスは、速度と用頻度の制限があ���クイック体験用で。設定ページ「チャット -> チャットモデルサービス」から他のモデルサービスに切り替えてください。',
                     'welcomeMessage': 'BabelDuckは、全ての習熟度レベルの言語学習者のためのAI会話練習アプリケーションです',
                     'Please enter the complete URL including the path': 'パスを含む完全なURLを入力してください',
                     'freeTrialChatIntelligenceIntroduction': '新規ユーザー向けのクイック体験用サービスで、速度と利用頻度に制限があり、モデルの指定はできません。必要な場合は、他のモデルサービスに切り替えてください。',
@@ -389,6 +395,9 @@ i18n
                     'chatUnavailable': 'チャットモデルサービスは一時的に利用できません。後でもう一度お試しください',
                     'modelSettingsInvalid': 'モデル設定が無効です：{{message}}',
                     'trialTTSUnavailable': '体験版音声サービスは一時的に利用できません。後でもう一度お試しいただくか、設定で他の音声合成サービスに切り替えてください',
+                    'IELTS Speaking Practice': 'IELTS スピーキング練習',
+                    'Mock Interview': '模擬面接',
+                    'fillPositionAndResumeHint': '開始する前に、応募職位と履歴書の情報を入力してください。'
                 }
             }
         }

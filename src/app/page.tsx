@@ -1,7 +1,7 @@
 "use client"
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
-import { addNewChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
+import { addNewChat, addNewChatWithoutSettingCurrentChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
 import { AddNewChat, defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
@@ -20,6 +20,7 @@ import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
 import { NextStepTutorialMessage } from "./chat/components/tutorial-message";
 import { TutorialStateIDs } from "./chat/components/tutorial-input";
 import { Toaster } from "react-hot-toast";
+import { chatTemplates } from "./chat/lib/template";
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -140,6 +141,11 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     setGlobalChatSettings({
       ...defaultGlobalChatSettings,
       inputHandlers: handlers.map((handler) => ({ handler, display: true }))
+    });
+    // add template chats
+    chatTemplates.forEach((template) => {
+      const newChatSelection = AddNewChat(t(template.title.key), template.messages);
+      dispatch(addNewChatWithoutSettingCurrentChat(newChatSelection.chatSelection));
     });
     // add the tutorial chat
     const newChatSelection = AddNewChat(

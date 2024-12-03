@@ -28,7 +28,7 @@ export abstract class Message {
         throw new Error("Deserialization not implemented for this message type");
     }
 
-    abstract isEmpty(): boolean
+    abstract isEmpty(): boolean // TODO tech-debt: not every message type needs to implement this
 }
 
 type MessageComponent = ({ }: {

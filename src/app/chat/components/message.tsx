@@ -8,7 +8,7 @@ import React from "react";
 import { ThreeDots } from "react-loader-spinner";
 import { IoStopCircleOutline } from "react-icons/io5";
 import { PiSpeakerHighBold } from "react-icons/pi";
-import { I18nText } from "@/app/i18n/i18n";
+import { i18nText, I18nText } from "@/app/i18n/i18n";
 import { ChatSettingsContext } from "./chat-settings";
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { WebSpeechTTS } from '../lib/tts-service';
@@ -60,7 +60,8 @@ export const SpecialRoles = {
     USER: 'user',
     ASSISTANT: 'assistant',
     FREE_TRIAL: 'freeTrial',
-    TUTORIAL: 'tutorial'
+    TUTORIAL: 'tutorial',
+    HINT: 'hint'
 };
 
 
@@ -1019,11 +1020,39 @@ export const BabelDuckMessageComponent = ({ message: untypedMessage, messageID, 
     </>
 }
 
+export class HintMessage extends Message {
+    static readonly type = 'hint'
+    hint: i18nText
+
+    constructor(hint: i18nText) {
+        super(HintMessage.type, SpecialRoles.HINT, true, false)
+        this.hint = hint
+    }
+
+    component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element {
+        return (props) => <HintMessageComponent hint={this.hint} {...props} />
+    }
+
+    serialize(): string {
+        return JSON.stringify({ type: this.type, hint: this.hint });
+    }
+
+    static deserialize(serialized: string): HintMessage {
+        const { hint } = JSON.parse(serialized);
+        return new HintMessage(hint)
+    }
+
+    isEmpty(): boolean {
+        return true
+    }
+
+}
+
 export class FreeTrialMessage extends Message {
     static readonly type = 'freeTrial'
 
     constructor() {
-        super(FreeTrialMessage.type, SpecialRoles.FREE_TRIAL, true, false)
+        super(FreeTrialMessage.type, SpecialRoles.HINT, true, false)
     }
 
     component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element {
@@ -1045,11 +1074,16 @@ export class FreeTrialMessage extends Message {
 }
 
 export const FreeTrialMessageComponent = ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => {
-    const { t } = useTranslation()
+    return (
+        <HintMessageComponent hint={{ key: 'freeTrialHintMessage' }} />
+    )
+}
+
+export const HintMessageComponent = ({ hint }: { hint: i18nText }) => {
     return (
         <div className="w-fit self-center bg-transparent mb-3">
             <p className="text-xs text-gray-400 text-center">
-                {t('freeTrialHintMessage')}
+                <I18nText i18nText={hint} />
             </p>
         </div>
     )

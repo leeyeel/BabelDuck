@@ -200,6 +200,9 @@ const chatSelectionListSlice = createSlice(
                 state.selectionList = [chatSelection.payload, ...state.selectionList]
                 state.currentChatID = chatSelection.payload.id
             },
+            addNewChatWithoutSettingCurrentChatID: (state, chatSelection: PayloadAction<ChatSelection>) => {
+                state.selectionList = [chatSelection.payload, ...state.selectionList]
+            },
             deleteChat: (state, chatID: PayloadAction<string>) => {
                 state.selectionList = state.selectionList.filter(chat => chat.id !== chatID.payload)
                 if (state.currentChatID === chatID.payload) {
@@ -221,5 +224,5 @@ const chatSelectionListSlice = createSlice(
         }
     },
 )
-export const { addNewChat, setChatSelectionList, setCurrentChatID, updateChatTitle, deleteChat } = chatSelectionListSlice.actions
+export const { addNewChat, addNewChatWithoutSettingCurrentChatID: addNewChatWithoutSettingCurrentChat, setChatSelectionList, setCurrentChatID, updateChatTitle, deleteChat } = chatSelectionListSlice.actions
 export const chatSelectionListReducer = chatSelectionListSlice.reducer
