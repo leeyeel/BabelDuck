@@ -94,7 +94,7 @@ export function TutorialInput(
                 )
             }
             // setMsg 属于幂等操作，且 msg 未持久化，需固定触发
-            setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, t('东西有点多，我晚点提炼一下')))
+            setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, '东西有点多，我晚点提炼一下'))
         }
         if (currentTutorialState.stateID === TutorialStateIDs.indicateUsersToGoBack) {
             addMessage(new TextMessage(SpecialRoles.USER, t('这里可以用 extract 吗?')), { generateAssistantMsg: false })
@@ -121,13 +121,7 @@ export function TutorialInput(
         if (currentTutorialState.stateID === TutorialStateIDs.endingSummary) {
             if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.endingSummary) {
                 updateInputSettingsPayload({ stateID: TutorialStateIDs.endingSummary })
-                addMessage(new NonInteractiveTutorialMessage('有了自定义快捷指令，你便可以根据自身需求，打造一套属于自己的工具链：\n\n'
-                    + '- 比如在模拟面试中让 AI 协助回答不会的问题，无需切换到其他窗口查询资料；\n'
-                    + '- 或者让 AI 提炼句子中的短语，并提供一些同义词，扩充自己的词汇量；\n'
-                    + '- 甚至在未来的更新中，你还将能够通过快捷指令与外部系统进行联动，例如自动将词汇添加到生词本，等等。\n\n'
-                    + '至此，我们便完成了对快捷指令功能的基本介绍，另外为了简化教程，我们在教程中还省略了语音输入、消息编辑、对话配置等功能的介绍，你现在可以尝试新建一个普通的对话，来体验这些功能了。\n\n'
-                    + '本教程到此便结束了，希望你能有所收获，并期待你的反馈！'
-                ), { generateAssistantMsg: false })
+                addMessage(new NonInteractiveTutorialMessage(t('tutorialEndingSummary')), { generateAssistantMsg: false})
             }
         }
     }, [defaultRole, currentTutorialState.stateID])
@@ -308,8 +302,8 @@ export function TutorialDiffView(
                         </div>
                         <Tooltip className="z-50" anchorSelect="#tutorial-diff-view-text" isOpen={tutorialPhase === 'text-introduction'} clickable delayShow={500} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}>
                             <div className="flex flex-col items-start">
-                                <span>{'弹窗中即 AI 提供的翻译结果，与普通网页翻译工具不同的是，快捷指令会结合对话上下文，给出更符合当前语境的建议。'}</span>
-                                <span className="mb-2">{'例如在这个场景下，你不需要担心 AI 会以为你说的是什么化学物质的提炼，而是根据“会议”这个上下文来翻译。'}</span>
+                                <span>{t('tooltip.diffViewText')}</span>
+                                <span className="mb-2">{t('tooltip.diffViewText2')}</span>
                                 <TmpFilledButton className="self-end py-0 px-2 mr-2 rounded-md text-[13px] border border-white"
                                     onClick={() => setTutorialPhase('approve-reject-introduction')}
                                 >{t('Next Step')}</TmpFilledButton>
@@ -364,7 +358,7 @@ export function TutorialDiffView(
                                     </div>
                                     <Tooltip className="z-50" anchorSelect="#approve-button" isOpen={tutorialPhase === 'approve-introduction'} clickable delayShow={100} delayHide={0} place="bottom" style={{ borderRadius: '0.75rem' }}>
                                         <div className="flex flex-col items-start">
-                                            <span>{'现在，点击 「采纳」 按钮，采纳 AI 提供的结果。'}</span>
+                                            <span>{t('tooltip.approveButton')}</span>
                                         </div>
                                     </Tooltip>
                                     <TmpTransparentButton
@@ -376,8 +370,8 @@ export function TutorialDiffView(
                                 </div>
                                 <Tooltip className="z-50" anchorSelect="#approve-and-reject-buttons" isOpen={tutorialPhase === 'approve-reject-introduction'} clickable delayShow={100} delayHide={0} place="bottom" style={{ borderRadius: '0.75rem' }}>
                                     <div className="flex flex-col items-start">
-                                        <span>{'如果你对快捷指令返回的结果满意，可以点击“采纳”按钮，或按 Enter 键，将结果填入到输入框中。'}</span>
-                                        <span className="mb-2">{'如果不想采纳，则点击“取消”按钮，或按 Backspace 键，取消本次修改。（当前在教程模式中，暂时不可操作）'}</span>
+                                        <span>{t('tooltip.approveRejectButtons')}</span>
+                                        <span className="mb-2">{t('tooltip.approveRejectButtons2')}</span>
                                         <TmpFilledButton className="self-end py-0 px-2 mr-2 rounded-md text-[13px] border border-white"
                                             onClick={() => setTutorialPhase('follow-up-discussion-introduction')}
                                         >{t('Next Step')}</TmpFilledButton>
@@ -396,7 +390,7 @@ export function TutorialDiffView(
                                         </button>
                                         <Tooltip className="z-50" anchorSelect="#follow-up-discussion-button" isOpen={tutorialPhase === 'follow-up-discussion-introduction'} clickable delayShow={100} delayHide={0} place="bottom" style={{ borderRadius: '0.75rem' }}>
                                             <div className="flex flex-col items-start">
-                                                <span>{'如果你对 AI 返回的结果不满意或者有其他疑问，可以进一步追问或讨论。现在点击一下看看效果。'}</span>
+                                                <span>{t('tooltip.followUpDiscussion')}</span>
                                             </div>
                                         </Tooltip>
                                     </>
