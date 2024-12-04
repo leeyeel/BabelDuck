@@ -11,7 +11,7 @@
 </p>
 
 <div align="center">
-  <p align="center"> <img height="400" alt="BabelDuck Grammar Check" src=".github/assets/images/README-zh-grammar-check.png"> </p>
+  <p align="center"> <img width="900" alt="BabelDuck Grammar Check" src=".github/assets/images/README-zh-grammar-check.png"> </p>
 </div>
 
 <br/>
