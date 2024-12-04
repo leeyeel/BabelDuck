@@ -1,9 +1,10 @@
 English | [简体中文](./README.md)
 
-<div align="center">
-  <img src=".github/assets/images/babel-duck-logo.png" alt="BabelDuck Logo" height="40" align="center"/>
-  <span style="font-size: 2em; vertical-align: middle">&nbsp;BabelDuck</span>
-</div>
+<h1 align="center">
+  <img src=".github/assets/images/babel-duck-logo.png" alt="BabelDuck Logo" height="40"/>
+  BabelDuck
+</h1>
+
 <br/>
 
 <p align="center">
@@ -17,9 +18,11 @@ English | [简体中文](./README.md)
 
 <br/>
 
-> BabelDuck is a highly customizable AI conversation practice application designed for language learners of all levels, with a focus on being beginner-friendly and minimizing the barriers and cognitive load of oral expression practice.
+### 📖 Introduction
 
-### 🚀 Key Features
+BabelDuck is a highly customizable AI conversation practice application designed for language learners of all levels, with a focus on being beginner-friendly and minimizing the barriers and cognitive load of oral expression practice.
+
+### ✨ Key Features
 
 - Supports common AI chat features including multiple conversation management, custom system prompts, and streaming responses
 - Seek grammar, translation, or expression refinement suggestions from AI without interrupting the current conversation, with customizable quick commands
@@ -31,10 +34,21 @@ English | [简体中文](./README.md)
 - Provides multilingual interface
 - Built-in tutorials
 
-### 🛠️ Deployment
+### 🛠 Deployment
 
 1. Install Docker
 2. Clone the repository
 3. Rename `.env.example` to `.env` and fill in the configurations
 4. Run `docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest`
 5. Visit `http://localhost:9000` to see it in action
+
+### 🎯 Roadmap
+
+- [ ] Conversation templates
+- [ ] Shadowing practice mode
+- [ ] Voice playback
+- [ ] Multimodal voice support
+- [ ] More LLM/TTS/STT services integration
+- [ ] Real-time voice mode
+- [ ] More command types
+- [ ] Plugin system
