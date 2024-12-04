@@ -9,32 +9,6 @@ import { TutorialStateIDs } from "./tutorial-input";
 import { setTutorialState } from "./tutorial-input";
 import Image from "next/image";
 
-// // export function RoleV2({ name, className }: { name: string, className?: string }) {
-//     const tooltipId = `role-tooltip-${Math.random().toString(36).substring(2, 11)}`;
-
-//     return (
-//         <>
-//             <div
-//                 id={tooltipId}
-//                 className={`rounded-full w-8 h-8 mt-1 border-gray-200 flex items-center justify-center text-gray-600 transition-colors ${className}`}
-//             >
-//                 {name === SpecialRoles.TUTORIAL ? (
-//                     <FaGraduationCap size={20} />
-//                 ) : name === SpecialRoles.ASSISTANT ? (
-//                     <GoDependabot size={20} />
-//                 ) : name === SpecialRoles.SYSTEM ? (
-//                     <GrSystem size={17} />
-//                 ) : (
-//                     <span className="text-sm">{name.charAt(0).toUpperCase()}</span>
-//                 )}
-//             </div>
-//             {name !== SpecialRoles.TUTORIAL && <Tooltip
-//                 anchorSelect={`#${tooltipId}`} content={name} delayShow={100} delayHide={0} place="top" style={{ borderRadius: '0.75rem' }}
-//             />}
-//         </>
-//     );
-// // }
-
 abstract class TutorialMessageBase extends Message {
 
     abstract component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element
@@ -79,9 +53,6 @@ export class NonInteractiveTutorialMessage extends TutorialMessageBase {
 
 function NonInteractiveTutorialMessageComponent({ message: unTypedMsg, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) {
     const message = unTypedMsg as NonInteractiveTutorialMessage
-    // const dispatch = useAppDispatch();
-    // const tutorialState = useAppSelector(state => state.tutorialState);
-    // const chatSettings = useContext(ChatSettingsContext)
 
     return <div className={`flex flex-row ${className}`}>
         <RoleV2 className="mr-3" name={message.role} />

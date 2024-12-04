@@ -143,7 +143,13 @@ i18n
                     'trialTTSUnavailable': 'The trial TTS service is temporarily unavailable. Please try again later or switch to another speech synthesis service in settings',
                     'IELTS Speaking Practice': 'IELTS Speaking Practice',
                     'Mock Interview': 'Mock Interview',
-                    'fillPositionAndResumeHint': 'Before you start, remember to fill in the position and your resume.'
+                    'fillPositionAndResumeHint': 'Before you start, remember to modify the position and resume.',
+                    'transcriptionImprovementTooltip': 'Ask AI to improve speech recognition results',
+                    // tutorials
+                    '东西有点多，我晚点提炼一下': '东西有点多，我晚点提炼一下 (That\'s a lot of information, I\'ll summarize it later)',
+                    '这里可以用 extract 吗?': 'Can I use extract here?',
+                    'extract 虽然也有"提取"的意思，但在这个会议场景下不是最佳选择。让我解释一下原因：\n……（略）': 'Although extract also means "extract", it is not the best choice in this meeting scenario. Let me explain why:\n……(omitted)',
+                    '就像上面这样，并且在子对话中的讨论不会影响上一层对话。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。': 'As shown above, and discussions in sub-chats will not affect the upper-level chat. \n\nNow we want to end the sub-chat. Click the ">" button on the left to return to the upper-level chat.'
                 }
             },
             zh: {
@@ -195,7 +201,7 @@ i18n
                     'Add Service': '添加服务',
                     'Speech Synthesis Service': '语音合成服务',
                     'translateTooltip': '让 AI 将输入框中的消息翻译为 {{targetLanguage}}',
-                    'generateResponseTooltip': '让 AI 帮忙回复当前消息',
+                    'generateResponseTooltip': '让 AI 帮忙回复当前消息（建议在需要回答问题时使用）',
                     'grammarCheckTooltip': '让 AI 检查并修复潜在的语法问题',
                     'The recommended response is as follows': '根据你的要求调整后的消息如下',
                     'If you have any more questions or requests, feel free to reach out to me': '如果你还有什么疑问或要求，欢迎进一步讨论',
@@ -250,7 +256,7 @@ i18n
                     'Blur Text': '模糊文本',
                     'useGlobalSettings': '使用全局对话设置',
                     'globalSettingsDescription.enabled': '当前对话的设置将与全局设置保持一致，对当前设置的修改会同步到全局对话设置中，其他使用全局设置的对话也会应用这些修改',
-                    'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设��的修改仅对当前对话生效',
+                    'globalSettingsDescription.disabled': '已取消使用全局设置，对相关设置的修改仅对当前对话生效',
                     'logoAttribution': 'Duck 图标由 Freepik - Flaticon 设计',
                     'viewOnGitHub': '在 GitHub 上查看',
                     'interfaceLanguageHint': '建议与母语保持一致',
@@ -269,7 +275,8 @@ i18n
                     'trialTTSUnavailable': '体验版语音服务暂不可用，请稍后重试，或在前往「设置 -> 语音」中切换至其他服务',
                     'IELTS Speaking Practice': '雅思口语练习',
                     'Mock Interview': '模拟面试',
-                    'fillPositionAndResumeHint': '开始前，请记得填写应聘职位和简历信息。'
+                    'fillPositionAndResumeHint': '开始模拟面试前记得修改应聘职位和简历信息。',
+                    'transcriptionImprovementTooltip': '让 AI 根据上下文推断并改善语音识别中的错误'
                 }
             },
             // the Japanese translation is generated using LLM, PRs are welcomed to improve it.
@@ -397,7 +404,8 @@ i18n
                     'trialTTSUnavailable': '体験版音声サービスは一時的に利用できません。後でもう一度お試しいただくか、設定で他の音声合成サービスに切り替えてください',
                     'IELTS Speaking Practice': 'IELTS スピーキング練習',
                     'Mock Interview': '模擬面接',
-                    'fillPositionAndResumeHint': '開始する前に、応募職位と履歴書の情報を入力してください。'
+                    'fillPositionAndResumeHint': '開始する前に、応募職位と履歴書の情報を変更してください。',
+                    'transcriptionImprovementTooltip': '音声認識結果の改善をAIに依頼'
                 }
             }
         }

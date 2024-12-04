@@ -33,9 +33,6 @@ export function TutorialInput(
     const dispatch = useAppDispatch();
     const { t } = useTranslation();
 
-    // TODO bug: Occasional issue - ReferenceError: Cannot access 'ChatSettingsContext' before initialization
-    // Steps to reproduce: After updating the code, it seems to trigger when switching conversations and then switching back to the tutorial
-    // Sometimes by simply clicking "Confirm" in the initializaiton panel, the issue will show up
     const chatSettings = useContext(ChatSettingsContext)
     const storedTutorialStateID = (chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID
 
@@ -97,12 +94,12 @@ export function TutorialInput(
                 )
             }
             // setMsg 属于幂等操作，且 msg 未持久化，需固定触发
-            setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, '东西有点多，我晚点提炼一下'))
+            setMsg(new IdentifiedTextMessage('tutorial-input-msg', defaultRole, t('东西有点多，我晚点提炼一下')))
         }
         if (currentTutorialState.stateID === TutorialStateIDs.indicateUsersToGoBack) {
-            addMessage(new TextMessage(SpecialRoles.USER, '这里可以用 extract 吗?'), { generateAssistantMsg: false })
-            addMessage(new TextMessage(SpecialRoles.ASSISTANT, 'extract 虽然也有"提取"的意思，但在这个会议场景下不是最佳选择。让我解释一下原因：\n……（略）'), { generateAssistantMsg: false })
-            addMessage(new NonInteractiveTutorialMessage('就像上面这样，并且在子对话中的讨论不会影响上一层对话。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。'), { generateAssistantMsg: false })
+            addMessage(new TextMessage(SpecialRoles.USER, t('这里可以用 extract 吗?')), { generateAssistantMsg: false })
+            addMessage(new TextMessage(SpecialRoles.ASSISTANT, t('extract 虽然也有"提取"的意思，但在这个会议场景下不是最佳选择。让我解释一下原因：\n……（略）')), { generateAssistantMsg: false })
+            addMessage(new NonInteractiveTutorialMessage(t('就像上面这样，并且在子对话中的讨论不会影响上一层对话。\n\n现在我们要结束子对话，点击下左侧的 ">" 按钮，即可返回上一层对话。')), { generateAssistantMsg: false })
         }
         if (currentTutorialState.stateID === TutorialStateIDs.clickNextToIllustrateGrammarCheck) {
             if ((chatSettings?.inputComponent.payload as { stateID: TutorialStateIDs | undefined }).stateID !== TutorialStateIDs.clickNextToIllustrateGrammarCheck) {

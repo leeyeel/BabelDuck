@@ -13,7 +13,7 @@ import { FilledButton } from "./ui-utils/components/button";
 import { DropdownMenu, DropdownMenuEntry } from "./ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "./ui-utils/components/overlay";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { DisableHandlerDecorator, GrammarCheckingHandler, RespGenerationHandler, TranslationHandler, TutorialTranslationHandler } from "./chat/components/input-handlers";
+import { DisableHandlerDecorator, GrammarCheckingHandler, RespGenerationHandler, TranscriptionImprovementHandler, TranslationHandler, TutorialTranslationHandler } from "./chat/components/input-handlers";
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
 import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
@@ -128,9 +128,10 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     setShowPracticeDropdown(false);
   };
 
-  const handlers = [
+  const defaultHandlers = [
     new TranslationHandler(nativeLanguageNames[selectedPracticeLanguage as keyof typeof nativeLanguageNames]),
     new GrammarCheckingHandler(),
+    new TranscriptionImprovementHandler(),
     new RespGenerationHandler(),
   ]
 
@@ -140,7 +141,7 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
     localStorage.setItem('selectedLanguage', selectedLanguage);
     setGlobalChatSettings({
       ...defaultGlobalChatSettings,
-      inputHandlers: handlers.map((handler) => ({ handler, display: true }))
+      inputHandlers: defaultHandlers.map((handler) => ({ handler, display: true }))
     });
     // add template chats
     chatTemplates.forEach((template) => {
@@ -156,6 +157,7 @@ function InitializationPanel({ onClose }: { onClose: () => void }) {
         inputHandlers: [
           { handler: new TutorialTranslationHandler('English'), display: true },
           { handler: new DisableHandlerDecorator(new GrammarCheckingHandler()), display: true },
+          { handler: new DisableHandlerDecorator(new TranscriptionImprovementHandler()), display: true },
           { handler: new DisableHandlerDecorator(new RespGenerationHandler()), display: true },
         ],
         autoPlayAudio: false,

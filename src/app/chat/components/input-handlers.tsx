@@ -1,4 +1,4 @@
-import { MdGTranslate } from "react-icons/md";
+import { MdGTranslate, MdVoiceChat } from "react-icons/md";
 import { TbPencilQuestion } from "react-icons/tb";
 import { FaSpellCheck } from "react-icons/fa";
 import { useState } from "react";
@@ -164,7 +164,7 @@ export class TutorialTranslationHandler extends TranslationHandler {
     }
 }
 
-// A decorator to disable a handler, make it only for display, not clickable
+// A decorator to disable a handler (by returning false on isCompatibleWith), make it only for display, not clickable
 export class DisableHandlerDecorator extends InputHandler {
     static readonly implType = 'disableHandlerDecorator';
     originalHandler: InputHandler;
@@ -232,7 +232,6 @@ export class RespGenerationHandler extends InputHandler {
     }
 }
 
-// Define GrammarCheckingHandler class
 export class GrammarCheckingHandler extends InputHandler {
 
     constructor() {
@@ -265,6 +264,36 @@ export class GrammarCheckingHandler extends InputHandler {
     }
 }
 
+export class TranscriptionImprovementHandler extends InputHandler {
+
+    constructor() {
+        super('transcriptionImprovement', InputHandlerTypes.Revision, false);
+        this.iconNode = <MdVoiceChat size={20} />;
+    }
+
+    tooltip(): i18nText {
+        return { key: 'transcriptionImprovementTooltip' };
+    }
+
+    instruction(): string {
+        return "This is a text transcribed from voice input. Please correct any recognition errors based on context, but only fix obvious speech recognition mistakes without making other changes.";
+    }
+
+    settingsPanel(): InputHandlerSettingsPanel | undefined {
+        return undefined;
+    }
+
+    serialize(): string {
+        return JSON.stringify({
+            implType: this.implType,
+            type: this.type
+        });
+    }
+
+    static deserialize(): TranscriptionImprovementHandler {
+        return new TranscriptionImprovementHandler();
+    }
+}
 
 // Define CommonGenerationHandler class
 export class CommonGenerationHandler extends InputHandler {
@@ -483,6 +512,7 @@ inputHandlerHub.registerHandler('grammarChecking', GrammarCheckingHandler.deseri
 inputHandlerHub.registerHandler('commonGeneration', CommonGenerationHandler.deserialize);
 inputHandlerHub.registerHandler('commonRevision', CommonRevisionHandler.deserialize);
 inputHandlerHub.registerHandler('tutorialTranslation', TutorialTranslationHandler.deserialize);
+inputHandlerHub.registerHandler('transcriptionImprovement', TranscriptionImprovementHandler.deserialize);
 inputHandlerHub.registerHandler('disableHandlerDecorator', DisableHandlerDecorator.deserialize);
 
 export function CustomInputHandlerCreator({

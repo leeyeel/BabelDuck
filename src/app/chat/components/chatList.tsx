@@ -48,6 +48,8 @@ export function ChatSelectionList({ chatSelectionListLoader, className = "" }: {
 
 }
 
+const defaultSystemPrompt = "You are a friendly conversation partner. Please respond in a casual, conversational way. Keep your responses short and natural. Try to keep responses under 50 words. Avoid formal language and complex sentences. Speak like in everyday conversation. Use simple sentences and express one point at a time."
+
 export function NewChat({ className = "" }: {
     className?: string
 }) {
@@ -58,7 +60,7 @@ export function NewChat({ className = "" }: {
         const counter = getNextChatCounter();
         const chatTitle = t('Chat {{number}}', { number: counter });
         const chatSelection = AddNewChat(chatTitle, [
-            new SystemMessage("You're a helpful assistant."),
+            new SystemMessage(defaultSystemPrompt),
         ]);
         dispatch(addNewChat(chatSelection.chatSelection));
         dispatch(unsetCurrentChatSettings()) // clear the state, let the effect hook in chat component to initialize the new chat settings TODO tech-debt: not a good solution

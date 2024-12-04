@@ -1,23 +1,37 @@
 English | [简体中文](./README.md)
 
-## BabelDuck
+<div align="center">
+  <img src=".github/assets/images/babel-duck-logo.png" alt="BabelDuck Logo" height="40" align="center"/>
+  <span style="font-size: 2em; vertical-align: middle">&nbsp;BabelDuck</span>
+</div>
+<br/>
 
-BabelDuck is a highly customizable AI conversation practice application designed for language learners of all proficiency levels, with enhanced support for beginners, aiming to minimize the barriers and cognitive load of oral communication practice.
+<p align="center">
+  <a href="https://duck.orenoid.com/">Website</a>
+</p>
 
-### 🌐 Online Demo
 
-[BabelDuck](https://duck.orenoid.com/)
+<div align="center">
+  <img src=".github/assets/images/README-en-grammar-check.png" alt="BabelDuck Grammar Check" height="400" style="border-radius: 10px"/>
+  &nbsp;&nbsp;
+  <img src=".github/assets/images/README-en-follow-up.png" alt="BabelDuck Follow Up" height="400" style="border-radius: 10px"/>
+</div>
+
+<br/>
+
+> BabelDuck is a highly customizable AI conversation practice application designed for language learners of all levels, with a focus on being beginner-friendly and minimizing the barriers and cognitive load of oral expression practice.
 
 ### 🚀 Key Features
 
-- Common AI conversation features including multiple chat management, customizable system prompts, and streaming responses
-- Seek AI assistance for grammar, translation, or expression refinement without interrupting the current conversation, with customizable quick instructions
-- Start branch conversations to further discuss AI suggestions when needed, and seamlessly return to the original conversation afterward
-- Support for voice input and response
-- Integration with multiple LLM AI services with seamless switching
-- Local data storage to ensure user data privacy and security
-- Multilingual interface
-- Support individual preference settings for different chats
+- Supports common AI chat features including multiple conversation management, custom system prompts, and streaming responses
+- Seek grammar, translation, or expression refinement suggestions from AI without interrupting the current conversation, with customizable quick commands
+- When you have questions about AI suggestions, you can start a sub-conversation for further discussion and seamlessly return to the original conversation afterward
+- Supports voice input and response
+- Integrates multiple LLM AI services with seamless switching
+- Data stored locally to ensure user data privacy and security
+- Supports individual preference settings for different conversations
+- Provides multilingual interface
+- Built-in tutorials
 
 ### 🛠️ Deployment
 
@@ -25,4 +39,4 @@ BabelDuck is a highly customizable AI conversation practice application designed
 2. Clone the repository
 3. Rename `.env.example` to `.env` and fill in the configurations
 4. Run `docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest`
-5. Visit `http://localhost:9000` to see it in action 
+5. Visit `http://localhost:9000` to see it in action

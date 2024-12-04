@@ -36,23 +36,13 @@ export function getSelectableChatIntelligenceSettings(): chatIntelligenceSetting
 
 // available intelligence settings includes all the selectable, and some other built-in ones that can't be seen by users
 export function getAvailableChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
-    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings()).concat([{ id: TutorialChatIntelligence.id, ...TutorialChatIntelligence.settings }])
+    return getBuiltInChatIntelligenceSettings().concat(getCustomLLMChatISettings())
+        .concat([{ id: TutorialChatIntelligence.id, ...TutorialChatIntelligence.settings }])
+        .concat([babelDuckSettings])
 }
 
 export function getBuiltInChatIntelligenceSettings(): chatIntelligenceSettingsRecord[] {
     return Object.keys(builtinIntelligenceSettings).map((id) => ({ id, ...builtinIntelligenceSettings[id] }))
-    // const builtinIntelligencesFromStorage = _getBuiltinChatIntelligencesFromLocalStorage()
-    // const inStorageIntelligencesNumber = builtinIntelligencesFromStorage.length
-    // // append the intelligences in builtinIntelligenceSettings that are not in builtinIntelligencesFromStorage
-    // for (const intelligenceId of Object.keys(builtinIntelligenceSettings)) {
-    //     if (!builtinIntelligencesFromStorage.some((s) => s.id === intelligenceId)) {
-    //         builtinIntelligencesFromStorage.push({ id: intelligenceId, ...builtinIntelligenceSettings[intelligenceId] })
-    //     }
-    // }
-    // if (builtinIntelligencesFromStorage.length !== inStorageIntelligencesNumber) {
-    //     _saveBuiltInChatIntelligencesToLocalStorage(builtinIntelligencesFromStorage)
-    // }
-    // return builtinIntelligencesFromStorage
 }
 
 function getCustomLLMChatISettings(): chatIntelligenceSettingsRecord[] {
