@@ -12,9 +12,7 @@ English | [简体中文](./README.md)
 
 
 <div align="center">
-  <img src=".github/assets/images/README-en-grammar-check.png" alt="BabelDuck Grammar Check" height="400" style="border-radius: 10px"/>
-  &nbsp;&nbsp;
-  <img src=".github/assets/images/README-en-follow-up.png" alt="BabelDuck Follow Up" height="400" style="border-radius: 10px"/>
+  <p align="center"> <img height="400" alt="BabelDuck Grammar Check" src=".github/assets/images/README-en-grammar-check.png"> </p>
 </div>
 
 <br/>

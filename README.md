@@ -10,11 +10,8 @@
   <a href="https://duck.orenoid.com/">Web 版</a>
 </p>
 
-
 <div align="center">
-  <img src=".github/assets/images/README-zh-grammar-check.png" alt="BabelDuck Grammar Check" height="400" style="border-radius: 10px"/>
-  &nbsp;&nbsp;
-  <img src=".github/assets/images/README-zh-follow-up.png" alt="BabelDuck Follow Up" height="400" style="border-radius: 10px"/>
+  <p align="center"> <img height="400" alt="BabelDuck Grammar Check" src=".github/assets/images/README-zh-grammar-check.png"> </p>
 </div>
 
 <br/>
