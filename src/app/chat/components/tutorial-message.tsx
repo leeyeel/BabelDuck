@@ -8,6 +8,7 @@ import { useAppDispatch } from "@/app/hooks";
 import { TutorialStateIDs } from "./tutorial-input";
 import { setTutorialState } from "./tutorial-input";
 import Image from "next/image";
+import { useRef, useEffect } from 'react';
 
 abstract class TutorialMessageBase extends Message {
 
@@ -53,11 +54,17 @@ export class NonInteractiveTutorialMessage extends TutorialMessageBase {
 
 function NonInteractiveTutorialMessageComponent({ message: unTypedMsg, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) {
     const message = unTypedMsg as NonInteractiveTutorialMessage
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [])
 
     return <div className={`flex flex-row ${className}`}>
         <RoleV2 className="mr-3" name={message.role} />
         <div className={`bg-[#F6F5F5] rounded-xl w-fit max-w-[80%] p-4 flex flex-col ${className}`}>
             <div className="mb-2" dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br />') }} />
+            <div ref={scrollRef} />
         </div>
     </div>
 }
@@ -134,6 +141,11 @@ function NextStepTutorialMessageComponent({ message: unTypedMsg, className }: { 
     const { t } = useTranslation()
     const dispatch = useAppDispatch();
     const tutorialState = useAppSelector(state => state.tutorialState);
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [])
 
     const message = unTypedMsg as NextStepTutorialMessage
 
@@ -152,13 +164,19 @@ function NextStepTutorialMessageComponent({ message: unTypedMsg, className }: { 
                     <span className="text-sm">{t('Next Step')}</span>
                 </TmpFilledButton>
             }
+            <div ref={scrollRef} />
         </div>
     </div>
 }
 
 // message for indicating users to click on Translation icon
-function QueClickOnTranslationMsgComponent({ className }: { className?: string }) {
+function IndicateClickOnTranslationMsgComponent({ className }: { className?: string }) {
     const { t } = useTranslation()
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [])
 
     const tutorialMsg1 = t("假设你正在练习线上会议中的常用表达，这时 AI 问了你一个问题：")
     const aiMsg = t("What do you think about these suggestions?")
@@ -187,8 +205,9 @@ function QueClickOnTranslationMsgComponent({ className }: { className?: string }
                 <div className="mb-2" dangerouslySetInnerHTML={{ __html: content3.replace(/\n/g, '<br />') }} />
                 <div className="flex flex-row items-end">
                     <div className="mb-2 mr-2" dangerouslySetInnerHTML={{ __html: content3_2.replace(/\n/g, '<br />') }} />
-                    <Image src="/images/tutorial-state2.png" alt="tutorial-2-2" width={200} height={300} className="rounded-xl border border-gray-200" />
+                    <Image src="/images/tutorial-state2.png" alt="tutorial-2-2" width={300} height={300} className="rounded-xl border border-gray-200" />
                 </div>
+                <div ref={scrollRef} />
             </div>
         </div>
     </div>
@@ -202,7 +221,7 @@ export class QueClickOnTranslationMsg extends TutorialMessageBase {
     }
 
     component() {
-        return QueClickOnTranslationMsgComponent
+        return IndicateClickOnTranslationMsgComponent
     }
 
     static deserialize(): QueClickOnTranslationMsg {
