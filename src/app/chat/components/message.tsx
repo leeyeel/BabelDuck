@@ -1030,7 +1030,10 @@ export class HintMessage extends Message {
     }
 
     component(): ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => JSX.Element {
-        return (props) => <HintMessageComponent hint={this.hint} {...props} />
+        const Root = ({ }: { message: Message; messageID: number; updateMessage: (messageID: number, message: Message) => void; className?: string; }) => {
+            return <HintMessageComponent hint={this.hint} />
+        }
+        return Root
     }
 
     serialize(): string {
