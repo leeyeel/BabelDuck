@@ -38,8 +38,14 @@ BabelDuck is a highly customizable AI conversation practice application designed
 
 1. Install Docker
 2. Clone the repository
+```shell
+git clone https://github.com/Orenoid/BabelDuck
+```
 3. Rename `.env.example` to `.env` and fill in the configurations
-4. Run `docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest`
+4. Run Docker container
+```shell
+docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest
+```
 5. Visit `http://localhost:9000` to see it in action
 
 ### 🎯 Roadmap
@@ -52,3 +58,6 @@ BabelDuck is a highly customizable AI conversation practice application designed
 - [ ] Real-time voice mode
 - [ ] More command types
 - [ ] Plugin system
+
+### 📄 License
+This project is licensed under the [LICENSE](https://github.com/Orenoid/BabelDuck/blob/main/LICENSE). See the LICENSE file for details.

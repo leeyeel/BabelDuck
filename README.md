@@ -37,8 +37,14 @@ BabelDuck 是一个面向各水平层次语言学习者的高度可定制化 AI 
 
 1. 安装 Docker
 2. 克隆仓库到本地
+```shell
+git clone https://github.com/Orenoid/BabelDuck
+```
 3. 将 `.env.example` 文件重命名为 `.env`，并填入相关配置
-4. 运行 `docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest`
+4. 运行 Docker 容器
+```shell
+docker run -d --name babel-duck --env-file .env -p 9000:9000 orenoid/babel-duck:latest
+```
 5. 访问 `http://localhost:9000` 查看效果
 
 ### 🎯 未来规划
@@ -51,6 +57,9 @@ BabelDuck 是一个面向各水平层次语言学习者的高度可定制化 AI 
 - [ ] 实时语音模式
 - [ ] 更多指令类型
 - [ ] 插件系统
+
+### 📄 许可证
+本项目采用 [LICENSE](https://github.com/Orenoid/BabelDuck/blob/main/LICENSE)，详情请参阅 LICENSE 文件。
 
 ### 💬 问题反馈
 <img src=".github/assets/images/wechat-group-for-feedback.png" alt="WeChat Group QR Code" width="150"/>
