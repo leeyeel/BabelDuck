@@ -9,8 +9,6 @@ import { LuUserCog2 } from "react-icons/lu"
 import { FaBackspace, FaMicrophone } from "react-icons/fa"
 import Switch from "react-switch"
 import { Tooltip } from "react-tooltip"
-import { PayloadAction } from "@reduxjs/toolkit"
-import { createSlice } from "@reduxjs/toolkit"
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
 import { NonInteractiveTutorialMessage, IdentifiedTextMessage, QueClickOnTranslationMsg as IndicateUsersToClickTranslationMsg, NextStepTutorialMessage } from "./tutorial-message"
 import { diffChars } from "diff"
@@ -18,6 +16,7 @@ import { TmpFilledButton, TmpTransparentButton } from "@/app/ui-utils/components
 import { LiaComments } from "react-icons/lia"
 import { TransparentOverlay } from "@/app/ui-utils/components/overlay"
 import { PiKeyReturnBold } from "react-icons/pi"
+import { setTutorialState, TutorialStateIDs } from "./tutorial-redux"
 
 export function TutorialInput(
     { msgListSwitchSignal, addMessage, updateMessage, updateInputSettingsPayload, revisionMessage }: {
@@ -197,39 +196,6 @@ export function TutorialInput(
         </div>
     </div>
 }
-
-// ==================== redux ====================
-
-export enum TutorialStateIDs {
-    introduction = 'introduction', // init
-    introduceQuickTranslationInstructions = 'introduceQuickTranslationInstructions', // introduce quick instruction
-    indicateUsersToClickTranslation = 'indicateUsersToClickTranslation', // cueing users to click on Translation icon
-    startFollowUpDiscussion = 'startFollowUpDiscussion', // start follow up discussion
-    indicateUsersToGoBack = 'indicateUsersToGoBack', // indicate users to go back
-    indicateToSendMsg = 'indicateToSendMsg', // indicate users to press Enter to send msg
-    clickNextToIllustrateGrammarCheck = 'clickNextToIllustrateGrammarCheck', // click next to illustrate grammar check
-    illustrateGrammarCheck = 'illustrateGrammarCheck',
-    illustrateCustomInstructions = 'illustrateCustomInstructions',
-    endingSummary = 'endingSummary',
-}
-
-const initTutorialState: {
-    stateID: TutorialStateIDs | undefined
-} = {
-    stateID: undefined
-}
-const tutorialStateSlice = createSlice({
-    name: 'tutorialState',
-    initialState: initTutorialState,
-    reducers: {
-        setTutorialState: (state, newState: PayloadAction<{ stateID: TutorialStateIDs | undefined }>) => {
-            state.stateID = newState.payload.stateID
-        }
-    }
-})
-
-export const { setTutorialState } = tutorialStateSlice.actions
-export const tutorialStateReducer = tutorialStateSlice.reducer
 
 export function TutorialDiffView(
     { originalMsg, revisedMsg, approveRevisionCallback, rejectRevisionCallback, allowFollowUpDiscussion, startFollowUpDiscussion, style, className = "" }: {

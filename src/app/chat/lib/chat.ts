@@ -1,12 +1,18 @@
 'use client'
-import { FreeTrialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
-import { GrammarCheckingHandler, InputHandler, RespGenerationHandler, TranslationHandler } from "../components/input-handlers";
+import { InputHandler } from "../components/input-handlers";
 import { BabelDuckMessage, FreeTrialMessage, HintMessage, StreamingTextMessage, SystemMessage, TextMessage } from "../components/message";
 import { Message } from "./message";
-import { loadChatSettingsData, setChatSettingsData } from "./chat-persistence";
+import { setChatSettingsData } from "./chat-persistence";
 import { generateUUID } from "@/app/lib/uuid";
-import { inputComponentType } from "../components/input";
 import { QueClickOnTranslationMsg, NonInteractiveTutorialMessage, IdentifiedTextMessage, NextStepTutorialMessage } from "../components/tutorial-message";
+import { GlobalDefaultChatSettingID } from "@/app/settings/lib/settings";
+import { loadChatSettings } from "@/app/settings/lib/settings";
+import { setGlobalChatSettings } from "@/app/settings/lib/settings";
+import { setLocalChatSettings } from "@/app/settings/lib/settings";
+import { switchToLocalChatSettings } from "@/app/settings/lib/settings";
+import { loadGlobalChatSettings } from "@/app/settings/lib/settings";
+import { LocalChatSettings } from "../components/chat-settings";
+import { ChatSelection } from "./chat-types";
 
 // ============================= business logic =============================
 
@@ -53,135 +59,6 @@ export function loadChatMessages(chatID: string): Message[] {
     });
 
     return messageList;
-}
-
-// ===== Chat Settings =====
-
-export type ChatSettings = {
-    ChatISettings: {
-        id: string
-        settings: object
-    }
-    inputHandlers: { handler: InputHandler, display: boolean }[];
-    inputComponent: {
-        type: string,
-        payload: object
-    }
-    autoPlayAudio: boolean;
-}
-
-export type LocalChatSettings = {
-    usingGlobalSettings: boolean;
-} & ChatSettings
-
-
-// read chat settings, if not found, create from global settings
-export function loadChatSettings(chatID: string): LocalChatSettings {
-
-    // check if the chat is using global settings
-    const chatMetadataJSON = localStorage.getItem(`chatMetadata_${chatID}`);
-    if (!chatMetadataJSON) {
-        return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
-    }
-    // if so, return global settings
-    const chatMetadata: { usingGlobalSettings: boolean } = JSON.parse(chatMetadataJSON);
-    if (chatMetadata.usingGlobalSettings) {
-        return { usingGlobalSettings: true, ...loadGlobalChatSettings() };
-    }
-    // if not, return the chat local settings
-    const rawChatSettings = loadChatSettingsData(`chatSettings_${chatID}`);
-    if (!rawChatSettings) {
-        const globalSettings = loadGlobalChatSettings()
-        localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
-        setChatSettingsData(`chatSettings_${chatID}`, {
-            rawInputHandlers: globalSettings.inputHandlers.map((handler) => ({
-                payload: handler.handler.serialize(),
-                display: handler.display
-            })),
-            ...globalSettings
-        });
-        return { usingGlobalSettings: false, ...globalSettings };
-    }
-    // TODO tech-dept: ts 类型检查不够严格，之前 rawInputHandlers 字段被传递到 LocalChatSettings 中也没有报错，导致了 BUG，看下有什么办法可以编译时检查出来
-    const { rawInputHandlers, ...rest } = rawChatSettings
-    return {
-        usingGlobalSettings: false,
-        ...rest,
-        inputHandlers: rawInputHandlers.map((rawHandler) => ({
-            handler: InputHandler.deserialize(rawHandler.payload),
-            display: rawHandler.display
-    })) };
-}
-
-export function switchToGlobalChatSettings(chatID: string): void {
-    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: true }));
-}
-
-export function switchToLocalChatSettings(chatID: string): void {
-    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
-}
-
-// mark the chat as using local settings and save the settings
-export function setLocalChatSettings(chatID: string, chatSettings: ChatSettings): void {
-    // TODO tech-debt: move to chat-persistence.ts
-    localStorage.setItem(`chatMetadata_${chatID}`, JSON.stringify({ usingGlobalSettings: false }));
-    const { inputHandlers, ...rest } = chatSettings // exclude unserializable `inputHandlers` from the settings
-    setChatSettingsData(`chatSettings_${chatID}`, {
-        rawInputHandlers: inputHandlers.map((handler) => ({
-            payload: handler.handler.serialize(),
-            display: handler.display
-        })),
-        ...rest
-    });
-}
-
-export const defaultGlobalChatSettings: ChatSettings = {
-    ChatISettings: {
-        id: FreeTrialChatIntelligence.id,
-        settings: {}
-    },
-    autoPlayAudio: false,
-    inputHandlers: [
-        { handler: new TranslationHandler("English"), display: true },
-        { handler: new RespGenerationHandler(), display: true },
-        { handler: new GrammarCheckingHandler(), display: true }
-    ],
-    inputComponent: {
-        type: inputComponentType,
-        payload: {}
-    }
-}
-
-export const GlobalDefaultChatSettingID = 'global_default_chat_settings'
-// side effect: if the global settings are not found, set them to the default value
-export function loadGlobalChatSettings(): ChatSettings {
-    const chatSettingsData = loadChatSettingsData(GlobalDefaultChatSettingID);
-    if (!chatSettingsData) {
-        setGlobalChatSettings(defaultGlobalChatSettings);
-        return defaultGlobalChatSettings;
-    }
-    const inputHandlers = chatSettingsData.rawInputHandlers.map((rawHandler) => ({
-        handler: InputHandler.deserialize(rawHandler.payload),
-        display: rawHandler.display
-    }))
-    return {
-        autoPlayAudio: chatSettingsData.autoPlayAudio,
-        ChatISettings: chatSettingsData.ChatISettings,
-        inputHandlers: inputHandlers,
-        inputComponent: chatSettingsData.inputComponent
-    };
-}
-
-export function setGlobalChatSettings(settings: ChatSettings): void {
-    setChatSettingsData(GlobalDefaultChatSettingID, {
-        rawInputHandlers: settings.inputHandlers.map((handler) => ({
-            payload: handler.handler.serialize(),
-            display: handler.display
-        })),
-        ChatISettings: settings.ChatISettings,
-        autoPlayAudio: settings.autoPlayAudio,
-        inputComponent: settings.inputComponent
-    });
 }
 
 export function addInputHandlersInChat(chatID: string, handlers: InputHandler[]): void {
@@ -394,11 +271,6 @@ export interface AddNewChat {
 
 export interface AddMesssageInChat {
     (chatID: string, message: Message): void
-}
-
-export interface ChatSelection {
-    id: string;
-    title: string;
 }
 
 export function deleteChatData(chatID: string) {

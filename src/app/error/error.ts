@@ -14,3 +14,6 @@ class CustomError extends Error {
 }
 
 export { CustomError }
+export class FreeTrialChatError extends CustomError { }
+export class InvalidModelSettingsError extends CustomError { }
+

@@ -1,6 +1,23 @@
 'use client'
 import { createContext } from "react";
-import { LocalChatSettings } from "../lib/chat";
+import { InputHandler } from "./input-handlers";
 
-// just to avoid circular dependency
+
+export type LocalChatSettings = {
+    usingGlobalSettings: boolean;
+} & ChatSettings;
+
+export type ChatSettings = {
+    ChatISettings: {
+        id: string;
+        settings: object;
+    };
+    inputHandlers: { handler: InputHandler; display: boolean; }[];
+    inputComponent: {
+        type: string;
+        payload: object;
+    };
+    autoPlayAudio: boolean;
+};
+
 export const ChatSettingsContext = createContext<LocalChatSettings | null>(null);

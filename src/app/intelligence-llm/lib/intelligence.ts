@@ -1,11 +1,10 @@
 import { i18nText } from "@/app/i18n/i18n"
 import { isOpenAILikeMessage, Message } from "@/app/chat/lib/message"
-import { BabelDuckMessage, FreeTrialMessage, SpecialRoles } from "@/app/chat/components/message"
-import { StreamingTextMessage } from "@/app/chat/components/message"
+import { BabelDuckMessage, FreeTrialMessage, SpecialRoles, StreamingTextMessage } from "@/app/chat/components/message"
 import { getCustomLLMServiceSettings, getLLMServiceSettingsRecord, OpenAICompatibleAPIService, OpenAIService, OpenAISettings } from "./llm-service"
 import { IdentifiedTextMessage, NextStepTutorialMessage } from "@/app/chat/components/tutorial-message"
-import { TutorialStateIDs } from "@/app/chat/components/tutorial-input"
-import { CustomError } from "@/app/error/error"
+import { TutorialStateIDs } from "@/app/chat/components/tutorial-redux"
+import { FreeTrialChatError, InvalidModelSettingsError } from "@/app/error/error"
 
 // ============================= business logic =============================
 
@@ -150,9 +149,6 @@ export class FreeTrialChatIntelligence extends ChatIntelligenceBase {
         super(FreeTrialChatIntelligence.type, FreeTrialChatIntelligence._name)
     }
 }
-
-export class FreeTrialChatError extends CustomError { }
-export class InvalidModelSettingsError extends CustomError { }
 
 export type OpenAIChatISettings = {
     settingsType: 'link' | 'local'

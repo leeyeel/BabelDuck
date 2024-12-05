@@ -6,7 +6,8 @@ import { LuSettings, LuUserCog2 } from "react-icons/lu";
 import { Audio, Oval } from "react-loader-spinner";
 import { messageAddedCallbackOptions } from "./chat";
 import { ChatSettingsContext } from "./chat-settings";
-import { IconCircleWrapper, SpecialRoles, TextMessage } from "./message";
+import { SpecialRoles, TextMessage } from "./message";
+import { IconCircleWrapper } from "@/app/ui-utils/components/wrapper";
 import { diffChars } from "diff";
 import { LiaComments } from "react-icons/lia";
 import { PiKeyReturnBold } from "react-icons/pi";
@@ -449,8 +450,6 @@ export function MessageInput({
 }
 
 let enableVoiceModeShortcutTimer: NodeJS.Timeout
-
-export const inputComponentType = 'textInput'
 
 function TextInput(
     { allowEdit, msgListSwitchSignal, addMessage, updateMessage, revisionMessage }: {

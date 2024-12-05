@@ -3,10 +3,9 @@ import { Message } from "../lib/message";
 import { RoleV2, SpecialRoles, TextMessage } from "./message";
 // import { PiStudentFill } from "react-icons/pi";
 import { TmpFilledButton } from "@/app/ui-utils/components/button";
-import { useAppSelector } from "@/app/hooks";
-import { useAppDispatch } from "@/app/hooks";
-import { TutorialStateIDs } from "./tutorial-input";
-import { setTutorialState } from "./tutorial-input";
+import { useAppSelector, useAppDispatch } from "@/app/hooks";
+import { TutorialStateIDs } from "./tutorial-redux";
+import { setTutorialState } from "./tutorial-redux";
 import Image from "next/image";
 import { useRef, useEffect } from 'react';
 

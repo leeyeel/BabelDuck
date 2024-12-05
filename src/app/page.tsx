@@ -1,8 +1,11 @@
 "use client"
 import { LuInfo } from "react-icons/lu";
 import { Chat } from "./chat/components/chat";
-import { addNewChat, addNewChatWithoutSettingCurrentChat, ChatSelectionList, NewChat } from "./chat/components/chatList";
-import { AddNewChat, defaultGlobalChatSettings, loadChatMessages, loadChatSelectionList, setGlobalChatSettings } from "./chat/lib/chat";
+import { ChatSelectionList, NewChat } from "./chat/components/chatList";
+import { addNewChat, addNewChatWithoutSettingCurrentChat } from "./chat/components/chatList-redux";
+import { AddNewChat, loadChatMessages, loadChatSelectionList } from "./chat/lib/chat";
+import { defaultGlobalChatSettings } from "./settings/lib/settings";
+import { setGlobalChatSettings } from "./settings/lib/settings";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { SettingsEntry, SpeechSettings } from "./settings/components/settings";
 import { useTranslation } from "react-i18next";
@@ -13,12 +16,14 @@ import { FilledButton } from "./ui-utils/components/button";
 import { DropdownMenu, DropdownMenuEntry } from "./ui-utils/components/DropdownMenu";
 import { TransparentOverlay } from "./ui-utils/components/overlay";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { DisableHandlerDecorator, GrammarCheckingHandler, RespGenerationHandler, TranscriptionImprovementHandler, TranslationHandler, TutorialTranslationHandler } from "./chat/components/input-handlers";
+import { GrammarCheckingHandler, RespGenerationHandler, TranscriptionImprovementHandler, TranslationHandler } from "./chat/components/input-handlers";
+import { DisableHandlerDecorator } from "./chat/components/tutorial-input-handlers";
+import { TutorialTranslationHandler } from "./chat/components/tutorial-input-handlers";
 import Image from 'next/image';
 import { FaGithub } from "react-icons/fa";
 import { TutorialChatIntelligence } from "./intelligence-llm/lib/intelligence";
 import { NextStepTutorialMessage } from "./chat/components/tutorial-message";
-import { TutorialStateIDs } from "./chat/components/tutorial-input";
+import { TutorialStateIDs } from "./chat/components/tutorial-redux";
 import { Toaster } from "react-hot-toast";
 import { chatTemplates } from "./chat/lib/template";
 

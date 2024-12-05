@@ -12,13 +12,15 @@ import { i18nText, I18nText } from "@/app/i18n/i18n";
 import { ChatSettingsContext } from "./chat-settings";
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { WebSpeechTTS } from '../lib/tts-service';
-import { getSelectedSpeechSvcID, getSpeechSvcSettings } from "@/app/settings/components/settings";
+import { getSpeechSvcSettings } from "@/app/settings/components/speech-settings";
+import { getSelectedSpeechSvcID } from "@/app/settings/components/speech-settings";
 import { useTranslation } from "react-i18next";
 import { GoDependabot } from "react-icons/go";
 import { Tooltip } from "react-tooltip";
 import { FaGraduationCap } from "react-icons/fa6";
 import { GrSystem } from "react-icons/gr";
-import { FreeTrialChatError, InvalidModelSettingsError } from "@/app/intelligence-llm/lib/intelligence";
+import { InvalidModelSettingsError } from "@/app/error/error";
+import { FreeTrialChatError } from "@/app/error/error";
 import toast from "react-hot-toast";
 
 export function RoleV2({ name, className }: { name: string, className?: string }) {
@@ -442,32 +444,6 @@ export function IconSquareWrapper({ children, width = 24, height = 24, className
     return <div className={`flex items-center cursor-pointer justify-center w-[${width}px] h-[${height}px] rounded-md hover:bg-gray-50 ${className}`} style={{ width: `${width}px`, height: `${height}px` }}>
         {children}
     </div>
-}
-
-export function IconCircleWrapper({
-    children,
-    width = 30,
-    height = 30,
-    className = "",
-    onClick,
-    allowClick = true
-}: {
-    children: React.ReactNode,
-    width?: number,
-    height?: number,
-    className?: string,
-    onClick?: () => void,
-    allowClick?: boolean
-}) {
-    return (
-        <div
-            className={`flex items-center justify-center rounded-full ${allowClick ? 'cursor-pointer hover:bg-gray-300' : 'cursor-not-allowed'} ${className}`}
-            style={{ width: `${width}px`, height: `${height}px` }}
-            onClick={() => { if (allowClick) onClick?.() }}
-        >
-            {children}
-        </div>
-    );
 }
 
 export function TextMessageComponent({ message, messageID, updateMessage, className }: { message: Message, messageID: number, updateMessage: (messageID: number, message: Message) => void, className?: string }) {

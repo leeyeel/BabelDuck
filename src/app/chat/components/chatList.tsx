@@ -2,7 +2,6 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { DropdownMenu } from "@/app/ui-utils/components/DropdownMenu";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPlus } from "react-icons/fa";
@@ -10,9 +9,10 @@ import { FiMoreHorizontal } from "react-icons/fi";
 import { PiTrashBold } from "react-icons/pi";
 import { SiTheconversation } from "react-icons/si";
 import { TbPencil } from "react-icons/tb";
-import { AddNewChat, type ChatSelection, ChatSelectionListLoader, deleteChatData, getNextChatCounter, UpdateChatTitle } from "../lib/chat";
-import { unsetCurrentChatSettings } from "./chat";
+import { AddNewChat, ChatSelectionListLoader, deleteChatData, getNextChatCounter, UpdateChatTitle } from "../lib/chat";
+import { unsetCurrentChatSettings } from "./chat-redux";
 import { SystemMessage } from "./message";
+import { addNewChat, deleteChat, setChatSelectionList, setCurrentChatID, updateChatTitle } from "./chatList-redux";
 
 
 export function ChatSelectionList({ chatSelectionListLoader, className = "" }: {
@@ -186,45 +186,3 @@ export function ChatSelection({ id: chatID, title, className = "", selected = fa
     )
 }
 
-const initialChatSelectionListState: {
-    selectionList: ChatSelection[]
-    currentChatID: string | undefined
-} = {
-    selectionList: [],
-    currentChatID: undefined
-}
-const chatSelectionListSlice = createSlice(
-    {
-        name: 'chatSelectionList',
-        initialState: initialChatSelectionListState,
-        reducers: {
-            addNewChat: (state, chatSelection: PayloadAction<ChatSelection>) => {
-                state.selectionList = [chatSelection.payload, ...state.selectionList]
-                state.currentChatID = chatSelection.payload.id
-            },
-            addNewChatWithoutSettingCurrentChatID: (state, chatSelection: PayloadAction<ChatSelection>) => {
-                state.selectionList = [chatSelection.payload, ...state.selectionList]
-            },
-            deleteChat: (state, chatID: PayloadAction<string>) => {
-                state.selectionList = state.selectionList.filter(chat => chat.id !== chatID.payload)
-                if (state.currentChatID === chatID.payload) {
-                    state.currentChatID = state.selectionList[0]?.id
-                }
-            },
-            setChatSelectionList: (state, chatSelectionList: PayloadAction<ChatSelection[]>) => {
-                state.selectionList = chatSelectionList.payload
-            },
-            setCurrentChatID: (state, chatID: PayloadAction<string>) => {
-                state.currentChatID = chatID.payload
-            },
-            updateChatTitle: (state, action: PayloadAction<{ chatID: string, newTitle: string }>) => {
-                const chat = state.selectionList.find(item => item.id === action.payload.chatID)
-                if (chat) {
-                    chat.title = action.payload.newTitle
-                }
-            }
-        }
-    },
-)
-export const { addNewChat, addNewChatWithoutSettingCurrentChatID: addNewChatWithoutSettingCurrentChat, setChatSelectionList, setCurrentChatID, updateChatTitle, deleteChat } = chatSelectionListSlice.actions
-export const chatSelectionListReducer = chatSelectionListSlice.reducer

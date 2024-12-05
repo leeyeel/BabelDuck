@@ -1,23 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AddMesssageInChat, ChatLoader, loadChatSettings, LocalChatSettings, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
+import { AddMesssageInChat, ChatLoader, updateInputHandlerInLocalStorage, persistMessageUpdateInChat as updateMessageInChat } from "../lib/chat";
+import { loadChatSettings } from "@/app/settings/lib/settings";
+import { LocalChatSettings } from "../components/chat-settings";
 import { useImmer } from "use-immer";
 import { isOpenAILikeMessage, OpenAILikeMessage, type Message } from "../lib/message";
 import { RecommendedRespMessage, SpecialRoles as SpecialRoles, TextMessage } from "./message";
 import { MessageInput, MsgListSwitchSignal } from "./input";
 import { InputHandler } from "./input-handlers";
 import { SiTheconversation } from "react-icons/si";
-import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatError, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, InvalidModelSettingsError, OpenAIChatIntelligence, OpenAIChatISettings, TutorialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { BabelDuckChatIntelligence, ChatIntelligence, CustomLLMChatIntelligence, CustomLLMServiceChatISettings, FreeTrialChatIntelligence, getChatIntelligenceSettingsByID, OpenAIChatIntelligence, OpenAIChatISettings, TutorialChatIntelligence } from "@/app/intelligence-llm/lib/intelligence";
+import { InvalidModelSettingsError } from "@/app/error/error";
+import { FreeTrialChatError } from "@/app/error/error";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { Tooltip } from "react-tooltip";
 import { useTranslation } from "react-i18next";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { LuSettings } from "react-icons/lu";
 import { LocalChatSettingsComponent } from "@/app/settings/components/settings";
 import { ChatSettingsContext } from "./chat-settings";
 import { toast } from "react-hot-toast";
+import { setCurrentChatSettings } from "./chat-redux";
 
 export function Chat({ chatID, chatTitle, loadChatByID, className = "" }: {
     chatID: string,
@@ -295,34 +299,3 @@ export function MessageList({ messageList, updateMessage, className }: {
         <div ref={messagesEndRef} />
     </div>
 }
-
-// ==================== redux ====================
-
-type ModifiedLocalChatSettings = Omit<LocalChatSettings, 'inputHandlers'> & {
-    // InputHandler is not serializable, so transfer them to string before stored in redux
-    inputHandlers: { handler: string, display: boolean }[];
-}
-const initCurrentChatSettingsState: {
-    currentChatID: string | undefined,
-    currentChatSettings: ModifiedLocalChatSettings | undefined
-} = {
-    currentChatID: undefined,
-    currentChatSettings: undefined
-}
-const currentChatSettingsSlice = createSlice({
-    name: 'currentChatSettings',
-    initialState: initCurrentChatSettingsState,
-    reducers: {
-        unsetCurrentChatSettings: (state) => {
-            state.currentChatID = undefined
-            state.currentChatSettings = undefined
-        },
-        setCurrentChatSettings: (state, newState: PayloadAction<{ chatID: string, chatSettings: ModifiedLocalChatSettings }>) => {
-            state.currentChatID = newState.payload.chatID
-            state.currentChatSettings = newState.payload.chatSettings
-        }
-    }
-})
-
-export const { setCurrentChatSettings, unsetCurrentChatSettings } = currentChatSettingsSlice.actions
-export const currentChatSettingsReducer = currentChatSettingsSlice.reducer
