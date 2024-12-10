@@ -449,7 +449,7 @@ export function MessageInput({
     </div>;
 }
 
-let enableVoiceModeShortcutTimer: NodeJS.Timeout
+// let enableVoiceModeShortcutTimer: NodeJS.Timeout
 
 function TextInput(
     { allowEdit, msgListSwitchSignal, addMessage, updateMessage, revisionMessage }: {
