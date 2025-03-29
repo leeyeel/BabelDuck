@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { FaBackspace, FaMicrophone } from "react-icons/fa";
 import { FiPlus } from "react-icons/fi";
 import { LiaComments } from "react-icons/lia";
-import { LuSettings, LuUserCog2 } from "react-icons/lu";
+import { LuSettings, LuUserCog } from "react-icons/lu";
 import { PiKeyReturnBold } from "react-icons/pi";
 import { TbPencil } from "react-icons/tb";
 import { Audio, Oval } from "react-loader-spinner";
@@ -687,7 +687,7 @@ function TextInput(
             {/* current message role */}
             <div className="relative flex flex-row rounded-full hover:bg-gray-300">
                 <div className="flex flex-row p-1 px-3 cursor-pointer" onClick={() => setShowRoleMenu(!showRoleMenu)}>
-                    <LuUserCog2 className="mr-2" size={25} /> <span className="font-bold">{msg.role}</span>
+                    <LuUserCog className="mr-2" size={25} /> <span className="font-bold">{msg.role}</span>
                 </div>
                 {showRoleMenu && (
                     <>

@@ -5,7 +5,7 @@ import { ChatSettingsContext } from "./chat-settings"
 import { MsgListSwitchSignal } from "./input"
 import { useContext, useEffect, useRef, useState } from "react"
 import { SpecialRoles, TextMessage } from "./message"
-import { LuUserCog2 } from "react-icons/lu"
+import { LuUserCog } from "react-icons/lu"
 import { FaBackspace, FaMicrophone } from "react-icons/fa"
 import Switch from "react-switch"
 import { Tooltip } from "react-tooltip"
@@ -164,7 +164,7 @@ export function TutorialInput(
             {/* current message role */}
             <div className="relative flex flex-row rounded-full hover:bg-gray-300 invisible">
                 <div className="flex flex-row p-1 px-3 cursor-default">
-                    <LuUserCog2 className="mr-2" size={25} /> <span className="font-bold">{msg.role}</span>
+                    <LuUserCog className="mr-2" size={25} /> <span className="font-bold">{msg.role}</span>
                 </div>
             </div>
             {/* voice control buttons */}
