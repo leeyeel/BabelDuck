@@ -33,4 +33,5 @@ services:
     depends_on:
       - whisper-stt               # 👈 依赖 STT 服务
     restart: unless-stopped
+    pull_policy: never
 
