@@ -63,7 +63,7 @@ function AboutPanel({ onClose }: { onClose: () => void }) {
 
             {/* GitHub Link */}
             <a
-              href="https://github.com/Orenoid/BabelDuck"
+              href="https://github.com/leeyeel/BabelDuck"
               target="_blank"
               rel="noopener noreferrer"
               className="no-underline"

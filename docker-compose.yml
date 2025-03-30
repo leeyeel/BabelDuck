@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  whisper-stt:
+    image: lintoai/linto-stt-whisper:latest
+    container_name: whisper-stt
+    restart: unless-stopped
+    ports:
+      - "8999:80"
+    volumes:
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      SERVICE_MODE: http
+      MODEL: medium
+      DEVICE: cuda
+      VAD: false
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  babel-duck:
+    image: orenoid/babel-duck:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile      # 如果文件名不同，可以修改
+    container_name: babel-duck
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env
+    depends_on:
+      - whisper-stt               # 👈 依赖 STT 服务
+    restart: unless-stopped
+

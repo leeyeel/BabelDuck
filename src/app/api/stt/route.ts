@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
         const audioFile = formData.get('file') as Blob;
-        const model = formData.get('model') as string;
+        const language = formData.get('language') as string | null;
 
-        if (!audioFile || !model) {
+        if (!audioFile) {
             return new Response(JSON.stringify({ error: 'Missing required fields' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
@@ -22,20 +22,30 @@ export async function POST(request: NextRequest) {
         }
 
         const form = new FormData();
-        form.append('model', model);
         form.append('file', audioFile, 'recording.wav');
+        if (language) {
+            form.append('language', language);
+        }
 
-        const response = await fetch(apiUrl, {
+        const response = await fetch(`${apiUrl}`, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+                Accept: 'text/plain', 
             },
             body: form
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('STT API response error:', errorText);
+            return new Response(JSON.stringify({ error: 'STT service error' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
 
-        return new Response(JSON.stringify(data), {
+        const text = await response.text(); 
+        return new Response(JSON.stringify({ text }), {
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -46,4 +56,5 @@ export async function POST(request: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
         });
     }
-} 
+}
+
