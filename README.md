@@ -28,6 +28,7 @@
 
 1. 大语言模型api key必须，可考虑openai,deepseek，qwen等(必须）
 2. 微软azure 文字转语音 （可选）
+3. 本地STT需要GPU（无GPU速度慢，延迟高，可在docker-compose.yml中把DEVICE参数改为cpu
 
 ### 🛠 部署
 
